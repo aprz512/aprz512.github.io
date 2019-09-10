@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="经常听到有人说磁盘很慢、网络很卡，这都是站在人类的感知维度去表述的，比如拷贝一个文件到硬盘需要几分钟到几十分钟，够我去吃个饭啦；而从网络下载一部电影，有时候需要几个小时，我都可以睡一觉了。最为我们熟知的关于计算机不同组件速度差异的图表，是下面这种金字塔形式：越往上速度越快，容量越小，而价格越高。这张图只是给了我们一个直观地感觉，并没有对各个速度和性能做出量化的说明和解释。而实际上，不同层级之间的差">
+<meta name="keywords" content="计算机原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="让 CPU 告诉你硬盘和网络到底有多慢">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/计算机原理/让 CPU 告诉你硬盘和网络到底有多慢/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="经常听到有人说磁盘很慢、网络很卡，这都是站在人类的感知维度去表述的，比如拷贝一个文件到硬盘需要几分钟到几十分钟，够我去吃个饭啦；而从网络下载一部电影，有时候需要几个小时，我都可以睡一觉了。最为我们熟知的关于计算机不同组件速度差异的图表，是下面这种金字塔形式：越往上速度越快，容量越小，而价格越高。这张图只是给了我们一个直观地感觉，并没有对各个速度和性能做出量化的说明和解释。而实际上，不同层级之间的差">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-19T14:34:50.488Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="让 CPU 告诉你硬盘和网络到底有多慢">
+<meta name="twitter:description" content="经常听到有人说磁盘很慢、网络很卡，这都是站在人类的感知维度去表述的，比如拷贝一个文件到硬盘需要几分钟到几十分钟，够我去吃个饭啦；而从网络下载一部电影，有时候需要几个小时，我都可以睡一觉了。最为我们熟知的关于计算机不同组件速度差异的图表，是下面这种金字塔形式：越往上速度越快，容量越小，而价格越高。这张图只是给了我们一个直观地感觉，并没有对各个速度和性能做出量化的说明和解释。而实际上，不同层级之间的差">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/计算机原理/让 CPU 告诉你硬盘和网络到底有多慢/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>让 CPU 告诉你硬盘和网络到底有多慢 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/计算机原理/让 CPU 告诉你硬盘和网络到底有多慢/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">让 CPU 告诉你硬盘和网络到底有多慢
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-19 22:34:50" itemprop="dateModified" datetime="2019-08-19T22:34:50+08:00">2019-08-19</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/计算机原理/让 CPU 告诉你硬盘和网络到底有多慢/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/计算机原理/让 CPU 告诉你硬盘和网络到底有多慢/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>经常听到有人说磁盘很慢、网络很卡，这都是站在人类的感知维度去表述的，比如拷贝一个文件到硬盘需要几分钟到几十分钟，够我去吃个饭啦；而从网络下载一部电影，有时候需要几个小时，我都可以睡一觉了。</p><p>最为我们熟知的关于计算机不同组件速度差异的图表，是下面这种金字塔形式：越往上速度越快，容量越小，而价格越高。这张图只是给了我们一个直观地感觉，并没有对各个速度和性能做出量化的说明和解释。而实际上，不同层级之间的差异要比这张图大的多。这篇文章就让你站在 CPU 的角度看这个世界，说说到底它们有多慢。</p><a id="more"></a>
+
+<p>希望你看到看完这篇文章能明白两件事情：磁盘和网络真的很慢，性能优化是个复杂的系统性的活。</p>
+<p>注：所有的数据都是来自<a href="https://link.zhihu.com/?target=https%3A//gist.github.com/hellerbarde/2843375" target="_blank" rel="noopener">这个地址</a>。所有的数据会因为机器配置不同，或者硬件的更新而有出入，但是不影响我们直觉的感受。如果对这些数据比较感兴趣，<a href="https://link.zhihu.com/?target=https%3A//people.eecs.berkeley.edu/~rcs/research/interactive_latency.html" target="_blank" rel="noopener">这个网址</a>给出了不同年份一些指标的数值。</p>
+<h2 id="数据"><a href="#数据" class="headerlink" title="数据"></a>数据</h2><ul>
+<li><p>先来看看 CPU 的速度，就拿我的电脑来说，主频是 2.6G，也就是说每秒可以执行 2.6*10^9个指令，每个指令只需要 0.38ns（现在很多个人计算机的主频要比这个高，配置比较高的能达到 3.0G+）。我们把这个时间当做基本单位 1s，因为 1s 大概是人类能感知的最小时间单位。</p>
+</li>
+<li><p>一级缓存读取时间为 0.5ns，换算成人类时间大约是 1.3s，大约一次或者两次心跳的时间。这里能看出缓存的重要性，因为它的速度可以赶上 CPU，程序本身的 locality 特性加上指令层级上的优化，cache 访问的命中率很高，这最终能极大提高效率。</p>
+</li>
+<li><p>分支预测错误需要耗时 5ns，换算成人类时间大约是 13s，这个就有点久了，所以你会看到很多文章分析如何优化代码来降低分支预测的几率，比如<a href="https://link.zhihu.com/?target=http%3A//stackoverflow.com/questions/11227809/why-is-it-faster-to-process-a-sorted-array-than-an-unsorted-array" target="_blank" rel="noopener">这个得分非常高的 stackoverflow 问题</a>。</p>
+</li>
+<li><p>二级缓存时间就比较久了，大约在 7ns，换算成人类时间大约是 18.2s，可以看到的是如果一级缓存没有命中，然后去二级缓存读取数据，时间差了一个数量级。</p>
+</li>
+</ul>
+<p><strong>小知识：</strong>为什么需要多层的 CPU 缓存呢？<a href="https://link.zhihu.com/?target=https%3A//fgiesen.wordpress.com/2016/08/07/why-do-cpus-have-multiple-cache-levels/" target="_blank" rel="noopener">这篇文章通过一个通俗易懂的例子给出了讲解</a>。</p>
+<ul>
+<li>我们继续，互斥锁的加锁和解锁时间需要 25ns，换算成人类时间大约是 65s，首次达到了一分钟。并发编程中，我们经常听说锁是一个很耗时的东西，因为在微波炉里加热一个东西需要一分钟的话，你要在那傻傻地等蛮久了。</li>
+<li>然后就到了内存，每次内存寻址需要 100ns，换算成人类时间是 260s，也就是4分多钟，如果读一些不需要太多思考的文章，这么久能读完2-3千字（这个快阅读的时代，很少人在手机上能静心多这么字了）。到了内存之后，时间就变得一个量级，CPU 和内存之间的速度瓶颈被称为<a href="https://link.zhihu.com/?target=https%3A//en.wikipedia.org/wiki/Von_Neumann_architecture%23Von_Neumann_bottleneck" target="_blank" rel="noopener">冯诺依曼瓶颈</a>。</li>
+<li>一次 CPU 上下文切换（系统调用）需要大约 1500ns，也就是 1.5us（这个数字参考了<a href="https://link.zhihu.com/?target=http%3A//blog.tsunanet.net/2010/11/how-long-does-it-take-to-make-context.html" target="_blank" rel="noopener">这篇文章</a>，采用的是单核 CPU 线程平均时间），换算成人类时间大约是65分钟，嗯，也就是一个小时。我们也知道上下文切换是很耗时的行为，毕竟每次浪费一个小时，也很让人有罪恶感的。上下文切换更恐怖的事情在于，<strong>这段时间里 CPU 没有做任何有用的计算</strong>，只是切换了两个不同进程的寄存器和内存状态；而且这个过程<strong>还破坏了缓存，</strong>让后续的计算更加耗时。</li>
+<li>在 1Gbps 的网络上传输 2K 的数据需要 20us，换算成人类时间是 14.4小时，这么久都能把《星球大战》六部曲看完了（甚至还加上吃饭撒尿的时间）！可以看到网络上非常少数据传输对于 CPU 来说，已经很漫长。而且这里的时间还是理论最大值，实际过程还要更慢一些。</li>
+<li>SSD 随机读取耗时为 150us，换算成人类时间大约是 4.5天。换句话说，SSD 读点数据，CPU 都能休假，报团参加周边游了。虽然我们知道 SSD 要比机械硬盘快很多，但是这个速度对于 CPU 来说也是像乌龟一样。I/O 设备 从硬盘开始速度开始变得漫长，这个时候我们就想起内存的好处了。尽量减少 IO 设备的读写，把最常用的数据放到内存中作为缓存是所有程序的通识。像 memcached 和 redis 这样的高速缓存系统近几年的异军突起，就是解决了这里的问题。</li>
+<li>从内存中读取 1MB 的连续数据，耗时大约为 250us，换算成人类时间是 7.5天，这次假期升级到国庆七天国外游了。</li>
+<li>同一个数据中心网络上跑一个来回需要 0.5ms，换算成人类时间大约是 15天，也就是半个月的时间。如果你的程序有段代码需要和数据中心的其他服务器交互，在这段时间里 CPU 都已经狂做了半个月的运算。减少不同服务组件的网络请求，是性能优化的一大课题。</li>
+<li>从 SSD 读取 1MB 的顺序数据，大约需要 1ms，换算成人类时间是 1个月。也就是说 SSD 读一个普通的文件，如果要等你做完，CPU 一个月时间就荒废了。尽管如此，<strong>SSD</strong> 已经很快啦，不信你看下面机械磁盘的表现。</li>
+<li>磁盘寻址时间为 10ms，换算成人类时间是 10个月，刚好够人类创造一个新的生命了。如果 CPU 需要让磁盘泡杯咖啡，在它眼里，磁盘去生了个孩子，回来告诉它你让我泡的咖啡好了。机械硬盘使用 RPM(Revolutions Per Minute/每分钟转速) 来评估磁盘的性能：RPM 越大，平均寻址时间更短，磁盘性能越好。寻址只是把磁头移动到正确的磁道上，然后才能读取指定扇区的内容。换句话说，寻址虽然很浪费时间，但其实它并没有办任何的正事（读取磁盘内容）。</li>
+<li>从磁盘读取 1MB 连续数据需要 20ms，换算成人类时间是 20个月。<strong>IO 设备是计算机系统的瓶颈</strong>，希望读到这里你能更深切地理解这句话！如果还不理解，不妨想想你在网上买的东西，快递送了将近两年，你的心情是怎么样的。</li>
+<li>而从世界上不同城市网络上走一个来回，平均需要 150ms（参考<a href="https://link.zhihu.com/?target=https%3A//wondernetwork.com/pings/" target="_blank" rel="noopener">世界各地 ping 报文的时间</a>），换算成人类时间是 12.5年。不难理解，所有的程序和架构都会尽量避免不同城市甚至是跨国家的网络访问，<a href="https://link.zhihu.com/?target=https%3A//en.wikipedia.org/wiki/Content_delivery_network" target="_blank" rel="noopener">CDN</a> 就是这个问题的一个解决方案：让用户和最接近自己的服务器交互，从而减少网络上报文的传输时间。</li>
+<li>虚拟机重启一次大约要 4s 时间，换算成人类的时间是 3百多年。对于此，我想到了乔布斯要死命<a href="https://link.zhihu.com/?target=http%3A//stevejobsdailyquote.com/2014/03/26/boot-time/" target="_blank" rel="noopener">优化 Mac 系统开机启动时间</a>的故事。如果机器能少重启而且每次启动能快一点，不仅能救人命，也能救 CPU 的命。</li>
+<li>物理服务器重启一次需要 5min，换算成人类时间是 2万5千年，快赶上人类的文明史了。5 分钟人类都要等一会了，更别提 CPU 了，所以没事不要乱重启服务器啊，分分钟终结一个文明的节奏。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/计算机原理/让 CPU 告诉你硬盘和网络到底有多慢/" title="让 CPU 告诉你硬盘和网络到底有多慢">http://aprz512.github.io/2019/09/10/blog_bak/Blog/计算机原理/让 CPU 告诉你硬盘和网络到底有多慢/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/计算机原理/" rel="tag"># 计算机原理</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/算法/大话数据结构/0011-空间复杂度/" rel="next" title="0011-空间复杂度">
+                  <i class="fa fa-chevron-left"></i> 0011-空间复杂度
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据"><span class="nav-number">1.</span> <span class="nav-text">数据</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

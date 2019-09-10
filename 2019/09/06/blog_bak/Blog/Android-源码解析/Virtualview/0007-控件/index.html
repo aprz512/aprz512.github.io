@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="虚拟控件到底是如何工作的？它是如何直接绘制在 canvas 上的？Tangram 提供的控件分为两类，一类以 Native 开头，表示实际上是基于原生控件实现的。一类以 Virtual 开头，表示这不是一个实际的控件。这里分析两个控件，来加深对虚拟控件的理解。NativeText看它的构造函数，它里面封装了一个原生的控件：">
+<meta name="keywords" content="Android-源码解析-Virtualview">
+<meta property="og:type" content="article">
+<meta property="og:title" content="0007-控件">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="虚拟控件到底是如何工作的？它是如何直接绘制在 canvas 上的？Tangram 提供的控件分为两类，一类以 Native 开头，表示实际上是基于原生控件实现的。一类以 Virtual 开头，表示这不是一个实际的控件。这里分析两个控件，来加深对虚拟控件的理解。NativeText看它的构造函数，它里面封装了一个原生的控件：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-07T03:42:50.530Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="0007-控件">
+<meta name="twitter:description" content="虚拟控件到底是如何工作的？它是如何直接绘制在 canvas 上的？Tangram 提供的控件分为两类，一类以 Native 开头，表示实际上是基于原生控件实现的。一类以 Virtual 开头，表示这不是一个实际的控件。这里分析两个控件，来加深对虚拟控件的理解。NativeText看它的构造函数，它里面封装了一个原生的控件：">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>0007-控件 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">0007-控件
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-06T00:00:00+08:00">2019-09-06</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>虚拟控件到底是如何工作的？它是如何直接绘制在 canvas 上的？</p><p>Tangram 提供的控件分为两类，一类以 Native 开头，表示实际上是基于原生控件实现的。一类以 Virtual 开头，表示这不是一个实际的控件。</p><p>这里分析两个控件，来加深对虚拟控件的理解。</p><h2 id="NativeText"><a href="#NativeText" class="headerlink" title="NativeText"></a>NativeText</h2><p>看它的构造函数，它里面封装了一个原生的控件：</p><a id="more"></a>
+
+
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.view.text.NativeText</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NativeText</span> <span class="keyword">extends</span> <span class="title">TextBase</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> NativeTextImp mNative;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">NativeText</span><span class="params">(VafContext context, ViewCache viewCache)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(context, viewCache);</span><br><span class="line"></span><br><span class="line">        mNative = <span class="keyword">new</span> NativeTextImp(context.forViewConstruction());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 NativeTextImp 就是继承至 TextView 的。</p>
+<p>Tangram 的控件都是继承至 ViewBase 的，而不是继承至 View。它们没有 view 的 onMeasure，onLayout，onDraw 等方法，而是有自己的一套方法：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.IView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">onComMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">onComLayout</span><span class="params">(<span class="keyword">boolean</span> changed, <span class="keyword">int</span> l, <span class="keyword">int</span> t, <span class="keyword">int</span> r, <span class="keyword">int</span> b)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这两个方法就是自己的一套测量与布局逻辑，对于 Native 开头的控件来说，肯定是直接调用了封装的原生控件的方法：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.view.text.NativeText</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;</span><br><span class="line">    mNative.onComMeasure(widthMeasureSpec, heightMeasureSpec);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComLayout</span><span class="params">(<span class="keyword">boolean</span> changed, <span class="keyword">int</span> l, <span class="keyword">int</span> t, <span class="keyword">int</span> r, <span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    mNative.onComLayout(changed, l, t, r, b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而对于 Virtual 开头的控件来说，它里面没有封装原生控件，所以只能自己实现了，不过我们不用太担心，ViewBase 里有一个内部类 <code>com.tmall.wireless.vaf.virtualview.core.ViewBase.VirtualViewImp</code>，它实现了一些通用的逻辑，一般情况下，我们只需要使用它的方法就好了，看看 VirtualText 是如何做的：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.view.text.VirtualText</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VirtualText</span> <span class="keyword">extends</span> <span class="title">TextBase</span> </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> VirtualViewImp mImp = <span class="keyword">new</span> VirtualViewImp();</span><br><span class="line">    </span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;</span><br><span class="line">        mImp.onComMeasure(widthMeasureSpec, heightMeasureSpec);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComLayout</span><span class="params">(<span class="keyword">boolean</span> changed, <span class="keyword">int</span> l, <span class="keyword">int</span> t, <span class="keyword">int</span> r, <span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，用起来还是很方便的，VirtualText 没有子组件，所以不用实现 onComLayout 方法。</p>
+<p>上面说了测量与布局，没有说绘制，是因为绘制有点特殊。还记得在容器添加组件的时候，是怎么做的么？</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.container.Container#attachViews(com.tmall.wireless.vaf.virtualview.core.ViewBase, android.view.View)</p>
+<p>之前我们没有深入分析这个方法，只是简单的带过了</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">attachViews</span><span class="params">(ViewBase view, View displayViewHolder)</span> </span>&#123;</span><br><span class="line">    view.setDisplayViewContainer(displayViewHolder);</span><br><span class="line">    <span class="keyword">if</span> (view <span class="keyword">instanceof</span> Layout) &#123;</span><br><span class="line">        View v = view.getNativeView();</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != v) &#123;</span><br><span class="line">            <span class="keyword">if</span> (v.getParent() == <span class="keyword">null</span>) &#123;</span><br><span class="line">                LayoutParams layoutParams = <span class="keyword">new</span> LayoutParams(view.getComLayoutParams().mLayoutWidth, view.getComLayoutParams().mLayoutHeight);</span><br><span class="line">                addView(v, layoutParams);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                LayoutParams layoutParams = v.getLayoutParams();</span><br><span class="line">                layoutParams.width = view.getComLayoutParams().mLayoutWidth;</span><br><span class="line">                layoutParams.height = view.getComLayoutParams().mLayoutHeight;</span><br><span class="line">                v.setLayoutParams(layoutParams);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (v <span class="keyword">instanceof</span> INativeLayoutImpl) &#123;</span><br><span class="line">                Layout layout = (Layout) view;</span><br><span class="line">                List&lt;ViewBase&gt; subViews = layout.getSubViews();</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> != subViews) &#123;</span><br><span class="line">                    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, size = subViews.size(); i &lt; size; i++) &#123;</span><br><span class="line">                        ViewBase com = subViews.get(i);</span><br><span class="line">                        ((INativeLayoutImpl) v).attachViews(com, v);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Layout layout = (Layout) view;</span><br><span class="line">            List&lt;ViewBase&gt; subViews = layout.getSubViews();</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> != subViews) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, size = subViews.size(); i &lt; size; i++) &#123;</span><br><span class="line">                    ViewBase com = subViews.get(i);</span><br><span class="line">                    attachViews(com, displayViewHolder);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        View v = view.getNativeView();</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != v) &#123;</span><br><span class="line">            <span class="keyword">if</span> (v.getParent() == <span class="keyword">null</span>) &#123;</span><br><span class="line">                LayoutParams layoutParams = <span class="keyword">new</span> LayoutParams(view.getComLayoutParams().mLayoutWidth, view.getComLayoutParams().mLayoutHeight);</span><br><span class="line">                addView(v, layoutParams);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                LayoutParams layoutParams = v.getLayoutParams();</span><br><span class="line">                layoutParams.width = view.getComLayoutParams().mLayoutWidth;</span><br><span class="line">                layoutParams.height = view.getComLayoutParams().mLayoutHeight;</span><br><span class="line">                v.setLayoutParams(layoutParams);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法看起来很长，但是表达的意思非常的简单：</p>
+<ul>
+<li>如果这个组件是以 Native 开头，这将这个组件封装的原生控件添加到容器里面</li>
+<li>而对于不是以 Native 开头的，没有添加到容器里面，因为它根本就不是一个 view</li>
+</ul>
+<p>这里说的 Native 开头不太准确，但是比较好理解，应该说成是里面封装了一个原生控件的组件。</p>
+<p>对于以 Native 开头的，既然添加到了容器里面，那么它的绘制，就都交给 ViewRootImpl 去处理了，不用我们关心。那么这里有一个问题，既然它会被添加到容器里面，我们可不可以不用去实现其测量与布局逻辑呢？反正都是由系统处理。这个肯定是不行的，因为虽然添加到容器中后，走的是系统的布局，但是<strong>它与容器中其他虚拟控件的相互位置等等</strong>，走的是自定义的那一套逻辑，所以还是要实现自定义的测量与布局。</p>
+<h2 id="VirtualText"><a href="#VirtualText" class="headerlink" title="VirtualText"></a>VirtualText</h2><p>而对于非 Native 开头的，它没有被添加到容器里面，那么它是怎么显示出来的呢？其实就是直接画在容器上的 canvas 上的啦。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.container.Container#onDraw</p>
+<p>如果有虚拟控件，需要调用 setWillNotDraw(false);，该方法才会执行</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDraw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != mView &amp;&amp; mView.shouldDraw()) &#123;</span><br><span class="line">        mView.comDraw(canvas);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的 mView 就是模板文件的根 ViewBase 了。它调用了自己 comDraw 方法，参数是自己的 canvas，我们拿 VHLayout 举例：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.Layout#comDraw</p>
+<p>VHLayout  继承 Layout</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">comDraw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.comDraw(canvas);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//FIXME let layout clip virtual children</span></span><br><span class="line">    <span class="comment">//canvas.save();</span></span><br><span class="line">    <span class="comment">//VirtualViewUtils.clipCanvas(canvas, mMeasuredWidth, mMeasuredHeight, mBorderWidth,</span></span><br><span class="line">    <span class="comment">//    mBorderTopLeftRadius, mBorderTopRightRadius, mBorderBottomLeftRadius, mBorderBottomRightRadius);</span></span><br><span class="line">    <span class="comment">// draw children</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, size = mSubViews.size(); i &lt; size; i++) &#123;</span><br><span class="line">        ViewBase v = mSubViews.get(i);</span><br><span class="line">        <span class="keyword">if</span> (v.shouldDraw()) &#123;</span><br><span class="line">            v.comDraw(canvas);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//canvas.restore();</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，它调用了每个子组件的 comDraw 方法。这样一层一层绘制下去，我们拿 VirtualText 举例：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.view.text.VirtualText#onComDraw</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onComDraw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">super</span>.onComDraw(canvas);</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">null</span> == mContentRect) &#123;</span><br><span class="line">           makeContentRect();</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">null</span> != mContentRect) &#123;</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">           canvas.save();</span><br><span class="line">           canvas.clipRect(<span class="number">0</span>, <span class="number">0</span>, mMeasuredWidth, mMeasuredHeight);</span><br><span class="line">           canvas.drawText(mDrawText, left, top - mDescent, mPaint);</span><br><span class="line">           canvas.restore();</span><br><span class="line">     	 ...</span><br><span class="line"></span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">           Log.w(TAG, <span class="string">"skip draw text"</span>);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样 Text 就绘制出来了。</p>
+<p>不过在绘制的时候，还有一个需要注意的地方：</p>
+<p>子组件的画布需要变化一下，需要将绘制的位置，变换到布局的位置。</p>
+<p>看看它是如何做的：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#comLayout</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">comLayout</span><span class="params">(<span class="keyword">int</span> l, <span class="keyword">int</span> t, <span class="keyword">int</span> r, <span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    mDrawLeft = l;</span><br><span class="line">    mDrawTop = t;</span><br><span class="line"></span><br><span class="line">    onComLayout(<span class="keyword">true</span>, l, t, r, b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在子组件布局完成之后，保存了左上角的位置。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#comDraw</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">comDraw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">    canvas.save();</span><br><span class="line">    canvas.translate(mDrawLeft, mDrawTop);</span><br><span class="line">    onComDraw(canvas);</span><br><span class="line">    canvas.restore();</span><br><span class="line">    mIsDrawed = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，在绘制的时候，将画布平移了，这样一来，就不用子组件来操心了。</p>
+<p>总结：</p>
+<p>虚拟控件就是将测量，布局，绘制的逻辑封装在了一个普通的类X中，在依托容器显示的时候，容器中组件的测量，布局，绘制的逻辑，都走X类中的测量，布局，绘制的逻辑。</p>
+<p>测量，布局逻辑是为了确定子组件在容器中画布的位置。</p>
+<p>其实，把它想象成一个自定义控件就很好理解了。</p>
+<p>当我们自定义一个比较复杂的控件时，通常会将这个控件分为好几部分。比如我们要绘制一个日历控件：</p>
+<ul>
+<li>我们可以将将年分当作容器，它可以用 RecyclerView 或者 ViewPager 来实现</li>
+<li>将月份封装成一个类，它只需要确定当前月有多少天，以及每天的信息应该绘制在哪个位置 （这个玩意就相当于一个布局方法了），以及绘制边框</li>
+<li>将天封装成一个类，它绘制每一天的信息</li>
+</ul>
+<p>对于月份来说，它不是一个 View，却相当于一个 ViewGroup，用于确定每一天的位置，然后平移画布。</p>
+<p>对于天来说，它不是一个 View，却相当于一个 View，用于绘制某天的信息。</p>
+<p>我们项目中的日历就是这么实现的，扩展性也不错。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/" title="0007-控件">http://aprz512.github.io/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-源码解析-Virtualview/" rel="tag"># Android-源码解析-Virtualview</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/04/blog_bak/Blog/算法/大话数据结构/0027-栈的应用之四则表达式/" rel="next" title="0027-栈的应用之四则表达式">
+                  <i class="fa fa-chevron-left"></i> 0027-栈的应用之四则表达式
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0006-事件处理/" rel="prev" title="0006-事件处理">
+                  0006-事件处理 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#NativeText"><span class="nav-number">1.</span> <span class="nav-text">NativeText</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VirtualText"><span class="nav-number">2.</span> <span class="nav-text">VirtualText</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

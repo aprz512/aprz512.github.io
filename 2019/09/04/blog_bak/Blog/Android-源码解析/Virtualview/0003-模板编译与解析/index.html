@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="PS： 为了方便记录，将编译与解析合并 官方文档的这一篇叫做“组件编译”，我看了文档，发现这里的组件的意思应该是“控件”。为了阅读的流畅性，所以这里我就改名为模板编译，其实最终还是编译的一个一个的布局控件。既然要将一个xml文件编译成二进制文件，最后还要能够解析出来，那么我们需要解决一些问题，还是拿之前的 xml 文件来说：">
+<meta name="keywords" content="Android-源码解析-Virtualview">
+<meta property="og:type" content="article">
+<meta property="og:title" content="0003-模板编译与解析">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="PS： 为了方便记录，将编译与解析合并 官方文档的这一篇叫做“组件编译”，我看了文档，发现这里的组件的意思应该是“控件”。为了阅读的流畅性，所以这里我就改名为模板编译，其实最终还是编译的一个一个的布局控件。既然要将一个xml文件编译成二进制文件，最后还要能够解析出来，那么我们需要解决一些问题，还是拿之前的 xml 文件来说：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Virtualview/2.png?raw=true">
+<meta property="og:updated_time" content="2019-09-07T05:59:24.455Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="0003-模板编译与解析">
+<meta name="twitter:description" content="PS： 为了方便记录，将编译与解析合并 官方文档的这一篇叫做“组件编译”，我看了文档，发现这里的组件的意思应该是“控件”。为了阅读的流畅性，所以这里我就改名为模板编译，其实最终还是编译的一个一个的布局控件。既然要将一个xml文件编译成二进制文件，最后还要能够解析出来，那么我们需要解决一些问题，还是拿之前的 xml 文件来说：">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Virtualview/2.png?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>0003-模板编译与解析 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">0003-模板编译与解析
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-04T00:00:00+08:00">2019-09-04</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-07 13:59:24" itemprop="dateModified" datetime="2019-09-07T13:59:24+08:00">2019-09-07</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>PS： 为了方便记录，将编译与解析合并</p>
+</blockquote><p>官方文档的这一篇叫做“组件编译”，我看了文档，发现这里的组件的意思应该是“控件”。为了阅读的流畅性，所以这里我就改名为模板编译，其实最终还是编译的一个一个的布局控件。</p><p>既然要将一个xml文件编译成二进制文件，最后还要能够解析出来，那么我们需要解决一些问题，还是拿之前的 xml 文件来说：</p><a id="more"></a>
+
+
+<blockquote>
+<p>TextTest.xml</p>
+</blockquote>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">VHLayout</span></span></span><br><span class="line"><span class="tag">    <span class="attr">flag</span>=<span class="string">"flag_exposure|flag_clickable"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">layoutHeight</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">layoutWidth</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">orientation</span>=<span class="string">"V"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">NText</span></span></span><br><span class="line"><span class="tag">        <span class="attr">background</span>=<span class="string">"#008899"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">flag</span>=<span class="string">"flag_exposure|flag_clickable"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">layoutHeight</span>=<span class="string">"$&#123;height&#125;"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">layoutWidth</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">text</span>=<span class="string">"Title: text"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">textColor</span>=<span class="string">"#333333"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">textSize</span>=<span class="string">"12"</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">VHLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>首先，VHLayout 这些控件的名字怎么储存？</p>
+<p>然后属性名怎么储存？</p>
+<p>属性值怎么储存？</p>
+<blockquote>
+<p>属性值分为多种，一般的颜色、数值子类的简单，可以字节作为整数存起来，但是像 text 属性，一般是一个字符串，该怎么储存呢？</p>
+<p>还有像 layoutWidth 这样的，可以写 200 这样的数值，也可以写 match_parent，这个又该如何处理？</p>
+</blockquote>
+<p>模板还支持逻辑表达式，这个表达式又该怎么储存？</p>
+<p>我们先来看官方文档的说明，然后一个一个来对照源码进行解析。</p>
+<ul>
+<li>颜色：转换成4字节整型颜色值，格式 AARRGGBB；</li>
+<li>枚举：按照预定义的整数转换，比如 gravity 的类型，orientation 的类型…</li>
+<li>基础组件的类型：按照预定义的整数转换，内置基础组件的类型从 1 开始分配，自定义组件建议从 1000 开始分配，后续可能语义化成字符串类型定义，对用户隐藏这些细节；</li>
+<li>字符串：以 hashCode 值作为它的序列化后整数，并在字符串资源区建立以 hashCode 为索引的列表，在解析的时候从中获取原始的字符串值；</li>
+<li>逻辑表达式：与字符串的处理类似；</li>
+</ul>
+<p>上面说，对于颜色值，是字节储存的，因为颜色值也是 4 个字节组成的，转成二进制都不用改的。在上面的例子种，我们设置的颜色值是 <code>#008899</code>，前面的“#”，我们不需要，只需要后面的“008899”，直接放入二进制文件中。为了验证猜想，我们查看二进制文件，看看有没有 <code>00 88 99</code> 3个直接是挨着的。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Virtualview/2.png?raw=true" alt></p>
+<p>肯定是有的。</p>
+<p>我们再来看源码，是如何解析这个值的。</p>
+<h2 id="加载模板文件"><a href="#加载模板文件" class="headerlink" title="加载模板文件"></a>加载模板文件</h2><p>一个模板编译好了之后，我们可以直接使用，也可以让服务器下发。这里介绍直接使用的方式。按照官方文档的实例，是在 Application 中加载的模板文件，应该也是可以在别的地方加载的。代码如下：</p>
+<blockquote>
+<p>com.aprz.virtualviewdemo.MyApp#onCreate</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sViewManager.loadBinBufferSync(TEST.BIN);</span><br></pre></td></tr></table></figure>
+
+<p>这里传入的参数，就是模板文件的二进制数据数组了。既然加载了数组，肯定需要解析出来使用，我们可以顺着这里路径点击去，最后就到了下面的代码：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.loader.BinaryLoader#loadFromBuffer(byte[], boolean)</p>
+<p>这坨方法，还是非常长的，但是不难，我们一点一点分析啊。</p>
+<p>如果你能对着模板文件结构图来看这段代码，简直不要太简单了。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">loadFromBuffer</span><span class="params">(<span class="keyword">byte</span>[] buf, <span class="keyword">boolean</span> override)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> ret = -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != buf) &#123;</span><br><span class="line">        mDepPageIds = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (buf.length &gt; <span class="number">27</span>) &#123;</span><br><span class="line">            <span class="comment">// check tag</span></span><br><span class="line">            <span class="keyword">byte</span>[] tagArray = Arrays.copyOfRange(buf, <span class="number">0</span>, Common.TAG.length());</span><br><span class="line">            <span class="keyword">if</span> (Arrays.equals(Common.TAG.getBytes(), tagArray)) &#123;</span><br><span class="line">                ...</span><br></pre></td></tr></table></figure>
+
+<p>Common.TAG 就是 “ALIVV”，这个固定标识是用来验证是否是模板文件的。总不能随便给一个二进制文件，就开始解析吧。最后的 if 判断就是用来判断前 5 个字节是否为 “ALIVV”表示的字节。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">CodeReader reader = <span class="keyword">new</span> CodeReader();</span><br><span class="line"></span><br><span class="line">reader.setCode(buf);</span><br><span class="line">reader.seekBy(Common.TAG.length());</span><br><span class="line"></span><br><span class="line"><span class="comment">// check version</span></span><br><span class="line"><span class="keyword">int</span> majorVersion = reader.readShort();</span><br><span class="line"><span class="keyword">int</span> minorVersion = reader.readShort();</span><br><span class="line"><span class="keyword">int</span> patchVersion = reader.readShort();</span><br><span class="line">reader.setPatchVersion(patchVersion);</span><br></pre></td></tr></table></figure>
+
+<p>这一段，逻辑也很清晰，跳过固定标识，依次读取 主版本号，次版本号，修订版本号。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((Common.MAJOR_VERSION == majorVersion) &amp;&amp; (Common.MINOR_VERSION == minorVersion)) &#123;</span><br><span class="line">    <span class="keyword">int</span> uiStartPos = reader.readInt();</span><br><span class="line">    reader.seekBy(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> strStartPos = reader.readInt();</span><br><span class="line">    reader.seekBy(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> exprCodeStartPos = reader.readInt();</span><br><span class="line">    reader.seekBy(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> extraStartPos = reader.readInt();</span><br><span class="line">    reader.seekBy(<span class="number">4</span>);</span><br></pre></td></tr></table></figure>
+
+<p>当主版本号为1，并且次版本号为0的时候，才会走里面的逻辑。这里就可以看出来，主版本号与次版本号不是我们可以更改的，应该是编译的时候生成的固定值。我们只能设置修订版本号。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> pageId = reader.readShort();</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> depPageCount = reader.readShort();</span><br><span class="line"><span class="keyword">if</span> (depPageCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    mDepPageIds = <span class="keyword">new</span> <span class="keyword">int</span>[depPageCount];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; depPageCount; ++i) &#123;</span><br><span class="line">        mDepPageIds[i] = reader.readShort();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里是记录该模板的依赖，没搞懂，而且源码里面标记为过时了，查看源码也没有用到的地方，就当做没有这几行代码吧。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (reader.seek(uiStartPos)) &#123;</span><br><span class="line">    <span class="comment">// parse ui codes</span></span><br><span class="line">    <span class="keyword">boolean</span> result = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">if</span> (!override) &#123;</span><br><span class="line">        result = mUiCodeLoader.loadFromBuffer(reader, pageId, patchVersion);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        result = mUiCodeLoader.forceLoadFromBuffer(reader, pageId, patchVersion);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>定位到组件区的起始位置（不明白的回去查看模板文件二进制格式图）。然后就可以开始读取组件（控件）信息了。UiCodeLoader 里面的逻辑咱们不深入了，留到下面说，这里先把外面的逻辑走完，有个大致的理解。可以猜想一下，UiCodeLoader  肯定是解析控件信息了，将解析控件的代码封装为了一个类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// parse string</span></span><br><span class="line"><span class="keyword">if</span> (reader.getPos() == strStartPos) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != mStringLoader) &#123;</span><br><span class="line">        result = mStringLoader.loadFromBuffer(reader, pageId);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Log.e(TAG, <span class="string">"mStringManager is null"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (BuildConfig.DEBUG) &#123;</span><br><span class="line">        Log.e(TAG, <span class="string">"string pos error:"</span> + strStartPos + <span class="string">"  read pos:"</span> + reader.getPos());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据模板文件二进制格式图可以看出来，组件解析完了之后，就是字符串区了，这里就是解析字符串了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// parse expr</span></span><br><span class="line"><span class="keyword">if</span> (reader.getPos() == exprCodeStartPos) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != mExprCodeLoader) &#123;</span><br><span class="line">        result = mExprCodeLoader.loadFromBuffer(reader, pageId);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Log.e(TAG, <span class="string">"mExprCodeStore is null"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (BuildConfig.DEBUG) &#123;</span><br><span class="line">        Log.e(TAG, <span class="string">"expr pos error:"</span> + exprCodeStartPos + <span class="string">"  read pos:"</span> + reader.getPos());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// load extra data</span></span><br><span class="line"><span class="keyword">if</span> (reader.getPos() == extraStartPos) &#123;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (BuildConfig.DEBUG) &#123;</span><br><span class="line">        Log.e(TAG, <span class="string">"extra pos error:"</span> + extraStartPos + <span class="string">"  read pos:"</span> + reader.getPos());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解析表达式，与解析额外数据，但是这里没有对额外数据做处理，也没有提供可覆盖的方法，有点奇怪。</p>
+<p>总结一下，<code>com.tmall.wireless.vaf.virtualview.loader.BinaryLoader#loadFromBuffer(byte[], boolean)</code>这个方法就是照着模板二进制文件解析出来了里面的所有详细，为实例化出控件做准备。</p>
+<h2 id="UiCodeLoader"><a href="#UiCodeLoader" class="headerlink" title="UiCodeLoader"></a>UiCodeLoader</h2><p>前面，我们没有深入控件解析的逻辑，这里就仔细说说。上面我们分析到了：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.loader.UiCodeLoader#loadFromBuffer</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">loadFromBuffer</span><span class="params">(CodeReader reader, <span class="keyword">int</span> pageId, <span class="keyword">int</span> patchVersion)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> ret = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> count = reader.readInt();</span><br><span class="line">    <span class="comment">//count should be 1</span></span><br><span class="line">    <span class="keyword">short</span> nameSize = reader.readShort();</span><br><span class="line">    String name = <span class="keyword">new</span> String(reader.getCode(), reader.getPos(), nameSize, Charset.forName(<span class="string">"UTF-8"</span>));</span><br><span class="line">    CodeReader oldCodeReader = mTypeToCodeReader.get(name);</span><br><span class="line">    <span class="keyword">if</span> (oldCodeReader != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> oldPatchVersion = oldCodeReader.getPatchVersion();</span><br><span class="line">        <span class="keyword">if</span> (patchVersion &lt;= oldPatchVersion) &#123;</span><br><span class="line">            <span class="comment">//avoid loading code repeat</span></span><br><span class="line">            Log.w(TAG, <span class="string">"load view name "</span> + name + <span class="string">" should not override from "</span> + patchVersion + <span class="string">" to "</span></span><br><span class="line">                + patchVersion);</span><br><span class="line">            ret = <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">return</span> ret;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ret = loadFromBufferInternally(reader, nameSize, name);</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>说一下，只要是 loader 里面的逻辑，基本都是在解析二进制文件，搞各种 readInt ，readShort 之类的，所以一定要对着二进制结构图看。</p>
+<p>它先读取了一个 count，但是它没有用到这个值，额，牛逼，只是加了一句注释，count应该为1 。我们看结构图，发现这个count值表示的是组件的个数，也就是说这个组件个数应该为1 。那么应该代表的是根布局，如果我写两个会怎么样呢？比如：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">VHLayout</span></span></span><br><span class="line"><span class="tag">    <span class="attr">flag</span>=<span class="string">"flag_exposure|flag_clickable"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">layoutHeight</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">layoutWidth</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">orientation</span>=<span class="string">"V"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">NText</span></span></span><br><span class="line"><span class="tag">        <span class="attr">background</span>=<span class="string">"#008899"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">flag</span>=<span class="string">"flag_exposure|flag_clickable"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">layoutHeight</span>=<span class="string">"$&#123;height&#125;"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">layoutWidth</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">text</span>=<span class="string">"Title: text"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">textColor</span>=<span class="string">"#333333"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">textSize</span>=<span class="string">"12"</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">VHLayout</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">VHLayout</span></span></span><br><span class="line"><span class="tag"><span class="attr">flag</span>=<span class="string">"flag_exposure|flag_clickable"</span></span></span><br><span class="line"><span class="tag"><span class="attr">layoutHeight</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag"><span class="attr">layoutWidth</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag"><span class="attr">orientation</span>=<span class="string">"V"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">NText</span></span></span><br><span class="line"><span class="tag">        <span class="attr">background</span>=<span class="string">"#002299"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">flag</span>=<span class="string">"flag_exposure|flag_clickable"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">layoutHeight</span>=<span class="string">"$&#123;height&#125;"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">layoutWidth</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">text</span>=<span class="string">"Title: text-------------------------"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">textColor</span>=<span class="string">"#333333"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">textSize</span>=<span class="string">"12"</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">VHLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>实际上，还是只显示了第一个 VHLayout，而且编译之后的二进制文件里面 count 依然是 1 。猜想是编译器只处理了第一个根节点。</p>
+<p>继续往下分析，读取了模板的 name，就是我们在 templatelist.properties 里面设置的值。以我们的例子来说，这个 name 就是 “TEST”。</p>
+<p>再接着就是判断补丁值，根据逻辑可以知道，修订版本值不能降低，否则就会忽略。继续深入代码调用：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.loader.UiCodeLoader#loadFromBufferInternally</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">loadFromBufferInternally</span><span class="params">(CodeReader reader, <span class="keyword">short</span> nameSize, String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> ret = <span class="keyword">true</span>;</span><br><span class="line">    mTypeToCodeReader.put(name, reader);</span><br><span class="line">    reader.seekBy(nameSize);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">short</span> uiCodeSize = reader.readShort();</span><br><span class="line">    mTypeToPos.put(name, reader.getPos());</span><br><span class="line">    <span class="keyword">if</span> (!reader.seekBy(uiCodeSize) ) &#123;</span><br><span class="line">        ret = <span class="keyword">false</span>;</span><br><span class="line">        Log.e(TAG, <span class="string">"seekBy error:"</span> + uiCodeSize);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将 name 与 reader 对应着储存起来，以后需要的时候可以直接获取，避免重复创建。将 name 与 pos 对应着储存起来，这个表示 reader 读取到了什么位置。这个 pos 非常的重要，这个 pos 表示的是组件区的<strong>组件数据</strong>开始的位置，<strong>组件数据里面都是储存的组件的属性值</strong>。</p>
+<p>就没有其他的逻辑了，总结一下，UiCodeLoader 做了这些事情：</p>
+<blockquote>
+<p>读取了每个模板的 name，为每个模板都保存了对应的 CodeReader 实例（根据 name 获取），还记录了 CodeReader 读取到了哪个位置。</p>
+</blockquote>
+<h2 id="StringLoader"><a href="#StringLoader" class="headerlink" title="StringLoader"></a>StringLoader</h2><p>上面处理完了组件区，接着就该字符串区了。看如下代码：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.loader.StringLoader#loadFromBuffer</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">loadFromBuffer</span><span class="params">(CodeReader reader, <span class="keyword">int</span> pageId)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> ret = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// pageId 是页面编码</span></span><br><span class="line">    mCurPage = pageId;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> totalSize = reader.getMaxSize();</span><br><span class="line">    <span class="comment">// 字符串的个数</span></span><br><span class="line">    <span class="keyword">int</span> count = reader.readInt();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">        <span class="comment">// 字符串索引</span></span><br><span class="line">        <span class="keyword">int</span> id = reader.readInt();</span><br><span class="line">        <span class="comment">// 字符串长度</span></span><br><span class="line">        <span class="keyword">int</span> len = reader.readShort();</span><br><span class="line">        <span class="keyword">int</span> pos = reader.getPos();</span><br><span class="line">        <span class="keyword">if</span> (pos + len &lt;= totalSize) &#123;</span><br><span class="line">            <span class="comment">// 解析出字符串</span></span><br><span class="line">            String str = <span class="keyword">new</span> String(reader.getCode(), reader.getPos(), len);</span><br><span class="line">            <span class="comment">// 与id对应储存起来，可以根据id拿到string，也可以根据string拿到id</span></span><br><span class="line">            mIndex2String.put(id, str);</span><br><span class="line">            mString2Index.put(str, id);</span><br><span class="line">            reader.seekBy(len);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Log.e(TAG, <span class="string">"read string over"</span>);</span><br><span class="line">            ret = <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码里面，其逻辑注释说的很详细了。</p>
+<p>需要注意的是，id 表示字符串的唯一标识，这个唯一标识，很重要，应该是编译的时候自动生成的一个数，先记住这个唯一标识。</p>
+<p>上面我们说过，像 title=“Hello”这样的属性值，“Hello”就是作为字符串储存的，所以这里就可以将“Hello”给提取出来，id 就是 3556653。</p>
+<p>总结一下：</p>
+<blockquote>
+<p>StringLoader 就是将字符串区的字符串读取出来了，然后储存了id与string。</p>
+</blockquote>
+<h2 id="ExprCodeLoader"><a href="#ExprCodeLoader" class="headerlink" title="ExprCodeLoader"></a>ExprCodeLoader</h2><p>这个 loader，我还没深入的去看，暂时就不说了。</p>
+<p>说一个我发现的东西，例子中，我们使用了数据绑定：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">layoutHeight="$&#123;height&#125;"</span><br></pre></td></tr></table></figure>
+
+<p>这个 “${height}” 是储存在字符串区的。</p>
+<p>说了这么多 loader，其实最核心的东西还没有涉及到，不是不愿意讲，而是这部分代码的逻辑在实例化控件的位置，我们下篇再讲。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/" title="0003-模板编译与解析">http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-源码解析-Virtualview/" rel="tag"># Android-源码解析-Virtualview</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0002-数据模板/" rel="next" title="0002-数据模板">
+                  <i class="fa fa-chevron-left"></i> 0002-数据模板
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/" rel="prev" title="0004-组件的创建">
+                  0004-组件的创建 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#加载模板文件"><span class="nav-number">1.</span> <span class="nav-text">加载模板文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UiCodeLoader"><span class="nav-number">2.</span> <span class="nav-text">UiCodeLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#StringLoader"><span class="nav-number">3.</span> <span class="nav-text">StringLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ExprCodeLoader"><span class="nav-number">4.</span> <span class="nav-text">ExprCodeLoader</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

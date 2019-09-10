@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="换肤原理本文所讲述的换肤是通过干预 xml 的解析实现的。在解析xml时，我们可以收集需要换肤的 view，并记录下 view 的一些换肤信息，等要需要换肤的时候，从皮肤资源包中加载皮肤，设置到记录的 view 上。">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="website">
+<meta property="og:title" content="android 换肤笔记">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/android-换肤笔记.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="换肤原理本文所讲述的换肤是通过干预 xml 的解析实现的。在解析xml时，我们可以收集需要换肤的 view，并记录下 view 的一些换肤信息，等要需要换肤的时候，从皮肤资源包中加载皮肤，设置到记录的 view 上。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-12-13T09:45:29.080Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="android 换肤笔记">
+<meta name="twitter:description" content="换肤原理本文所讲述的换肤是通过干预 xml 的解析实现的。在解析xml时，我们可以收集需要换肤的 view，并记录下 view 的一些换肤信息，等要需要换肤的时候，从皮肤资源包中加载皮肤，设置到记录的 view 上。">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/android-换肤笔记">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>android 换肤笔记 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">android 换肤笔记
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>ANDROID-换肤笔记</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <h2 id="换肤原理"><a href="#换肤原理" class="headerlink" title="换肤原理"></a>换肤原理</h2><p>本文所讲述的换肤是通过干预 xml 的解析实现的。在解析xml时，我们可以收集需要换肤的 view，并记录下 view 的一些换肤信息，等要需要换肤的时候，从皮肤资源包中加载皮肤，设置到记录的 view 上。</p>
+<a id="more"></a>
+
+<h2 id="Activity-如何加载xml并显示到窗口的？"><a href="#Activity-如何加载xml并显示到窗口的？" class="headerlink" title="Activity 如何加载xml并显示到窗口的？"></a>Activity 如何加载xml并显示到窗口的？</h2><p>新建一个android项目，在MainActivity中覆写onCreate()方法，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_setting);</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了能够将xml显示出来，我们必须调用 setContentView() 方法。<br>该方法源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContentView</span><span class="params">(@LayoutRes <span class="keyword">int</span> layoutResID)</span> </span>&#123;</span><br><span class="line">    getWindow().setContentView(layoutResID);</span><br><span class="line">    initWindowDecorActionBar();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用了 window 的 setContentView()。这里 window 的实现是 PhoneWindow。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContentView</span><span class="params">(<span class="keyword">int</span> layoutResID)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Note: FEATURE_CONTENT_TRANSITIONS may be set in the process of installing the window</span></span><br><span class="line">    <span class="comment">// decor, when theme attributes and the like are crystalized. Do not check the feature</span></span><br><span class="line">    <span class="comment">// before this happens.</span></span><br><span class="line">    <span class="keyword">if</span> (mContentParent == <span class="keyword">null</span>) &#123;</span><br><span class="line">        installDecor();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!hasFeature(FEATURE_CONTENT_TRANSITIONS)) &#123;</span><br><span class="line">        mContentParent.removeAllViews();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (hasFeature(FEATURE_CONTENT_TRANSITIONS)) &#123;</span><br><span class="line">        <span class="keyword">final</span> Scene newScene = Scene.getSceneForLayout(mContentParent, layoutResID,</span><br><span class="line">                getContext());</span><br><span class="line">        transitionTo(newScene);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        mLayoutInflater.inflate(layoutResID, mContentParent);</span><br><span class="line">    &#125;</span><br><span class="line">    mContentParent.requestApplyInsets();</span><br><span class="line">    <span class="keyword">final</span> Callback cb = getCallback();</span><br><span class="line">    <span class="keyword">if</span> (cb != <span class="keyword">null</span> &amp;&amp; !isDestroyed()) &#123;</span><br><span class="line">        cb.onContentChanged();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>installDecor() 是加载我们在activity上设置的theme信息。<br>重点是 mLayoutInflater.inflate(layoutResId, mContentParent);<br>调用了 LayoutInflater 的 inflate 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">inflate</span><span class="params">(@LayoutRes <span class="keyword">int</span> resource, @Nullable ViewGroup root)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> inflate(resource, root, root != <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>继续调用同名方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">inflate</span><span class="params">(@LayoutRes <span class="keyword">int</span> resource, @Nullable ViewGroup root, <span class="keyword">boolean</span> attachToRoot)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Resources res = getContext().getResources();</span><br><span class="line">    <span class="keyword">if</span> (DEBUG) &#123;</span><br><span class="line">        Log.d(TAG, <span class="string">"INFLATING from resource: \""</span> + res.getResourceName(resource) + <span class="string">"\" ("</span></span><br><span class="line">                + Integer.toHexString(resource) + <span class="string">")"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> XmlResourceParser parser = res.getLayout(resource);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> inflate(parser, root, attachToRoot);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        parser.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里就开始解析xml了。继续跟踪 inflate 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">public</span> View <span class="title">inflate</span><span class="params">(XmlPullParser parser, @Nullable ViewGroup root, <span class="keyword">boolean</span> attachToRoot)</span> </span>&#123;</span><br><span class="line">     <span class="keyword">synchronized</span> (mConstructorArgs) &#123;</span><br><span class="line">         </span><br><span class="line">......</span><br><span class="line"></span><br><span class="line">         <span class="keyword">try</span> &#123;</span><br><span class="line">            </span><br><span class="line">   ......</span><br><span class="line"></span><br><span class="line">             <span class="keyword">if</span> (TAG_MERGE.equals(name)) &#123;</span><br><span class="line">                 <span class="keyword">if</span> (root == <span class="keyword">null</span> || !attachToRoot) &#123;</span><br><span class="line">                     <span class="keyword">throw</span> <span class="keyword">new</span> InflateException(<span class="string">"&lt;merge /&gt; can be used only with a valid "</span></span><br><span class="line">                             + <span class="string">"ViewGroup root and attachToRoot=true"</span>);</span><br><span class="line">                 &#125;</span><br><span class="line"></span><br><span class="line">                 rInflate(parser, root, inflaterContext, attrs, <span class="keyword">false</span>);</span><br><span class="line">             &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                 <span class="comment">// Temp is the root view that was found in the xml</span></span><br><span class="line">                 <span class="keyword">final</span> View temp = createViewFromTag(root, name, inflaterContext, attrs);</span><br><span class="line"></span><br><span class="line">                 ViewGroup.LayoutParams params = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">                 <span class="keyword">if</span> (root != <span class="keyword">null</span>) &#123;</span><br><span class="line">                     <span class="keyword">if</span> (DEBUG) &#123;</span><br><span class="line">                         System.out.println(<span class="string">"Creating params from root: "</span> +</span><br><span class="line">                                 root);</span><br><span class="line">                     &#125;</span><br><span class="line">                     <span class="comment">// Create layout params that match root, if supplied</span></span><br><span class="line">                     params = root.generateLayoutParams(attrs);</span><br><span class="line">                     <span class="keyword">if</span> (!attachToRoot) &#123;</span><br><span class="line">                         <span class="comment">// Set the layout params for temp if we are not</span></span><br><span class="line">                         <span class="comment">// attaching. (If we are, we use addView, below)</span></span><br><span class="line">                         temp.setLayoutParams(params);</span><br><span class="line">                     &#125;</span><br><span class="line">                 &#125;</span><br><span class="line"></span><br><span class="line">                 <span class="keyword">if</span> (DEBUG) &#123;</span><br><span class="line">                     System.out.println(<span class="string">"-----&gt; start inflating children"</span>);</span><br><span class="line">                 &#125;</span><br><span class="line"></span><br><span class="line">                 <span class="comment">// Inflate all children under temp against its context.</span></span><br><span class="line">                 rInflateChildren(parser, temp, attrs, <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">                 <span class="keyword">if</span> (DEBUG) &#123;</span><br><span class="line">                     System.out.println(<span class="string">"-----&gt; done inflating children"</span>);</span><br><span class="line">                 &#125;</span><br><span class="line"></span><br><span class="line">                 <span class="comment">// We are supposed to attach all the views we found (int temp)</span></span><br><span class="line">                 <span class="comment">// to root. Do that now.</span></span><br><span class="line">                 <span class="keyword">if</span> (root != <span class="keyword">null</span> &amp;&amp; attachToRoot) &#123;</span><br><span class="line">                     root.addView(temp, params);</span><br><span class="line">                 &#125;</span><br><span class="line"></span><br><span class="line">                 <span class="comment">// Decide whether to return the root that was passed in or the</span></span><br><span class="line">                 <span class="comment">// top view found in xml.</span></span><br><span class="line">                 <span class="keyword">if</span> (root == <span class="keyword">null</span> || !attachToRoot) &#123;</span><br><span class="line">                     result = temp;</span><br><span class="line">                 &#125;</span><br><span class="line">             &#125;</span><br><span class="line"></span><br><span class="line">         &#125; <span class="keyword">catch</span> (XmlPullParserException e) &#123;</span><br><span class="line">             InflateException ex = <span class="keyword">new</span> InflateException(e.getMessage());</span><br><span class="line">             ex.initCause(e);</span><br><span class="line">             <span class="keyword">throw</span> ex;</span><br><span class="line">         &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">             InflateException ex = <span class="keyword">new</span> InflateException(</span><br><span class="line">                     parser.getPositionDescription()</span><br><span class="line">                             + <span class="string">": "</span> + e.getMessage());</span><br><span class="line">             ex.initCause(e);</span><br><span class="line">             <span class="keyword">throw</span> ex;</span><br><span class="line">         &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">             <span class="comment">// Don't retain static reference on context.</span></span><br><span class="line">             mConstructorArgs[<span class="number">0</span>] = lastContext;</span><br><span class="line">             mConstructorArgs[<span class="number">1</span>] = <span class="keyword">null</span>;</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line">         Trace.traceEnd(Trace.TRACE_TAG_VIEW);</span><br><span class="line"></span><br><span class="line">         <span class="keyword">return</span> result;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>当我们编写一个xml给activity使用的时候，根节点肯定不会是 merge ，所以这里走 else 里面的代码。首先，调用 createViewFromTag 创建根节点，然后调用 rInflateChildren 创建子节点。最后根据参数，判断是否将根节点添加到 root 上。我们先看 createViewFromTag 的代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> View <span class="title">createViewFromTag</span><span class="params">(View parent, String name, Context context, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> createViewFromTag(parent, name, context, attrs, <span class="keyword">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用同名方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">View <span class="title">createViewFromTag</span><span class="params">(View parent, String name, Context context, AttributeSet attrs,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">boolean</span> ignoreThemeAttr)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (name.equals(<span class="string">"view"</span>)) &#123;</span><br><span class="line">        name = attrs.getAttributeValue(<span class="keyword">null</span>, <span class="string">"class"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Apply a theme wrapper, if allowed and one is specified.</span></span><br><span class="line">    <span class="keyword">if</span> (!ignoreThemeAttr) &#123;</span><br><span class="line">        <span class="keyword">final</span> TypedArray ta = context.obtainStyledAttributes(attrs, ATTRS_THEME);</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> themeResId = ta.getResourceId(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (themeResId != <span class="number">0</span>) &#123;</span><br><span class="line">            context = <span class="keyword">new</span> ContextThemeWrapper(context, themeResId);</span><br><span class="line">        &#125;</span><br><span class="line">        ta.recycle();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (name.equals(TAG_1995)) &#123;</span><br><span class="line">        <span class="comment">// Let's party like it's 1995!</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> BlinkLayout(context, attrs);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        View view;</span><br><span class="line">        <span class="keyword">if</span> (mFactory2 != <span class="keyword">null</span>) &#123;</span><br><span class="line">            view = mFactory2.onCreateView(parent, name, context, attrs);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mFactory != <span class="keyword">null</span>) &#123;</span><br><span class="line">            view = mFactory.onCreateView(name, context, attrs);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            view = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (view == <span class="keyword">null</span> &amp;&amp; mPrivateFactory != <span class="keyword">null</span>) &#123;</span><br><span class="line">            view = mPrivateFactory.onCreateView(parent, name, context, attrs);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (view == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">final</span> Object lastContext = mConstructorArgs[<span class="number">0</span>];</span><br><span class="line">            mConstructorArgs[<span class="number">0</span>] = context;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (-<span class="number">1</span> == name.indexOf(<span class="string">'.'</span>)) &#123;</span><br><span class="line">                    view = onCreateView(parent, name, attrs);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    view = createView(name, <span class="keyword">null</span>, attrs);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                mConstructorArgs[<span class="number">0</span>] = lastContext;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> view;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InflateException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">        <span class="keyword">final</span> InflateException ie = <span class="keyword">new</span> InflateException(attrs.getPositionDescription()</span><br><span class="line">                + <span class="string">": Error inflating class "</span> + name);</span><br><span class="line">        ie.initCause(e);</span><br><span class="line">        <span class="keyword">throw</span> ie;</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">final</span> InflateException ie = <span class="keyword">new</span> InflateException(attrs.getPositionDescription()</span><br><span class="line">                + <span class="string">": Error inflating class "</span> + name);</span><br><span class="line">        ie.initCause(e);</span><br><span class="line">        <span class="keyword">throw</span> ie;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重点看 try 里面的这段代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">         View view;</span><br><span class="line">         <span class="keyword">if</span> (mFactory2 != <span class="keyword">null</span>) &#123;</span><br><span class="line">             view = mFactory2.onCreateView(parent, name, context, attrs);</span><br><span class="line">         &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mFactory != <span class="keyword">null</span>) &#123;</span><br><span class="line">             view = mFactory.onCreateView(name, context, attrs);</span><br><span class="line">         &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">             view = <span class="keyword">null</span>;</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span> (view == <span class="keyword">null</span> &amp;&amp; mPrivateFactory != <span class="keyword">null</span>) &#123;</span><br><span class="line">             view = mPrivateFactory.onCreateView(parent, name, context, attrs);</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (view == <span class="keyword">null</span>) &#123;</span><br><span class="line">             <span class="keyword">final</span> Object lastContext = mConstructorArgs[<span class="number">0</span>];</span><br><span class="line">             mConstructorArgs[<span class="number">0</span>] = context;</span><br><span class="line">             <span class="keyword">try</span> &#123;</span><br><span class="line">                 <span class="keyword">if</span> (-<span class="number">1</span> == name.indexOf(<span class="string">'.'</span>)) &#123;</span><br><span class="line">                     view = onCreateView(parent, name, attrs);</span><br><span class="line">                 &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                     view = createView(name, <span class="keyword">null</span>, attrs);</span><br><span class="line">                 &#125;</span><br><span class="line">             &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                 mConstructorArgs[<span class="number">0</span>] = lastContext;</span><br><span class="line">             &#125;</span><br><span class="line">         &#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果 mFactory2 mFactory 其中一个有值，会是调用其 onCreateView 方法。<br>mFactor2 优先级高于 mFactory。如果都没有值，使用 mPrivateFactory 的 onCreateView 方法。如果 mPrivateFactory 也为空，则使用自己的 onCreateView 或者 createView 方法。<br>PS：LayoutInflater 的 onCreateView 方法也会调到 createView 方法。</p>
+<p>这3个Factory赋值都是在构造函数，以及 set 方法中。</p>
+<p>再回到 PhoneWindow 的 setContentView 中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContentView</span><span class="params">(<span class="keyword">int</span> layoutResID)</span> </span>&#123;</span><br><span class="line">   </span><br><span class="line">......</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (hasFeature(FEATURE_CONTENT_TRANSITIONS)) &#123;</span><br><span class="line">        ......</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        mLayoutInflater.inflate(layoutResID, mContentParent);</span><br><span class="line">    &#125;</span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看 mLayoutInflater 是如何赋值的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">PhoneWindow</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(context);</span><br><span class="line">    mLayoutInflater = LayoutInflater.from(context);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看 from 方法做了什么：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> LayoutInflater <span class="title">from</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    LayoutInflater LayoutInflater =</span><br><span class="line">            (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);</span><br><span class="line">    <span class="keyword">if</span> (LayoutInflater == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> AssertionError(<span class="string">"LayoutInflater not found."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> LayoutInflater;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Context 的实现是 ContextImpl：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">getSystemService</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> SystemServiceRegistry.getSystemService(<span class="keyword">this</span>, name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>往下调用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title">getSystemService</span><span class="params">(ContextImpl ctx, String name)</span> </span>&#123;</span><br><span class="line">    ServiceFetcher&lt;?&gt; fetcher = SYSTEM_SERVICE_FETCHERS.get(name);</span><br><span class="line">    <span class="keyword">return</span> fetcher != <span class="keyword">null</span> ? fetcher.getService(ctx) : <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用 ServiceFetcher 的 getService：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">interface</span> <span class="title">ServiceFetcher</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function">T <span class="title">getService</span><span class="params">(ContextImpl ctx)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>是一个接口，有抽象类（CachedServiceFetcher）实现了这个接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">CachedServiceFetcher</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">ServiceFetcher</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> mCacheIndex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CachedServiceFetcher</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mCacheIndex = sServiceCacheSize++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> T <span class="title">getService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> Object[] cache = ctx.mServiceCache;</span><br><span class="line">        <span class="keyword">synchronized</span> (cache) &#123;</span><br><span class="line">            <span class="comment">// Fetch or create the service.</span></span><br><span class="line">            Object service = cache[mCacheIndex];</span><br><span class="line">            <span class="keyword">if</span> (service == <span class="keyword">null</span>) &#123;</span><br><span class="line">                service = createService(ctx);</span><br><span class="line">                cache[mCacheIndex] = service;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> (T)service;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> T <span class="title">createService</span><span class="params">(ContextImpl ctx)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先从cache里面去找，找不到再去创建，创建的方法是抽象的。这里先放着，看这个类的静态代码块：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">	.......</span><br><span class="line">	</span><br><span class="line">       registerService(Context.LAYOUT_INFLATER_SERVICE, LayoutInflater.class,</span><br><span class="line">               <span class="keyword">new</span> CachedServiceFetcher&lt;LayoutInflater&gt;() &#123;</span><br><span class="line">           <span class="meta">@Override</span></span><br><span class="line">           <span class="function"><span class="keyword">public</span> LayoutInflater <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</span><br><span class="line">               <span class="keyword">return</span> <span class="keyword">new</span> PhoneLayoutInflater(ctx.getOuterContext());</span><br><span class="line">           &#125;&#125;);</span><br><span class="line">		</span><br><span class="line">	.......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从这里可以看到，使用匿名内部类实现了上面的抽象方法，即 PhoneLayoutInflater 就是我们调用 LayoutInflater.from(context) 得到的。<br>看其构造函数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">PhoneLayoutInflater</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">super</span>(context);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>PhoneLayoutInflater 继承了 LayoutInflater :</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="title">LayoutInflater</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    mContext = context;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>即 PhoneLayoutInflater 中并没有给 mFractory mFractory2 mPrivateFactory 复制。所及加载xml的时候，使用的是内部的 createView 方法。</p>
+<p>到这里就不往下分析了，换肤的一个难点就已经被解决了—即如何干预 xml 的解析。很显然，通过分析源码，只要给 LayoutInflater 设置一个 Factory 就好了，只不过我们需要自己实现 Factory 接口。</p>
+<p>如何实现一个 Factory 这里先放置一下，activity 的 xml 加载搞定了，那么 fragment 的 xml 加载又是什么样的呢？</p>
+<p>首先编写一个 fragment ，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">onCreateView</span><span class="params">(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    View v = inflater.inflate(R.layout.fragment_article_list, container, <span class="keyword">false</span>);</span><br><span class="line">    initView(v);</span><br><span class="line">    <span class="keyword">return</span> v;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出加载xml是由inflate完成的。那这个参数是谁传递的呢？<br>想想我们平时使用fragment的方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initFragment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    FragmentManager fm = getSupportFragmentManager();</span><br><span class="line">    Fragment fragment = fm.findFragmentById(R.id.fragment_container);</span><br><span class="line">    <span class="keyword">if</span> (fragment == <span class="keyword">null</span>) &#123;</span><br><span class="line">        fragment = ArticleListFragment.newInstance();</span><br><span class="line">        fm.beginTransaction()</span><br><span class="line">                .add(R.id.fragment_container, fragment)</span><br><span class="line">                .commit();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看看 FragmentManager 做了什么，FragmentManager 的实现是FragmentManagerImpl(这里我就只给出最终的代码了，懒得分析了)：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">moveToState</span><span class="params">(Fragment f, <span class="keyword">int</span> newState, <span class="keyword">int</span> transit, <span class="keyword">int</span> transitionStyle,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">boolean</span> keepActive)</span> </span>&#123;</span><br><span class="line">			</span><br><span class="line">   		......</span><br><span class="line">			</span><br><span class="line">        <span class="keyword">switch</span> (f.mState) &#123;</span><br><span class="line">            <span class="keyword">case</span> Fragment.INITIALIZING:</span><br><span class="line">                </span><br><span class="line">	......</span><br><span class="line">	</span><br><span class="line">                f.onAttach(mHost.getContext());</span><br><span class="line">               </span><br><span class="line">    ......</span><br><span class="line">   </span><br><span class="line">                <span class="keyword">if</span> (!f.mRetaining) &#123;</span><br><span class="line">                    f.performCreate(f.mSavedFragmentState);</span><br><span class="line">                &#125;</span><br><span class="line">                f.mRetaining = <span class="keyword">false</span>;</span><br><span class="line">                <span class="keyword">if</span> (f.mFromLayout) &#123;</span><br><span class="line">                    <span class="comment">// For fragments that are part of the content view</span></span><br><span class="line">                    <span class="comment">// layout, we need to instantiate the view immediately</span></span><br><span class="line">                    <span class="comment">// and the inflater will take care of adding it.</span></span><br><span class="line">                    f.mView = f.performCreateView(f.getLayoutInflater(</span><br><span class="line">                            f.mSavedFragmentState), <span class="keyword">null</span>, f.mSavedFragmentState);</span><br><span class="line">                    <span class="keyword">if</span> (f.mView != <span class="keyword">null</span>) &#123;</span><br><span class="line">		</span><br><span class="line">                        ......</span><br><span class="line">			</span><br><span class="line">                        f.onViewCreated(f.mView, f.mSavedFragmentState);</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        f.mInnerView = <span class="keyword">null</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br></pre></td></tr></table></figure>
+
+<p>重点是</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">f.mView = f.performCreateView(f.getLayoutInflater(f.mSavedFragmentState), <span class="keyword">null</span>, f.mSavedFragmentState);</span><br></pre></td></tr></table></figure>
+
+<p>这句代码，inflater 参数就是 f.getLayoutInflater 这个方法得来的。<br>perfromCreateView 调用了 onCreateView。这里需要注意的就是，getLayoutInflater方法是不可见的，但是我们依然可以覆盖。</p>
+<p>所以如果我们想要实现换肤，那么 BaseActivity 和 BaseFragment 的代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> SkinInflaterFactory mSkinInflaterFactory;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        mSkinInflaterFactory = <span class="keyword">new</span> SkinInflaterFactory();</span><br><span class="line">        getLayoutInflater().setFactory(mSkinInflaterFactory);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onDestroy();</span><br><span class="line">        mSkinInflaterFactory.clean();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseFragment</span> <span class="keyword">extends</span> <span class="title">Fragment</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> LayoutInflater <span class="title">getLayoutInflater</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getActivity().getLayoutInflater();</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现-Factory-接口"><a href="#实现-Factory-接口" class="headerlink" title="实现 Factory 接口"></a>实现 Factory 接口</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SkinInflaterFactory</span> <span class="keyword">implements</span> <span class="title">Factory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 用一个集合将需要换肤的view，以及view的信息存起来</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;SkinItem&gt; mSkinItems = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> View <span class="title">onCreateView</span><span class="params">(String name, Context context, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 我们自定义了一个属性，每个view都可以使用</span></span><br><span class="line">		<span class="comment">// 在xml里使用如下 skin:enable="true" 表示换肤</span></span><br><span class="line">		<span class="comment">// 如果不换肤，直接返回空，这里返回null，会走原来的xml解析逻辑</span></span><br><span class="line">		<span class="comment">// 源码里面分析过了</span></span><br><span class="line">        <span class="keyword">boolean</span> isSkinEnable = attrs.getAttributeBooleanValue(SkinConfig.NAMESPACE, SkinConfig.ATTR_SKIN_ENABLE, <span class="keyword">false</span>);</span><br><span class="line">        <span class="keyword">if</span> (!isSkinEnable) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        View view = createView(context, name, attrs);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (view == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 解析要换肤view的信息</span></span><br><span class="line">        parseSkinAttr(context, attrs, view);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> view;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 这个方法就是创建view，还是走layoutInflater的createView逻辑</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> View <span class="title">createView</span><span class="params">(Context context, String name, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">        View view = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (-<span class="number">1</span> == name.indexOf(<span class="string">'.'</span>)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (<span class="string">"View"</span>.equals(name)) &#123;</span><br><span class="line">                    view = LayoutInflater.from(context).createView(name, <span class="string">"android.view."</span>, attrs);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (view == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    view = LayoutInflater.from(context).createView(name, <span class="string">"android.widget."</span>, attrs);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (view == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    view = LayoutInflater.from(context).createView(name, <span class="string">"android.webkit."</span>, attrs);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                view = LayoutInflater.from(context).createView(name, <span class="keyword">null</span>, attrs);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            L.i(<span class="string">"about to create "</span> + name);</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            L.e(<span class="string">"error while create 【"</span> + name + <span class="string">"】 : "</span> + e.getMessage());</span><br><span class="line">            view = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> view;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 代码中的注释很详细了</span></span><br><span class="line">	<span class="comment">// attrName 表示要换肤的属性 textColor 等</span></span><br><span class="line">	<span class="comment">// id 表示属性对应的资源id</span></span><br><span class="line">	<span class="comment">// entryName 表示属性对应的资源名字</span></span><br><span class="line">	<span class="comment">// entryType 表示属性对应的资源类型 color 还是 drawable 等</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseSkinAttr</span><span class="params">(Context context, AttributeSet attrs, View view)</span> </span>&#123;</span><br><span class="line">        List&lt;SkinAttr&gt; viewAttrs = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; attrs.getAttributeCount(); i++) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">/**</span></span><br><span class="line"><span class="comment">             * get 出来的是这样的东西：</span></span><br><span class="line"><span class="comment">             * attrName = divider, attrValue = @2131099656</span></span><br><span class="line"><span class="comment">             * attrName = textColor, attrValue = @2131099660</span></span><br><span class="line"><span class="comment">             * attrName = background, attrValue = @2131099658</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            String attrName = attrs.getAttributeName(i);</span><br><span class="line">            String attrValue = attrs.getAttributeValue(i);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!AttrFactory.isSupportedAttr(attrName)) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// xml 编译之后 attrValue 值是 @ + 数值的形式</span></span><br><span class="line">            <span class="keyword">if</span> (attrValue.startsWith(<span class="string">"@"</span>)) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="keyword">int</span> id = Integer.parseInt(attrValue.substring(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">                    <span class="comment">/**</span></span><br><span class="line"><span class="comment">                     * get 出来的是这样的：</span></span><br><span class="line"><span class="comment">                     * entryName                        typeName</span></span><br><span class="line"><span class="comment">                     * news_item_text_color_selector    color</span></span><br><span class="line"><span class="comment">                     * news_item_selector               drawable</span></span><br><span class="line"><span class="comment">                     */</span></span><br><span class="line">                    String entryName = context.getResources().getResourceEntryName(id);</span><br><span class="line">                    String typeName = context.getResources().getResourceTypeName(id);</span><br><span class="line"></span><br><span class="line">                    SkinAttr mSkinAttr = AttrFactory.get(attrName, id, entryName, typeName);</span><br><span class="line">                    <span class="keyword">if</span> (mSkinAttr != <span class="keyword">null</span>) &#123;</span><br><span class="line">                        viewAttrs.add(mSkinAttr);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (NumberFormatException | NotFoundException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!ListUtils.isEmpty(viewAttrs)) &#123;</span><br><span class="line">            SkinItem skinItem = <span class="keyword">new</span> SkinItem();</span><br><span class="line">            skinItem.view = view;</span><br><span class="line">            skinItem.attrs = viewAttrs;</span><br><span class="line"></span><br><span class="line">            mSkinItems.add(skinItem);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (SkinManager.getInstance().isExternalSkin()) &#123;</span><br><span class="line">                skinItem.apply();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">applySkin</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (ListUtils.isEmpty(mSkinItems)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (SkinItem si : mSkinItems) &#123;</span><br><span class="line">            <span class="keyword">if</span> (si.view == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            si.apply();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addSkinView</span><span class="params">(SkinItem item)</span> </span>&#123;</span><br><span class="line">        mSkinItems.add(item);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (ListUtils.isEmpty(mSkinItems)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (SkinItem si : mSkinItems) &#123;</span><br><span class="line">            <span class="keyword">if</span> (si.view == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            si.clean();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>收集了所有的换肤信息，我们就要讨论第二个问题了。</p>
+<h2 id="如何加载皮肤包中的资源？"><a href="#如何加载皮肤包中的资源？" class="headerlink" title="如何加载皮肤包中的资源？"></a>如何加载皮肤包中的资源？</h2><p>想想我们在开发时，是如何使用资源的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">getResource().getString(id);</span><br><span class="line">getResource().getColor(id);</span><br><span class="line">getResource().getDrawable(id);</span><br></pre></td></tr></table></figure>
+
+<p>看看getString源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getString</span><span class="params">(@StringRes <span class="keyword">int</span> id)</span> <span class="keyword">throws</span> NotFoundException </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> CharSequence res = getText(id);</span><br><span class="line">    <span class="keyword">if</span> (res != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> res.toString();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> NotFoundException(<span class="string">"String resource ID #0x"</span></span><br><span class="line">                                + Integer.toHexString(id));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>继续 getText(id):</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> CharSequence <span class="title">getText</span><span class="params">(@StringRes <span class="keyword">int</span> id)</span> <span class="keyword">throws</span> NotFoundException </span>&#123;</span><br><span class="line">    CharSequence res = mAssets.getResourceText(id);</span><br><span class="line">    <span class="keyword">if</span> (res != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> NotFoundException(<span class="string">"String resource ID #0x"</span></span><br><span class="line">                                + Integer.toHexString(id));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到资源实际上是由 mAssets 加载的。查看 getColor 和 getDrawable 源码同样如此。<br>从这里就要开始往上追溯了，因为我们需要知道 AssetManager 是如何创建的，它是怎么对应的app的资源。<br>再次回到 ContextImpl，查看 getResource 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Resources <span class="title">getResources</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> mResources;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>直接返回成员变量，看看在哪里赋值的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">ContextImpl</span><span class="params">(ContextImpl container, ActivityThread mainThread,</span></span></span><br><span class="line"><span class="function"><span class="params">            LoadedApk packageInfo, IBinder activityToken, UserHandle user, <span class="keyword">boolean</span> restricted,</span></span></span><br><span class="line"><span class="function"><span class="params">            Display display, Configuration overrideConfiguration, <span class="keyword">int</span> createDisplayWithId)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">		......</span><br><span class="line">		</span><br><span class="line">        mResourcesManager = ResourcesManager.getInstance();</span><br><span class="line"></span><br><span class="line">        ......</span><br><span class="line"></span><br><span class="line">        Resources resources = packageInfo.getResources(mainThread);</span><br><span class="line">        <span class="keyword">if</span> (resources != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (displayId != Display.DEFAULT_DISPLAY</span><br><span class="line">                    || overrideConfiguration != <span class="keyword">null</span></span><br><span class="line">                    || (compatInfo != <span class="keyword">null</span> &amp;&amp; compatInfo.applicationScale</span><br><span class="line">                            != resources.getCompatibilityInfo().applicationScale)) &#123;</span><br><span class="line">                resources = mResourcesManager.getTopLevelResources(packageInfo.getResDir(),</span><br><span class="line">                        packageInfo.getSplitResDirs(), packageInfo.getOverlayDirs(),</span><br><span class="line">                        packageInfo.getApplicationInfo().sharedLibraryFiles, displayId,</span><br><span class="line">                        overrideConfiguration, compatInfo);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        mResources = resources;</span><br><span class="line"></span><br><span class="line">        ......</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>Resource 由 ResourceManager 的 getTopLevelResources 方法创建：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function">Resources <span class="title">getTopLevelResources</span><span class="params">(String resDir, String[] splitResDirs,</span></span></span><br><span class="line"><span class="function"><span class="params">          String[] overlayDirs, String[] libDirs, <span class="keyword">int</span> displayId,</span></span></span><br><span class="line"><span class="function"><span class="params">          Configuration overrideConfiguration, CompatibilityInfo compatInfo)</span> </span>&#123;</span><br><span class="line">     </span><br><span class="line">   ......</span><br><span class="line">  </span><br><span class="line">      Resources r;</span><br><span class="line">      <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">          <span class="comment">// Resources is app scale dependent.</span></span><br><span class="line">          <span class="keyword">if</span> (DEBUG) Slog.w(TAG, <span class="string">"getTopLevelResources: "</span> + resDir + <span class="string">" / "</span> + scale);</span><br><span class="line"></span><br><span class="line">          WeakReference&lt;Resources&gt; wr = mActiveResources.get(key);</span><br><span class="line">          r = wr != <span class="keyword">null</span> ? wr.get() : <span class="keyword">null</span>;</span><br><span class="line">          <span class="comment">//if (r != null) Log.i(TAG, "isUpToDate " + resDir + ": " + r.getAssets().isUpToDate());</span></span><br><span class="line">          <span class="keyword">if</span> (r != <span class="keyword">null</span> &amp;&amp; r.getAssets().isUpToDate()) &#123;</span><br><span class="line">              <span class="keyword">if</span> (DEBUG) Slog.w(TAG, <span class="string">"Returning cached resources "</span> + r + <span class="string">" "</span> + resDir</span><br><span class="line">                      + <span class="string">": appScale="</span> + r.getCompatibilityInfo().applicationScale</span><br><span class="line">                      + <span class="string">" key="</span> + key + <span class="string">" overrideConfig="</span> + overrideConfiguration);</span><br><span class="line">              <span class="keyword">return</span> r;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      AssetManager assets = <span class="keyword">new</span> AssetManager();</span><br><span class="line">      <span class="comment">// resDir can be null if the 'android' package is creating a new Resources object.</span></span><br><span class="line">      <span class="comment">// This is fine, since each AssetManager automatically loads the 'android' package</span></span><br><span class="line">      <span class="comment">// already.</span></span><br><span class="line">      <span class="keyword">if</span> (resDir != <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="keyword">if</span> (assets.addAssetPath(resDir) == <span class="number">0</span>) &#123;</span><br><span class="line">              <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (splitResDirs != <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="keyword">for</span> (String splitResDir : splitResDirs) &#123;</span><br><span class="line">              <span class="keyword">if</span> (assets.addAssetPath(splitResDir) == <span class="number">0</span>) &#123;</span><br><span class="line">                  <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">              &#125;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (overlayDirs != <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="keyword">for</span> (String idmapPath : overlayDirs) &#123;</span><br><span class="line">              assets.addOverlayPath(idmapPath);</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (libDirs != <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="keyword">for</span> (String libDir : libDirs) &#123;</span><br><span class="line">              <span class="keyword">if</span> (libDir.endsWith(<span class="string">".apk"</span>)) &#123;</span><br><span class="line">                  <span class="comment">// Avoid opening files we know do not have resources,</span></span><br><span class="line">                  <span class="comment">// like code-only .jar files.</span></span><br><span class="line">                  <span class="keyword">if</span> (assets.addAssetPath(libDir) == <span class="number">0</span>) &#123;</span><br><span class="line">                      Log.w(TAG, <span class="string">"Asset path '"</span> + libDir +</span><br><span class="line">                              <span class="string">"' does not exist or contains no resources."</span>);</span><br><span class="line">                  &#125;</span><br><span class="line">              &#125;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">......</span><br><span class="line">      </span><br><span class="line">      r = <span class="keyword">new</span> Resources(assets, dm, config, compatInfo);</span><br><span class="line">      <span class="keyword">if</span> (DEBUG) Slog.i(TAG, <span class="string">"Created app resources "</span> + resDir + <span class="string">" "</span> + r + <span class="string">": "</span></span><br><span class="line">              + r.getConfiguration() + <span class="string">" appScale="</span> + r.getCompatibilityInfo().applicationScale);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">          WeakReference&lt;Resources&gt; wr = mActiveResources.get(key);</span><br><span class="line">          Resources existing = wr != <span class="keyword">null</span> ? wr.get() : <span class="keyword">null</span>;</span><br><span class="line">          <span class="keyword">if</span> (existing != <span class="keyword">null</span> &amp;&amp; existing.getAssets().isUpToDate()) &#123;</span><br><span class="line">              <span class="comment">// Someone else already created the resources while we were</span></span><br><span class="line">              <span class="comment">// unlocked; go ahead and use theirs.</span></span><br><span class="line">              r.getAssets().close();</span><br><span class="line">              <span class="keyword">return</span> existing;</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="comment">// XXX need to remove entries when weak references go away</span></span><br><span class="line">          mActiveResources.put(key, <span class="keyword">new</span> WeakReference&lt;&gt;(r));</span><br><span class="line">          <span class="keyword">if</span> (DEBUG) Slog.v(TAG, <span class="string">"mActiveResources.size()="</span> + mActiveResources.size());</span><br><span class="line">          <span class="keyword">return</span> r;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>直接new AssetManager 并且调用 addAssetPath 方法将资源路传进去。如果有 lib （.apk），也添加进去。看到这里就很清楚了，我们要去加载的皮肤包可以是一个 apk 文件。所以读取皮肤包资源的思路就清晰了，我们可以新建一个工程，里面只放皮肤资源，最后打包成apk，我们的app拿到这个apk就可以加载出里面的资源。</p>
+<h2 id="创建资源包的-Resource"><a href="#创建资源包的-Resource" class="headerlink" title="创建资源包的 Resource"></a>创建资源包的 Resource</h2><p>我们自己的apk只能记载自己应用下的资源目录，要想去加载别的资源目录，我们就可以创建一个 Resource 对象，替换里面的 AssetManager，让 AssetManager 里面的 path 对应为资源包（.apk）的路径。</p>
+<p>具体代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">load</span><span class="params">(String skinPackagePath, <span class="keyword">final</span> ILoaderListener callback)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">new</span> AsyncTask&lt;String, Void, Resources&gt;() &#123;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onPreExecute</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (callback != <span class="keyword">null</span>) &#123;</span><br><span class="line">                callback.onStart();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> Resources <span class="title">doInBackground</span><span class="params">(String... params)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (params.length == <span class="number">1</span>) &#123;</span><br><span class="line">                    String skinPkgPath = params[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">                    File file = <span class="keyword">new</span> File(skinPkgPath);</span><br><span class="line">                    <span class="keyword">if</span> (!file.exists()) &#123;</span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    PackageManager mPm = context.getPackageManager();</span><br><span class="line">                    PackageInfo mInfo = mPm.getPackageArchiveInfo(skinPkgPath, PackageManager.GET_ACTIVITIES);</span><br><span class="line">                    skinPackageName = mInfo.packageName;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 创建资源包的 assetManager</span></span><br><span class="line">                    AssetManager assetManager = AssetManager.class.newInstance();</span><br><span class="line">		<span class="comment">// 利用反射添加资源路径</span></span><br><span class="line">                    Method addAssetPath = assetManager.getClass().getMethod(<span class="string">"addAssetPath"</span>, String.class);</span><br><span class="line">                    addAssetPath.invoke(assetManager, skinPkgPath);</span><br><span class="line"></span><br><span class="line">                    Resources superRes = context.getResources();</span><br><span class="line">                    Resources skinResource = <span class="keyword">new</span> Resources(assetManager, superRes.getDisplayMetrics(), superRes.getConfiguration());</span><br><span class="line"></span><br><span class="line">                    SkinConfig.saveSkinPath(context, skinPkgPath);</span><br><span class="line"></span><br><span class="line">                    skinPath = skinPkgPath;</span><br><span class="line">                    isDefaultSkin = <span class="keyword">false</span>;</span><br><span class="line">                    <span class="keyword">return</span> skinResource;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onPostExecute</span><span class="params">(Resources result)</span> </span>&#123;</span><br><span class="line">            mResources = result;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (mResources != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (callback != <span class="keyword">null</span>) callback.onSuccess();</span><br><span class="line">                notifySkinUpdate();</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                isDefaultSkin = <span class="keyword">true</span>;</span><br><span class="line">                <span class="keyword">if</span> (callback != <span class="keyword">null</span>) callback.onFailed();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;.execute(skinPackagePath);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>有了 Resource 之后，就可以加载皮肤资源了，下面是一段加载不同皮肤下的drawable代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">public</span> Drawable <span class="title">getDrawable</span><span class="params">(<span class="keyword">int</span> resId)</span> </span>&#123;</span><br><span class="line">      Drawable originDrawable = context.getResources().getDrawable(resId);</span><br><span class="line">      <span class="keyword">if</span> (mResources == <span class="keyword">null</span> || isDefaultSkin) &#123;</span><br><span class="line">          <span class="keyword">return</span> originDrawable;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到id对应的资源名字</span></span><br><span class="line">      String resName = context.getResources().getResourceEntryName(resId);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 根据资源名字找到皮肤包中的id</span></span><br><span class="line">      <span class="keyword">int</span> trueResId = mResources.getIdentifier(resName, <span class="string">"drawable"</span>, skinPackageName);</span><br><span class="line"></span><br><span class="line">      Drawable trueDrawable = <span class="keyword">null</span>;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (android.os.Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.LOLLIPOP) &#123;</span><br><span class="line">              trueDrawable = mResources.getDrawable(trueResId);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              trueDrawable = mResources.getDrawable(trueResId, <span class="keyword">null</span>);</span><br><span class="line">          &#125;</span><br><span class="line">      &#125; <span class="keyword">catch</span> (NotFoundException e) &#123;</span><br><span class="line">          e.printStackTrace();</span><br><span class="line">          trueDrawable = originDrawable;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> trueDrawable;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样换肤就实现了。<br>完整demo请github上搜索：Android-Skin-Loader</p>
+<p>？？？</p>
+<ol>
+<li>对于创建一个 Resource 对象，有没有更好的解决方法？</li>
+<li>换肤的时候，对集合中的 view 一次性调用 setXXX 会引起界面的稍微卡顿，怎么解决？？？</li>
+</ol>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>ANDROID-换肤笔记</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#换肤原理"><span class="nav-number">1.</span> <span class="nav-text">换肤原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Activity-如何加载xml并显示到窗口的？"><span class="nav-number">2.</span> <span class="nav-text">Activity 如何加载xml并显示到窗口的？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现-Factory-接口"><span class="nav-number">3.</span> <span class="nav-text">实现 Factory 接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何加载皮肤包中的资源？"><span class="nav-number">4.</span> <span class="nav-text">如何加载皮肤包中的资源？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建资源包的-Resource"><span class="nav-number">5.</span> <span class="nav-text">创建资源包的 Resource</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="首先，我要说的是，我没想到写这篇文章会遇到那么多的难点。其次在写这篇文章的时候，我还是处于一个半吊子的状态，但是我想应该还是会比现有的大部分blog要好的多。我几乎将Google到的索引到的前几页文章全部看了一遍，但是大部分都是相同的内容，就只有一篇我印象比较深，写的比较全面，但是我仍然还有很多疑问。">
+<meta name="keywords" content="Android-高级">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gradle Transform API ：直接修改 class 文件">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="首先，我要说的是，我没想到写这篇文章会遇到那么多的难点。其次在写这篇文章的时候，我还是处于一个半吊子的状态，但是我想应该还是会比现有的大部分blog要好的多。我几乎将Google到的索引到的前几页文章全部看了一遍，但是大部分都是相同的内容，就只有一篇我印象比较深，写的比较全面，但是我仍然还有很多疑问。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B7.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B73.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B72.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B74.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B75.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B76.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B77.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B78.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B79.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/6965.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/ASM.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/ASM2.png?raw=true">
+<meta property="og:updated_time" content="2019-08-18T04:48:54.607Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gradle Transform API ：直接修改 class 文件">
+<meta name="twitter:description" content="首先，我要说的是，我没想到写这篇文章会遇到那么多的难点。其次在写这篇文章的时候，我还是处于一个半吊子的状态，但是我想应该还是会比现有的大部分blog要好的多。我几乎将Google到的索引到的前几页文章全部看了一遍，但是大部分都是相同的内容，就只有一篇我印象比较深，写的比较全面，但是我仍然还有很多疑问。">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B7.PNG?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>Gradle Transform API ：直接修改 class 文件 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Gradle Transform API ：直接修改 class 文件
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:48:54" itemprop="dateModified" datetime="2019-08-18T12:48:54+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>首先，我要说的是，我没想到写这篇文章会遇到那么多的难点。其次在写这篇文章的时候，我还是处于一个半吊子的状态，但是我想应该还是会比现有的大部分blog要好的多。我几乎将Google到的索引到的前几页文章全部看了一遍，但是大部分都是相同的内容，就只有一篇我印象比较深，写的比较全面，但是我仍然还有很多疑问。</p><a id="more"></a>
+<p>下面的文章我会提出我自己在学习这个知识点时想要问的问题，有些问题我可以自己解答，但是有些还是摸棱两可。</p>
+<p>首先列出阅读这篇文章所需要的基础知识，如果你连这些都没有掌握的话，就不建议往下看了，会很痛苦，除非你只是想了解一下。</p>
+<ul>
+<li>Goorvy 基本语法</li>
+<li>Gradle 构建</li>
+<li><a href="https://my.oschina.net/ta8210?tab=newest&catalogId=388001" target="_blank" rel="noopener">ASM</a></li>
+</ul>
+<p>前两个知识点有一个快速掌握的方法，阅读这个 <a href="http://wiki.jikexueyuan.com/project/deep-android-gradle/" target="_blank" rel="noopener">PDF</a> 文件，写的还是非常不错的，我花了一个小时看完，我看的比较快，因为我看过《Gradle权威指南》这本书。</p>
+<p>好了，从这里开始，我就当你已经掌握了上面的相关知识点。</p>
+<h3 id="Gradle-工作流程"><a href="#Gradle-工作流程" class="headerlink" title="Gradle 工作流程"></a>Gradle 工作流程</h3><p>Gradle 是一个框架，它定义一套自己的游戏规则。我们要玩转 Gradle，必须要遵守它设计的规则。</p>
+<p>下面我们来讲讲 Gradle 的基本组件：</p>
+<ul>
+<li>Gradle 中，<strong>每一个待编译的工程都叫一个 Project</strong>。每一个 Project 在构建的时候都包含一系列的 Task。比如<br>一个 Android APK 的编译可能包含：Java 源码编译 Task、资源编译 Task、JNI 编译 Task、lint 检查 Task、打包生成 APK 的 Task、签名 Task 等。</li>
+<li><strong>一个 Project 到底包含多少个 Task，其实是由编译脚本指定的插件决定</strong>。插件是什么呢？插件就是用来定义 Task，并具体执行这些 Task 的东西。</li>
+</ul>
+<p>Gradle 作为框架，它负责定义流程和规则，而具体的编译工作则是通过插件的方式来完成的。比如编译 Java 有 Java 插件，编译 Groovy 有 Groovy 插件，编译 Android APP 有 Android APP 插件，编译 Android Library 有 Android Library 插件。好了，到现在为止，你知道 Gradle 中每一个待编译的工程都是一个 Project，一个具体的编译过程是由一个一个的 Task 来定义和执行的。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B7.PNG?raw=true" alt></p>
+<p>在 Android Stuido 中，每个 moudle  都有自己的 build.gradle 文件。在构建的时候，<strong>每一个 build.gradle 文件都会转换成一个 Project 对象</strong>。</p>
+<p>一个 Project 会包含若干 Tasks。另外，由于 Project 对应具体的工程，所以需要为 Project 加载所需要的插件，比如：为 Java 工程加载 Java 插件，为 Android 工程加载 Android 插件。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B73.PNG?raw=true" alt></p>
+<p>这里就为该工程加载了 3 个插件。一般的插件可以直接使用，但是有的插件可能还需要配置扩展。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B72.PNG?raw=true" alt></p>
+<p>如上图所示，这是属于  <code>com.android.application</code> 插件的一个 android 扩展。在这里我们就可以配置该扩展的一些属性。</p>
+<p>了解了这些，我们继续。</p>
+<p>Gradle 工作包含三个阶段：</p>
+<ol>
+<li>首先是<code>Initiliazation</code>阶段：对我们前面的 multi-project build 而言，就是执行 settings.gradle。</li>
+<li>然后是 <code>Configration</code> 阶段：<code>Configration</code> 阶段的目标是解析每个 project 中的 build.gradle。在这两个阶段之间，我们可以加一些定制化的Hook。这当然是通过 API 来添加的。</li>
+<li><code>Configuration</code> 阶段完了后，整个 build 的 project 以及内部的 Task 关系就确定了。前面说过，一个Project 包含很多 Task，每个 Task 之间有依赖关系。Configuration 会建立一个有向图来描述 Task 之间的依赖关系。所以，我们可以添加一个 HOOK，即当 Task 关系图建立好后，执行一些操作。</li>
+<li>最后一个阶段就是执行任务了。</li>
+</ol>
+<h3 id="Transform-API-为什么可以修改-class-文件"><a href="#Transform-API-为什么可以修改-class-文件" class="headerlink" title="Transform API 为什么可以修改 class 文件"></a>Transform API 为什么可以修改 class 文件</h3><p>我们知道，一个 project 的构建是由很多 task 组成的，而这些 task 是有依赖关系的。我们结合一下 App 的打包流程来看一下，各个 task 是发生在什么时候。</p>
+<p>在 App 打包的时候，首先需要先将 java 文件编译为 class 文件（这里不关心一些其他的 AIDL 之类的），然后将 jar 与 class 文件达成 dex 文件。由于工程是 Gradle 构建的，Gradle 的构建是基于 Task 的，所以这些编译java文件，打包 class 文件都是在 task 中执行的。</p>
+<p>在构建的过程中，这些 Task 都是由 TaskManager 管理的：</p>
+<blockquote>
+<p>com.android.build.gradle.internal.TaskManager#createCompileTask</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">createCompileTask</span><span class="params">(@NonNull VariantScope variantScope)</span> </span>&#123;</span><br><span class="line">    TaskProvider&lt;? extends JavaCompile&gt; javacTask = createJavacTask(variantScope);</span><br><span class="line">    addJavacClassesStream(variantScope);</span><br><span class="line">    setJavaCompilerTask(javacTask, variantScope);</span><br><span class="line">    createPostCompilationTasks(variantScope);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里是先执行了 javac 的编译任务，然后执行 post 编译任务。</p>
+<blockquote>
+<p>com.android.build.gradle.internal.TaskManager#createPostCompilationTasks</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createPostCompilationTasks</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        @NonNull TaskFactory tasks,</span></span></span><br><span class="line"><span class="function"><span class="params">        @NonNull <span class="keyword">final</span> VariantScope variantScope)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// ----- External Transforms -----</span></span><br><span class="line">    <span class="comment">// 添加自定义的 Transform</span></span><br><span class="line">    List&lt;Transform&gt; customTransforms = extension.getTransforms();</span><br><span class="line">    List&lt;List&lt;Object&gt;&gt; customTransformsDependencies = extension.getTransformsDependencies();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, count = customTransforms.size() ; i &lt; count ; i++) &#123;</span><br><span class="line">        Transform transform = customTransforms.get(i);</span><br><span class="line">        AndroidTask&lt;TransformTask&gt; task = transformManager</span><br><span class="line">                .addTransform(tasks, variantScope, transform);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// ----- Minify next -----</span></span><br><span class="line">    <span class="comment">// minifyEnabled 为 true 表示开启混淆</span></span><br><span class="line">    <span class="comment">// 添加 Proguard Transform</span></span><br><span class="line">    <span class="keyword">if</span> (isMinifyEnabled) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> outputToJarFile = isMultiDexEnabled &amp;&amp; isLegacyMultiDexMode;</span><br><span class="line">        createMinifyTransform(tasks, variantScope, outputToJarFile);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// non Library test are running as native multi-dex</span></span><br><span class="line">    <span class="keyword">if</span> (isMultiDexEnabled &amp;&amp; isLegacyMultiDexMode) &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// 添加 JarMergeTransform</span></span><br><span class="line">        <span class="comment">// create a transform to jar the inputs into a single jar.</span></span><br><span class="line">        <span class="keyword">if</span> (!isMinifyEnabled) &#123;</span><br><span class="line">            <span class="comment">// merge the classes only, no need to package the resources since they are</span></span><br><span class="line">            <span class="comment">// not used during the computation.</span></span><br><span class="line">            JarMergingTransform jarMergingTransform = <span class="keyword">new</span> JarMergingTransform(</span><br><span class="line">                    TransformManager.SCOPE_FULL_PROJECT);</span><br><span class="line">            variantScope.addColdSwapBuildTask(</span><br><span class="line">                    transformManager.addTransform(tasks, variantScope, jarMergingTransform));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 添加 MultiDex Transform</span></span><br><span class="line">        <span class="comment">// create the transform that's going to take the code and the proguard keep list</span></span><br><span class="line">        <span class="comment">// from above and compute the main class list.</span></span><br><span class="line">        MultiDexTransform multiDexTransform = <span class="keyword">new</span> MultiDexTransform(</span><br><span class="line">                variantScope,</span><br><span class="line">                extension.getDexOptions(),</span><br><span class="line">                <span class="keyword">null</span>);</span><br><span class="line">        multiDexClassListTask = transformManager.addTransform(</span><br><span class="line">                tasks, variantScope, multiDexTransform);</span><br><span class="line">        multiDexClassListTask.optionalDependsOn(tasks, manifestKeepListTask);</span><br><span class="line">        variantScope.addColdSwapBuildTask(multiDexClassListTask);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// 添加 Dex Transform</span></span><br><span class="line">    <span class="comment">// create dex transform</span></span><br><span class="line">    DefaultDexOptions dexOptions = DefaultDexOptions.copyOf(extension.getDexOptions());</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法会遍历所有的 Transform，然后一一添加进 TransformManager。 添加完自定义的 Transform 之后，再添加 Proguard, JarMergeTransform, MultiDex, Dex 等 Transform。所以 Transform API 可以接触到 class 文件，这个时机是最好的处理时机。</p>
+<h3 id="Transform-API-的使用"><a href="#Transform-API-的使用" class="headerlink" title="Transform API 的使用"></a>Transform API 的使用</h3><p>根据 Transform API 的 <a href="http://tools.android.com/tech-docs/new-build-system/transform-api" target="_blank" rel="noopener">文档</a>，我们先自定义一个 Transform，然后将这个 Transform 注册到 android 扩展中即可。</p>
+<p>自定义 Transform 我们后面会说到，这里我们想说如何注册。文档中对注册的描述只有一句话：</p>
+<blockquote>
+<p>To insert a transform into a build, you simply create a new class implementing one of the Transform interfaces, and register it with android.registerTransform(theTransform) or android.registerTransform(theTransform, dependencies).</p>
+</blockquote>
+<p>但是实际上设计到的问题很多。比如：如何拿到 android 扩展？？？</p>
+<p>要拿到 android 扩展，<strong>一般我们是使用自定义一个插件的方式</strong>。由于 android 扩展中提供了 <code>registerTransform</code> 方法，所以是可以直接在 build.gradle 中调用的，但是它蛋疼的地方是这样搞的话，所有的逻辑都糅合在一起了。</p>
+<p>下面我们介绍如何自定义一个插件，但是我们先来了解一下 Gradle 编程模型会好很多。 </p>
+<h3 id="Gradle-编程模型"><a href="#Gradle-编程模型" class="headerlink" title="Gradle 编程模型"></a>Gradle 编程模型</h3><p>Gradle 基于 Groovy，Groovy 又基于 Java。所以，Gradle 执行的时候和 Groovy 一样，会把脚本转换成 Java对象。Gradle 主要有三种对象，这三种对象和三种不同的脚本文件对应，在 gradle 执行的时候，会将脚本转换成对应的对端：</p>
+<ul>
+<li><p>Gradle 对象：当我们执行 gradle xxx 或者什么的时候，<strong>gradle 会从默认的配置脚本中构造出一个 Gradle对象</strong>。在整个执行过程中，只有这么一个对象。Gradle 对象的数据类型就是 Gradle。我们一般很少去定制这个默认的配置脚本。</p>
+</li>
+<li><p>Project 对象：每一个 build.gradle 会转换成一个 Project 对象。</p>
+</li>
+<li><p>Settings 对象：显然，每一个 <strong>settings.gradle 都会转换成一个 Settings 对象</strong>。</p>
+</li>
+</ul>
+<h3 id="自定义-Gradle-插件"><a href="#自定义-Gradle-插件" class="headerlink" title="自定义 Gradle 插件"></a>自定义 Gradle 插件</h3><h4 id="新建一个-module"><a href="#新建一个-module" class="headerlink" title="新建一个 module"></a>新建一个 module</h4><p>删除其他目录，只留下 src/main 目录与 build.gradle 文件。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B74.PNG?raw=true" alt></p>
+<p>然后在 main 目录下面，新建 groovy 目录 与 resouce 目录。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B75.PNG?raw=true" alt></p>
+<p><strong>groovy 就是用来放 groovy 文件的，与 java 目录的作用一样</strong>。</p>
+<p>resources 目录是用来配置插件的相关信息的。接着我们在 resources 目录下新建一个 META-INF 目录，再在 META-INF 目录下新建一个 gradle-plugins 目录。然后在 gradle-plugins 新建一个 aaa.bbb.properties 文件。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B76.PNG?raw=true" alt></p>
+<p>需要注意的是，<strong>这个文件的名字很重要，aaa.bbb 是你定义的插件的名字</strong>。什么意思呢？还记得我们是如何加载一个插件的吗？</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply <span class="string">plugin:</span> <span class="string">'log.inject'</span></span><br></pre></td></tr></table></figure>
+
+<p>看，这个文件的名字就是加载插件时用到的名字。</p>
+<p>文件的内容，比较简单，由于我们是要自定义一个插件，所以需要在这里声明一下插件的名字。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">implementation-class=com.aprz.log.LogPlugin</span><br></pre></td></tr></table></figure>
+
+<p>这样，我们的第一步就完成了。</p>
+<h4 id="实现一个插件类"><a href="#实现一个插件类" class="headerlink" title="实现一个插件类"></a>实现一个插件类</h4><p>一般的，我们需要自定义一个东西，都会有一个父类给我们使用，插件也不例外。我们需要实现 Plugin 接口：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LogPlugin</span> <span class="keyword">implements</span> <span class="title">Plugin</span>&lt;<span class="title">Project</span>&gt; &#123;</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">void</span> apply(Project project) &#123;</span><br><span class="line"></span><br><span class="line">        println(<span class="string">'welcome to log inject plugin...'</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 找到项目中的 某个继承至 BaseExtension 的扩展</span></span><br><span class="line">        <span class="keyword">def</span> ext = project.extensions.getByType(BaseExtension)</span><br><span class="line">        <span class="comment">// 往该扩展中添加 transform</span></span><br><span class="line">        <span class="comment">// 这里其实就是将我们自定义的这个 transform 添加到了集合中</span></span><br><span class="line">        <span class="comment">// 但是这里让我想不明白的是，为什么这个添加 transform 的方法是在 extension 里面</span></span><br><span class="line">        <span class="comment">// 而不是 project 里面，如果像 Java 工程，没有使用有扩展的插件该怎么办</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 查看源码发现了这样的代码：com.android.build.gradle.internal.TaskManager.createPostCompilationTasks</span></span><br><span class="line">        <span class="comment">// AndroidConfig extension = variantScope.getGlobalScope().getExtension();</span></span><br><span class="line">        <span class="comment">// 它获取到了 android 扩展，然后拿到了其中的所有 transform</span></span><br><span class="line">        <span class="comment">// 嗯，看来这个是针对 Android 构建的</span></span><br><span class="line">        ext.registerTransform(<span class="keyword">new</span> LogsTransform(project))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当这个插件按被加载（build.gradle 执行到 <code>apply plugin: &#39;xxxx&#39;</code>）的时候，它的 apply 方法就会被调用，我们在这里可以注册我们的 Transform 了。其实如果不需要注册 transform，我们只想打印一下 log 的话，它也是一个插件，只不过是一个没啥屌用的插件而已。</p>
+<p>要想自定义一个有用的插件，还需要对 Groovy 语法，gradle 文档有相当的了解才行。</p>
+<h4 id="发布插件"><a href="#发布插件" class="headerlink" title="发布插件"></a>发布插件</h4><p>前面我们自定义了一个插件，但是需要发布之后，自己以及别人的项目才能使用，这里简单的说一下，<strong>如何发布到本地</strong>自己使用，想要发布到 bintray 等网站，可以自行查阅文档。</p>
+<p>为了方便，我是使用了第三方的辅助插件。首先我们在根目录的 build.gradle 中添加依赖：</p>
+<blockquote>
+<p>TransformAPIDemo\build.gradle</p>
+</blockquote>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    classpath <span class="string">'com.novoda:bintray-release:0.9'</span></span><br><span class="line">    <span class="comment">// <span class="doctag">NOTE:</span> Do not place your application dependencies here; they belong</span></span><br><span class="line">    <span class="comment">// in the individual module build.gradle files</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在插件工程的 build.gradle 中添加配置：</p>
+<blockquote>
+<p>TransformAPIDemo\log_transform\build.gradle</p>
+</blockquote>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">apply <span class="string">plugin:</span> <span class="string">'com.novoda.bintray-release'</span></span><br><span class="line"></span><br><span class="line">uploadArchives &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        mavenDeployer &#123;</span><br><span class="line">            pom.groupId = <span class="string">'com.aprz.log.inject'</span></span><br><span class="line">            pom.artifactId = <span class="string">'log'</span></span><br><span class="line">            pom.version = <span class="string">'1.0.0'</span></span><br><span class="line">            repository(<span class="string">url:</span> uri(<span class="string">'E:/maven/repository'</span>))</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">publish &#123;</span><br><span class="line">    userOrg = <span class="string">'aprz512'</span></span><br><span class="line">    groupId = <span class="string">'com.aprz.log.inject'</span></span><br><span class="line">    artifactId = <span class="string">'log'</span></span><br><span class="line">    publishVersion = <span class="string">'1.0.0'</span></span><br><span class="line">    desc = <span class="string">'log inject demo'</span></span><br><span class="line">    website = <span class="string">'https://github.com/aprz512/Transform-API-demo'</span></span><br><span class="line">    repoName = <span class="string">'gradle_plugins'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>groupId</code>,<code>artifactId</code>,<code>version</code>这3个应该经常接触，就不说了，这里看 <code>repository</code> 的配置，是可以配置本地路径的。这里我配置的是 E 盘。执行发布命令：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B77.PNG?raw=true" alt></p>
+<p>点击这个玩意，查看控制台输出：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B78.PNG?raw=true" alt></p>
+<p>然后就可以在E盘看到发布的插件了。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/%E6%8D%95%E8%8E%B79.PNG?raw=true" alt></p>
+<h3 id="自定义-Transform"><a href="#自定义-Transform" class="headerlink" title="自定义 Transform"></a>自定义 Transform</h3><p>上面我们自定义插件时提到了 Transform 的注册，里面创建了一个 Transform，但是我们没有深究，这里会仔细的分析一下。</p>
+<p>自定义 Transform 同样的也需要继承一个父类：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LogsTransform</span> <span class="keyword">extends</span> <span class="title">Transform</span> &#123;</span></span><br><span class="line"></span><br><span class="line">    LogsTransform() &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    String getName() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.getClass().getSimpleName()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    Set&lt;QualifiedContent.ContentType&gt; getInputTypes() &#123;</span><br><span class="line">        <span class="keyword">return</span> TransformManager.CONTENT_CLASS</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    Set&lt;QualifiedContent.Scope&gt; getScopes() &#123;</span><br><span class="line">        <span class="keyword">return</span> TransformManager.SCOPE_FULL_PROJECT</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">boolean</span> isIncremental() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">void</span> transform(TransformInvocation transformInvocation) <span class="keyword">throws</span> TransformException, InterruptedException, IOException &#123;</span><br><span class="line">        <span class="keyword">super</span>.transform(transformInvocation)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们先用一张图来说明，transform 是如何工作的，然后再细说上面的每个方法是什么意思。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/6965.png?raw=true" alt></p>
+<p>Transform每次都是将<strong>一个输入进行处理，然后将处理结果输出，而输出的结果将会作为另一个Transform的输入</strong>。每个 Transform 会处理某些特定的资源流，如何指定需要处理的资源流是通过 <code>getInputTypes</code> 与 <code>getScopes</code> 一起决定的。</p>
+<p>下面一一解释上面的几个方法：</p>
+<ul>
+<li><p>getName</p>
+<p>指明本Transform的名字，随意，但是<strong>不能包含某些特殊字符，否则会报错</strong>。</p>
+</li>
+<li><p>getInputTypes</p>
+<p>指明Transform的输入类型，例如，返回 TransformManager.CONTENT_CLASS 表示配置 Transform 的输入类型为 Class。</p>
+</li>
+<li><p>getScopes</p>
+<p>指明Transform的作用域，例如，返回 TransformManager.SCOPE_FULL_PROJECT 表示配置 Transform 的作用域为全工程。</p>
+</li>
+<li><p>isIncremental</p>
+<p>指明是否是增量构建</p>
+</li>
+<li><p>transform</p>
+<p>用于处理具体的输入输出，核心操作都在这里。上例中，配置 Transform 的输入类型为 Class， 作用域为全工程，因此在<code>transform</code>方法中，inputs 会传入工程内所有的 class 文件。</p>
+</li>
+</ul>
+<p>通过 Scope 和 ContentType 可以组成一个资源流。例如，PROJECT 和 CLASSES，表示了主项目中java 编译成的 class 组成的一个资源流。再如，SUB_PROJECTS 和 CLASSES ，表示的是本地子项目中的 java 编译成的 class 组成的一个资源流。Transform 用来处理和转换这些流。</p>
+<p>查看我们的代码中指定的域与类型，表示我们处理的是整个工程的 java 编译成的 class 文件。</p>
+<p>接下来，我们来实现一个实例，自定义一个 Transform，这个 Transform 的作用是可以给所有父类是 <code>androidx.appcompat.app.AppCompatActivity</code>的类的 onCreate 方法都加入一个 log 语句。比如，原来的代码是这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> : <span class="type">AppCompatActivity</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        setContentView(R.layout.activity_main)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>改变 class 之后应该是这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> : <span class="type">AppCompatActivity</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        Log.e(<span class="string">"log_inject"</span>, <span class="string">"onCreate"</span>)</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        setContentView(R.layout.activity_main)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>废话不多说，我们直接进入正题，由于 Transform 的主要内容都在 com.aprz.log.LogsTransform#transform 方法里面，我们就直接说这个方法：</p>
+<blockquote>
+<p>com.aprz.log.LogsTransform#transform</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">transform</span><span class="params">(TransformInvocation transformInvocation)</span> <span class="keyword">throws</span> TransformException, InterruptedException, IOException </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.transform(transformInvocation)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// inputs 包含了 jar 包和目录。</span></span><br><span class="line">    <span class="comment">// 子 module 的 java 文件在编译过程中也会生成一个 jar 包然后编译到主工程中。</span></span><br><span class="line">    transformInvocation.inputs.each &#123;</span><br><span class="line">        input -&gt;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 遍历目录</span></span><br><span class="line">            <span class="comment">// 文件夹里面包含的是我们手写的类以及R.class、BuildConfig.class以及R$XXX.class等</span></span><br><span class="line">            input.directoryInputs.each &#123;</span><br><span class="line">                DirectoryInput directoryInput -&gt;</span><br><span class="line">                    directoryInput.file.eachFileRecurse &#123;</span><br><span class="line">                        File file -&gt;</span><br><span class="line">                            <span class="keyword">if</span> (checkFileName(file.name)) &#123;</span><br><span class="line">                                injectClassFile(file)</span><br><span class="line">                            &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    copyDirectory(directoryInput, transformInvocation.outputProvider)</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="comment">// 遍历 jar，我们不需要对 jar 进行处理，所以直接跳过</span></span><br><span class="line">            <span class="comment">// 但是后面的 transform 可能需要处理，所以需要从输入流原封不动的写到输出流</span></span><br><span class="line">            input.jarInputs.each &#123;</span><br><span class="line">                jarInput -&gt;</span><br><span class="line">                    copyJar(jarInput, transformInvocation.outputProvider)</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是，inputs 分为两种类型的资源，一种是目录（目录里面都是生成的 class 文件），一种是 jar 包，它们需要分开遍历。由于我们只需要要处理目录，所以只针对目录讲解。</p>
+<p>首先，我们对目录集合进行遍历，在对集合中的每个目录进行递归处理，最终到每个 class 文件，拿到这个 class 文件，我们就可以使用 ASM 修改这个 class 文件了。</p>
+<blockquote>
+<p>com.aprz.log.LogsTransform#injectClassFile</p>
+</blockquote>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> injectClassFile(File file) &#123;</span><br><span class="line">    ClassReader classReader = <span class="keyword">new</span> ClassReader(file.bytes)</span><br><span class="line">    ClassWriter classWriter = <span class="keyword">new</span> ClassWriter(classReader, ClassWriter.COMPUTE_MAXS)</span><br><span class="line">    ClassVisitor cv = <span class="keyword">new</span> LogClassVisitor(classWriter)</span><br><span class="line">    <span class="comment">// 访问者模式</span></span><br><span class="line">    classReader.accept(cv, ClassReader.EXPAND_FRAMES)</span><br><span class="line">    <span class="keyword">byte</span>[] code = classWriter.toByteArray()</span><br><span class="line">    FileOutputStream fos = <span class="keyword">new</span> FileOutputStream(</span><br><span class="line">            file.parentFile.absolutePath + File.separator + file.name)</span><br><span class="line">    fos.write(code)</span><br><span class="line">    fos.close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从这里开始，就是 ASM 的使用了。</p>
+<h3 id="ASM-的使用"><a href="#ASM-的使用" class="headerlink" title="ASM 的使用"></a>ASM 的使用</h3><p>这里不介绍 API 的使用了，网上很多，还有官方文档，哪个都比我写得好。</p>
+<p>这里介绍一下 ASM 的设计思想。</p>
+<p>从上面的代码可以看到，<code>ClassReader</code> 的 <code>accept</code> 方法中传进来了一个参数<code>ClassVisitor</code>。在内部，<code>ClassVisitor</code>会不断的读取<code>ClassReader</code>的二进制byte[]，然后在解析后通过参数<code>classVisitor</code>的抽象<code>visitXXX</code>方法将属性全部转发出去，将其中的<code>visitXXX</code>方法按顺序抽离出来就是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">classVisitor.visit(readInt(items[<span class="number">1</span>] - <span class="number">7</span>), access, name, signature,superClass, interfaces);</span><br><span class="line">classVisitor.visitSource(sourceFile, sourceDebug);</span><br><span class="line">classVisitor.visitOuterClass(enclosingOwner, enclosingName,enclosingDesc);</span><br><span class="line">classVisitor.visitTypeAnnotation(context.typeRef,context.typePath, readUTF8(v, c);</span><br><span class="line">classVisitor.visitAttribute(attributes);</span><br><span class="line">classVisitor.visitInnerClass(readClass(v, c),readClass(v + <span class="number">2</span>, c), readUTF8(v + <span class="number">4</span>, c),readUnsignedShort(v + <span class="number">6</span>));</span><br><span class="line">classVisitor.visitField(access, name, desc,signature, value);</span><br><span class="line">classVisitor.visitMethod(context.access,context.name, context.desc, signature, exceptions);</span><br><span class="line">classVisitor.visitEnd();</span><br></pre></td></tr></table></figure>
+
+<p>这里有很多 visit 方法，但是与真正的 class 文件的处理有关的，只有几个，比如：visitMethod，visitField 等。 这些 visit 方法，会创建一个相对应的 Writer 对象。</p>
+<p>Writer 对象是什么呢？？？Writer 对象是 Visitor 的一个实现类。</p>
+<p>ASM 在读取一个 class 文件的时候，会创建出一个 ClassWriter 对象，但是它不会把对元素（字段，方法，注解）的访问放到 ClassWriter 中，而是使用 <strong>访问者模式</strong>，将对这个元素的访问放到了 ClassVisitor 中。为何这样做，可以去看访问者模式。</p>
+<p>当 ClassWriter 处理 class 文件的字节码的时候，比如遇到了一个方法，就会调用 ClassVisitor 的 visitMethod 方法。而 visitor 的实现实际上是 writer 类，所以会调用 writer 类的对应方法。这些方法会将字节码对应的部分给保存起来。而最后 <code>classWriter.toByteArray</code> 就会将所有的 writer 保存的字节码全部合并在一起，生成一个新的 class 文件。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/ASM.png?raw=true" alt></p>
+<p>如果，我们自定义一个 MethodVisitor 就可以改变字节码。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/Transform%20API/ASM2.png?raw=true" alt></p>
+<p>这里，我们覆盖 ClassVisitor 的 visitMethod 方法：</p>
+<blockquote>
+<p>com.aprz.log.asm.LogClassVisitor#visitMethod</p>
+</blockquote>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">MethodVisitor visitMethod(<span class="keyword">int</span> access, String name, String desc, String signature, String[] exceptions) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!checkSuperClass(<span class="keyword">this</span>.superName)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 由于是一个例子，我们就只处理 onCreate 方法了，想要深入应该去研究一下一个正规的开源项目</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 我的 demo 是 kotlin，tools里面有工具可以直接查看字节码，就非常方便</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="string">'onCreate(Landroid/os/Bundle;)V'</span> == (name + desc)) &#123;</span><br><span class="line"></span><br><span class="line">        println <span class="string">"log &gt;&gt;&gt; method name = $&#123;name + desc&#125;"</span></span><br><span class="line"></span><br><span class="line">        MethodVisitor methodVisitor = <span class="keyword">this</span>.cv.visitMethod(access, name, desc, signature, exceptions)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> LogMethodVisitor(methodVisitor, name)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">super</span>.visitMethod(access, name, desc, signature, exceptions)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，我们返回了我们自己定义的 LogMethodVisitor，将原来的 MethodVisitor 作为成员变量保存起来 。当 MethodVisitor 的相关方法被调用的时候，实际上会调用 LogMethodVisitor 的方法。这样，我们就可以搞事情了。比如：在刚进入方法的时候，会触发 visitCode 的调用：</p>
+<blockquote>
+<p>com.aprz.log.asm.LogMethodVisitor#visitCode</p>
+</blockquote>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> *    L2</span></span><br><span class="line"><span class="comment"> *     LINENUMBER 13 L2</span></span><br><span class="line"><span class="comment"> *     LDC "log_inject"</span></span><br><span class="line"><span class="comment"> *     LDC "onCreate"</span></span><br><span class="line"><span class="comment"> *     INVOKESTATIC android/util/Log.e (Ljava/lang/String;Ljava/lang/String;)I</span></span><br><span class="line"><span class="comment"> *     POP</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">void</span> visitCode() &#123;</span><br><span class="line">    <span class="keyword">super</span>.visitCode()</span><br><span class="line">    <span class="comment">// 在方法之前插入 Log.e("", "")</span></span><br><span class="line">    <span class="comment">// 这两个是参数</span></span><br><span class="line">    <span class="keyword">this</span>.mv.visitLdcInsn(<span class="string">'log_inject'</span>)</span><br><span class="line">    <span class="keyword">this</span>.mv.visitLdcInsn(<span class="keyword">this</span>.name)</span><br><span class="line">    <span class="keyword">this</span>.mv.visitMethodInsn(Opcodes.INVOKESTATIC, <span class="string">'android/util/Log'</span>, <span class="string">'e'</span>, <span class="string">'(Ljava/lang/String;Ljava/lang/String;)I'</span>, <span class="literal">false</span>)</span><br><span class="line">    <span class="comment">// 这里的用法有点奇怪，还需要研究一下</span></span><br><span class="line">    <span class="comment">// visitXXX 实际上会触发 MethodWriter 的方法，这些方法会将我们想要写入的字节码存放起来</span></span><br><span class="line">    <span class="comment">// 最后统一的写入到输出的 class 文件中</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，我们就可以插入我们的字节码了。</p>
+<p>到这里，东西就都介绍完毕了，只说了皮毛，要深入还是要看一个真正的项目才行。</p>
+<h3 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h3><p><a href="https://github.com/aprz512/Transform-API-demo/tree/master" target="_blank" rel="noopener"><strong>Transform-API-demo</strong></a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/" title="Gradle Transform API ：直接修改 class 文件">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-高级/" rel="tag"># Android-高级</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/" rel="next" title="多渠道打包">
+                  <i class="fa fa-chevron-left"></i> 多渠道打包
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-高级/FileProvider/" rel="prev" title="FileProvider">
+                  FileProvider <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gradle-工作流程"><span class="nav-number">1.</span> <span class="nav-text">Gradle 工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Transform-API-为什么可以修改-class-文件"><span class="nav-number">2.</span> <span class="nav-text">Transform API 为什么可以修改 class 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Transform-API-的使用"><span class="nav-number">3.</span> <span class="nav-text">Transform API 的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Gradle-编程模型"><span class="nav-number">4.</span> <span class="nav-text">Gradle 编程模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义-Gradle-插件"><span class="nav-number">5.</span> <span class="nav-text">自定义 Gradle 插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#新建一个-module"><span class="nav-number">5.1.</span> <span class="nav-text">新建一个 module</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实现一个插件类"><span class="nav-number">5.2.</span> <span class="nav-text">实现一个插件类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#发布插件"><span class="nav-number">5.3.</span> <span class="nav-text">发布插件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义-Transform"><span class="nav-number">6.</span> <span class="nav-text">自定义 Transform</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ASM-的使用"><span class="nav-number">7.</span> <span class="nav-text">ASM 的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#demo"><span class="nav-number">8.</span> <span class="nav-text">demo</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

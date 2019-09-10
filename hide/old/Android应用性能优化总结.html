@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="恩，今天小米发布会，同时把 《Android应用性能优化最佳实践》给看完了，怎么说呢，感觉不太像一本书，也没有具体的案例之类的，但是还是学到了一点东西的。正好有个构建自己知识图谱的一个打算，所有我就将书上的东西整理一下，便于之后回忆。第一章这一章里有用的东西只有一个调试的技巧。http://www.10tiao.com/html/169/201612/2650821802/1.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Android应用性能优化总结">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/Android应用性能优化总结.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="恩，今天小米发布会，同时把 《Android应用性能优化最佳实践》给看完了，怎么说呢，感觉不太像一本书，也没有具体的案例之类的，但是还是学到了一点东西的。正好有个构建自己知识图谱的一个打算，所有我就将书上的东西整理一下，便于之后回忆。第一章这一章里有用的东西只有一个调试的技巧。http://www.10tiao.com/html/169/201612/2650821802/1.html">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-03-27T12:48:06.248Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android应用性能优化总结">
+<meta name="twitter:description" content="恩，今天小米发布会，同时把 《Android应用性能优化最佳实践》给看完了，怎么说呢，感觉不太像一本书，也没有具体的案例之类的，但是还是学到了一点东西的。正好有个构建自己知识图谱的一个打算，所有我就将书上的东西整理一下，便于之后回忆。第一章这一章里有用的东西只有一个调试的技巧。http://www.10tiao.com/html/169/201612/2650821802/1.html">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/Android应用性能优化总结">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>Android应用性能优化总结 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">Android应用性能优化总结
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>ANDROID应用性能优化总结</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>恩，今天小米发布会，同时把 《Android应用性能优化最佳实践》给看完了，怎么说呢，感觉不太像一本书，也没有具体的案例之类的，但是还是学到了一点东西的。</p><p>正好有个构建自己知识图谱的一个打算，所有我就将书上的东西整理一下，便于之后回忆。</p><h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><p>这一章里有用的东西只有一个调试的技巧。</p><p><a href="http://www.10tiao.com/html/169/201612/2650821802/1.html" target="_blank" rel="noopener">http://www.10tiao.com/html/169/201612/2650821802/1.html</a></p><a id="more"></a>
+
+
+
+<p>我随便找了篇文章，里面的技巧都是比较常用的，但是书中还说了一个技巧：</p>
+<p>分析传入/传出数据流：Menu - &gt; Analyze - &gt; Analyze Data Flow to Here</p>
+<p>如果你想知道一个变量是怎么传递过来的，这个就非常有用了，特别是嵌套特别深的时候。</p>
+<p><a href="http://www.developerphil.com/android-studio-tips-of-the-day-roundup-4/" target="_blank" rel="noopener">http://www.developerphil.com/android-studio-tips-of-the-day-roundup-4/</a></p>
+<h2 id="第二章"><a href="#第二章" class="headerlink" title="第二章"></a>第二章</h2><p>这一章就是说的绘制优化，主要是解决卡顿和监控卡顿。</p>
+<p>Android显示原理可以简单概括为：Android应用程序把经过测量、布局、绘制后的 surface 缓存数据，通过 SurfaceFlinger 把数据渲染到显示屏幕上，通过Android的刷新机制来刷新数据。应用层负责绘制，系统层负责渲染。</p>
+<p><strong>Android 的刷新机制：</strong></p>
+<p>vsync 信号，4.1之前应用层也要注册 vsync 信号。</p>
+<p>triple buffer，大部分情况下都是双缓冲，只有在需要的时候才用到。</p>
+<p>有需要的可以去查一下时序图，16ms。</p>
+<p><strong>性能分析工具：</strong></p>
+<p>Profile GPU Rendering</p>
+<p>TraceView</p>
+<p>Systrace UI</p>
+<p><strong>布局优化工具：</strong></p>
+<p>Hierarchy Viewer：可以查看层级和耗时</p>
+<p>Android Lint：可以全局分析布局，特别是 TooDeepLayout，TooManyViews</p>
+<p><strong>布局优化方法：</strong></p>
+<p>减少层级，层级相同的情况下使用 FrameLayout 或者 LinearLayout，减少层级使用 RelativeLayout。</p>
+<p>使用 merge，特别是封装通用的 viewGroup，如 titleBar 等。</p>
+<p>提高界面的显示速度，可以使用 viewStub，xml中有些控件在某些情况下不需要显示或者延迟显示可以使用这个。</p>
+<p>布局复用，这个算是代码层面的优化。</p>
+<p><strong>避免过度绘制：</strong></p>
+<p>检查：开发者选项 -&gt; 显示GPU过度重绘</p>
+<p>布局上的优化：如果 fragment 有自己的背景，可以考虑去除 Activity 的背景（默认就有一个）。</p>
+<p>自定义view的优化：使用 clipRect 来制定绘制区域，避免绘制不需要绘制的地方，比如重合的地方。</p>
+<p><strong>启动优化：</strong></p>
+<p>监测启动时间</p>
+<p>启动界面布局优化，同上。</p>
+<p>启动逻辑进行分类：必要、非必要、耗时、不耗时。有几种处理方式：分步加载，异步加载，延迟加载。</p>
+<p><strong>合理的刷新机制：</strong></p>
+<p>比如控件数据没有变化，或者控件不可见就没有必要刷新。</p>
+<p>刷新也可以指定刷新的区域，invalidate(Rect rect)</p>
+<p>避免后台线程的影响：比如 list 滑动的时候，暂停图片的加载等。（不知道为啥要放在这里）</p>
+<p><strong>提升动画性能：</strong></p>
+<p>补间动画会导致频繁的重绘，相比之下，属性动画性能更好。</p>
+<p>硬件加速与离屏缓冲（LAYER_TYPE_HARDWARE），离屏缓冲会在硬件加速的基础上再次提高性能，不过只适用于平移，旋转，缩放，透明度等，你可以认为它是保存了一个 Bitmap，如果你的动画效果导致缓存失效（引起了重绘），从而浪费了缓存，还降低了性能（因为每次都要重新绘制缓存Bitmap）。</p>
+<p><strong>卡顿监控方案：</strong></p>
+<p><a href="http://www.10tiao.com/html/330/201801/2653579565/1.html" target="_blank" rel="noopener">http://www.10tiao.com/html/330/201801/2653579565/1.html</a></p>
+<p>有很多，我就不哔哔了。在卡顿时，我们可以获取：整体 CPU 的使用率和当前应用进程的占用率。</p>
+<h2 id="第三章"><a href="#第三章" class="headerlink" title="第三章"></a>第三章</h2><p>这一章主要是讲了内存优化。</p>
+<p><strong>Android内存的管理机制</strong>：</p>
+<p>java对象的生命周期：7个阶段</p>
+<p>内存分配，内存回收机制，主要是 GC。</p>
+<p><strong>内存优化的意义：</strong></p>
+<p>内存泄露是一方面，即使内存不泄露，在短时间内创建大量的对象，也会引发 GC 的运行，而 GC 的运行会挂起其他线程（即使 art 优化了，也会有短时间的挂起），如果 GC 频繁的运行，就会导致界面卡顿。</p>
+<p>所以，有几个方面的好处：减少OOM，减少卡顿，减少内存占用，提高后台运行时的存活率，减少异常发生（代码隐患）。</p>
+<p><strong>内存分析工具：</strong></p>
+<p>Memory Monitor：主要用来监测大内存申请和内存抖动，很直观</p>
+<p>Heap Viewer：查看各个数据类型占用内存的情况。</p>
+<p>Allocation Tracker：可以记录应用程序的内存分配，并且能够查看调用堆栈。</p>
+<p>MAT：分析内存泄露。可以查看对象到GC ROOTS 的最短路径，可以比较内存映像。</p>
+<p><strong>常见内存泄露场景：</strong></p>
+<p>资源未关闭</p>
+<p>注册对象未注销</p>
+<p>类的静态变量持有大数据对象</p>
+<p>非静态内部类的静态实例</p>
+<p>Hander 临时性内存泄露（原因同上）</p>
+<p>容器中的对象没有清理（非静态的 ThreadLocal 使用）</p>
+<p>webview</p>
+<p><strong>内存泄露监控：</strong></p>
+<p>LeakCanary，通常要了解一下原理。</p>
+<p><strong>优化内存空间：</strong></p>
+<p>对象的引用（四种引用方式，虚引用可以用来做析构函数一样的东西）</p>
+<p>减少不必要的开销：自动装箱（特别要注意循环中），内存复用（listview，Bitmap，对象池）</p>
+<p><strong>选择数据类型：</strong></p>
+<p>HashMap 与 ArrayMap：少于1000的，插入删除不频繁的，可以使用 ArrayMap，节省内存。</p>
+<p>尽量不要使用枚举，当类型较多不好控制的时候，可以使用注解：@IntDef 和 @StringDef</p>
+<p>使用 LruCache</p>
+<p><strong>图片内存优化：</strong></p>
+<p>设置解码格式 inPreferredConfig（8888,4444等），注意一下，使用 decodeResource 来解码图片的时候，设置之后可能不起作用。</p>
+<p>设置 inSampleSize 如果缩放倍数不是 2 的整数幂，可以使用 inScaled，inDensity，inTargetDensity</p>
+<p>使用 inBitmap，注意 4.4 之前和之后的区别。（bitmap 的复用其实就是bitmap 占用了两块空间，一个是 java 层（对象），一个是 jni 层（像素），复用的是 jni 层的空间）。</p>
+<p>使用开源图片加载项目，如果你能读懂源码就更好了（本质上不会变，可以学习设计模式）。</p>
+<h2 id="第四章"><a href="#第四章" class="headerlink" title="第四章"></a>第四章</h2><p>这一章讲的是储存优化。</p>
+<p><strong>储存方式：</strong></p>
+<p>SharedPreference，文件，SQLite，ContentProvider</p>
+<p><strong>序列化：</strong></p>
+<p>Serializable：在序列化的时候会产生大量的临时变量</p>
+<p>Parcelable：无法储存在磁盘上</p>
+<p>Gson</p>
+<p>Nano Proto Buffers</p>
+<p>FlatBuffers：性能最好</p>
+<p>SP 优化：尽量使用 apply 代替 commit，批量操作可以先获取 editor，执行批量操作，再 apply。</p>
+<p><strong>数据库优化：</strong></p>
+<p>SQLiteStatement</p>
+<p>使用事务，我们的每一个操作默认会开启一个事务，如果不显示的使用，会导致频繁的开始事务。</p>
+<p>建立索引（增加空间占用，删除插入操作变慢）</p>
+<p>异步线程，写数据库的同一管理。就是将操作封装起来，放到一个队列里等待执行</p>
+<p>提高查询性能，不要查询不需要的字段。</p>
+<h2 id="第五章"><a href="#第五章" class="headerlink" title="第五章"></a>第五章</h2><p>稳定性优化</p>
+<p><strong>提高代码质量：</strong></p>
+<p>代码审查</p>
+<p>代码静态扫描工具：FindBugs</p>
+<p><strong>Crash监控：</strong></p>
+<p>java层监控：UncaughtExceptionHandler</p>
+<p>Native层监控</p>
+<p><strong>ANR分析：</strong></p>
+<p>可以在 /date/anr/traces.txt 里获取 anr 信息，并分析</p>
+<p>anr 监控</p>
+<p><strong>提高后台进程的存活率：</strong></p>
+<p>网络连接：使进程保持活动状态</p>
+<p>使用广播等唤起后台进程</p>
+<p>SyncAdapter</p>
+<h2 id="耗电优化"><a href="#耗电优化" class="headerlink" title="耗电优化"></a>耗电优化</h2><h2 id="安装包大小优化"><a href="#安装包大小优化" class="headerlink" title="安装包大小优化"></a>安装包大小优化</h2><p>恩，记录了一个大概，感觉获取的知识有，但是还不够多，也许需要自己去实践，之后会买一本案例分析的书来看看，看过之后再来记录。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>ANDROID应用性能优化总结</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#第一章"><span class="nav-number">1.</span> <span class="nav-text">第一章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二章"><span class="nav-number">2.</span> <span class="nav-text">第二章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第三章"><span class="nav-number">3.</span> <span class="nav-text">第三章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第四章"><span class="nav-number">4.</span> <span class="nav-text">第四章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第五章"><span class="nav-number">5.</span> <span class="nav-text">第五章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#耗电优化"><span class="nav-number">6.</span> <span class="nav-text">耗电优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装包大小优化"><span class="nav-number">7.</span> <span class="nav-text">安装包大小优化</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

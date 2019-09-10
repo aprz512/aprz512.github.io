@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="ViewRootImpl &amp;amp; DecorView当我们在 Activity 中调用 setContentView 方法的时候，实际上 Activity 是将这个方法转发给了 Window。 android.app.Activity#setContentView(int) 1234public void setContentView(@LayoutRes int layoutResID) &amp;">
+<meta name="keywords" content="Android-View">
+<meta property="og:type" content="article">
+<meta property="og:title" content="View 的工作原理">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的工作原理/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="ViewRootImpl &amp;amp; DecorView当我们在 Activity 中调用 setContentView 方法的时候，实际上 Activity 是将这个方法转发给了 Window。 android.app.Activity#setContentView(int) 1234public void setContentView(@LayoutRes int layoutResID) &amp;">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-18T04:16:05.756Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="View 的工作原理">
+<meta name="twitter:description" content="ViewRootImpl &amp;amp; DecorView当我们在 Activity 中调用 setContentView 方法的时候，实际上 Activity 是将这个方法转发给了 Window。 android.app.Activity#setContentView(int) 1234public void setContentView(@LayoutRes int layoutResID) &amp;">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的工作原理/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>View 的工作原理 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的工作原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">View 的工作原理
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:16:05" itemprop="dateModified" datetime="2019-08-18T12:16:05+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-View/View 的工作原理/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-View/View 的工作原理/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="ViewRootImpl-amp-DecorView"><a href="#ViewRootImpl-amp-DecorView" class="headerlink" title="ViewRootImpl &amp; DecorView"></a>ViewRootImpl &amp; DecorView</h3><p>当我们在 Activity 中调用 setContentView 方法的时候，实际上 Activity 是将这个方法转发给了 Window。</p><blockquote>
+<p>android.app.Activity#setContentView(int)</p>
+</blockquote><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContentView</span><span class="params">(@LayoutRes <span class="keyword">int</span> layoutResID)</span> </span>&#123;</span><br><span class="line">    getWindow().setContentView(layoutResID);</span><br><span class="line">    initWindowDecorActionBar();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<p>而 Window 的 setContentView 方法会创建 DecorView 对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContentView</span><span class="params">(<span class="keyword">int</span> layoutResID)</span> </span>&#123;</span><br><span class="line">       <span class="comment">// Note: FEATURE_CONTENT_TRANSITIONS may be set in the process of installing the window</span></span><br><span class="line">       <span class="comment">// decor, when theme attributes and the like are crystalized. Do not check the feature</span></span><br><span class="line">       <span class="comment">// before this happens.</span></span><br><span class="line">       <span class="keyword">if</span> (mContentParent == <span class="keyword">null</span>) &#123;</span><br><span class="line">           <span class="comment">// 这个方法里面就实例化了一个 DecorView</span></span><br><span class="line">           installDecor();</span><br><span class="line">       &#125;</span><br><span class="line">       ...</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么，有了 DecorView 之后，后面的流程就是解析我们在 xml 中写的布局，将xml转换成真正的 View 对象，然后添加到 DecorView 中（DecorView 是继承至 FrameLayout）。</p>
+<hr>
+<p>但是我们都知道，在 onCreate 中我们是无法看到布局的，就像我们在内存中创建了一个 View 对象，我们是看不到它的，只有将它添加到界面上我们才能看到。</p>
+<p>那么，如何将一个 View 添加到界面上呢？想必大家都知道以前手机上的悬浮按钮很流行，我们自己想要做一个这样的效果，一般都是通过 WindowManager 来实现的。所以说，使用 WindowManger 就可以将一个 View 显示到界面上了。当一个 View 已经显示到界面上之后，在给他添加子 View 就不用 WindowManager 了，可以直接添加，这就是我们可以动态更改布局，而不用通过WindowManager 的原因，因为 Activity 已经通过 WindowManager 将 DecorView 添加到了 PhoneWindow 上。我们操作的是 DecorView 的子 View。</p>
+<blockquote>
+<p>android.app.ActivityThread#handleResumeActivity</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里的 l 是 WindowManager.LayoutParams 对象的类型</span></span><br><span class="line">wm.addView(decor, l);</span><br></pre></td></tr></table></figure>
+
+<p>可以看到在 Activity 的 onResume 执行后，View 才会被添加到 Window 上，所以在这之前，我们是看不到界面的，故而不要在这之前做太多的事件，以免黑（白）屏时间太长，给用户一个不好的体验。</p>
+<p>看到这里，我们已经知道 DecorView 与 WindowManager 是如何产生关系的了！</p>
+<hr>
+<p>那么 ViewRootImpl 又是如何插一脚的呢？</p>
+<p>上面的 addView 方法中，其实创建了一个 ViewRootImpl 对象：</p>
+<blockquote>
+<p>android.view.WindowManagerGlobal#addView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ViewRootImpl root;</span><br><span class="line">...</span><br><span class="line">root = <span class="keyword">new</span> ViewRootImpl(view.getContext(), display);</span><br><span class="line">...</span><br><span class="line"><span class="comment">// 这个 view 就是上面的 DecorView 对象</span></span><br><span class="line"><span class="comment">// 这里将 view 保存到了自己的成员变量 mView 中</span></span><br><span class="line">root.setView(view, wparams, panelParentView);</span><br></pre></td></tr></table></figure>
+
+<p>我们先来看看官方对 ViewRootImpl 的介绍：</p>
+<blockquote>
+<p>ViewRootImpl是View中的最高层级，属于所有View的根（<code>但ViewRootImpl不是View，只是实现了ViewParent接口</code>），实现了View和WindowManager之间的通信协议，实现的具体细节在WindowManagerGlobal这个类当中。</p>
+</blockquote>
+<p>也就是说，View 并不会与 WindowManager 直接交流，他们有一个中间人，就是 ViewRootImpl，但是它的功能不止于此，它还负责 View 的测量-布局-绘制流程。可以看作是 View 树的操纵者。</p>
+<h3 id="View的测量过程"><a href="#View的测量过程" class="headerlink" title="View的测量过程"></a>View的测量过程</h3><p>对于 DecorView ，其 MeasureSpec 由<strong>窗口的尺寸</strong>和其<strong>自身的 LayoutParams</strong> 来共同决定。</p>
+<p>对于普通的 View，其 MeasureSpec 由<strong>父容器的 MeasureSpec</strong> 和<strong>自身的 LayoutParams</strong> 来共同决定。</p>
+<p>具体一点来说：</p>
+<ul>
+<li>当 View 采用具体数值的宽高时，不管父容器的 MeasureSpec 是什么，View 的 MeasureSpec 都是EXACTLY并且其大小遵循 LayoutParams 中的大小。</li>
+<li>当 View 的宽/高是 match_parent 时，如果父容器的模式是EXACTLY模式，那么 View 也是EXACTLY模式并且其大小是父容器的剩余空间。如果父容器是AT_MOST模式，那么View 也是AT_MOST模式并且大小为父容器的剩余空间（可以看出，View 与 父容器的模式一样）。</li>
+<li>当 View 的宽/高是 warp_content 是时，不管父容器的 MeasureSpec 是什么，View 的 MeasureSpec 都是 AT_MOST 模式并且大小为父容器的剩余空间。</li>
+</ul>
+<p>决定了 View 的 MeasureSpec 值之后，就可以开始执行 View 的 measure 方法了。</p>
+<p>measure 方法就是执行测量过程的方法，它会调用 onMeasure 方法，经常自定义控件的就很熟悉这个方法了。我们可以通过复写 onMeasure 这个方法来绝定一个控件在各种情况下应该有多大。</p>
+<p>onMeasure  方法有两个参数：</p>
+<blockquote>
+<p>android.view.View#onMeasure</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;</span><br><span class="line">    setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),</span><br><span class="line">            getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>widthMeasureSpec 与 heightMeasureSpec 这两个值就是根据上面的规则得到的（虽然上面我们只说了测量模式，没有测量大小）。View 有了这两个值就可以知道自己在各种情况下应该占多大的位置了。</p>
+<p>一般情况下，View 测量出来的大小就是 widthMeasureSpec / heightMeasureSpec 中的 size 值。</p>
+<p>但是也有例外，这个时候，View 的宽/高由 minWidth 与 background 一起决定，如果 background 为空，那么值就是 minWidth/minHeight，如果有 background，那么值就取 minWidth/minHeight 与 background 的原始宽/高 中的较大者。</p>
+<p>当我们继承一个 View 来自定义控件的时候，如果不复写 onMeasure 就会出现一个问题：</p>
+<p>在使用 wrap_content 属性的时候，是不生效的，效果与 match_parent 一样！！</p>
+<p>导致这个的原因是：View 为 wrap_content 的时候，模式是 AT_MOST，大小为父容器的剩余空间。这样的话，与match_parent 的表现形式是一样的。</p>
+<p>所以，可以这样解决：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> modeW = MeasureSpec.getMode(widthMeasureSpec);</span><br><span class="line">    <span class="keyword">int</span> sizeW = MeasureSpec.getSize(widthMeasureSpec);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> modeH = MeasureSpec.getMode(heightMeasureSpec);</span><br><span class="line">    <span class="keyword">int</span> sizeH = MeasureSpec.getSize(heightMeasureSpec);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> width, height;</span><br><span class="line">    <span class="keyword">if</span> (modeW == MeasureSpec.AT_MOST) &#123;</span><br><span class="line">        width = mMyWidth;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        width = sizeW;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (modeH == MeasureSpec.AT_MOST) &#123;</span><br><span class="line">        height = mMyHeight;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        width = sizeH;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    setMeasuredDimension(width, height);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实，只是指定了 AT_MOST 模式下的值，其他的没有改变。</p>
+<h3 id="ViewGroup-的测量过程"><a href="#ViewGroup-的测量过程" class="headerlink" title="ViewGroup 的测量过程"></a>ViewGroup 的测量过程</h3><p>ViewGroup 在测量的时候，会先去测量所有的 Child。调用 child 的 measure 方法来测量 child 的大小，然后根据 child 的大小以及自己的布局规则来决定自己的大小。</p>
+<p>之所以，还涉及 ViewGroup 的布局规则，是因为每个ViewGroup 都不一样，比如：LinearLayout 是按照线程布局，FrameLayout是按照层叠布局，即使他们的所有child都一样，测量出来的结果肯定不是一样的。</p>
+<blockquote>
+<p>android.view.ViewGroup#measureChildren</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">measureChildren</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> size = mChildrenCount;</span><br><span class="line">    <span class="keyword">final</span> View[] children = mChildren;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; ++i) &#123;</span><br><span class="line">        <span class="keyword">final</span> View child = children[i];</span><br><span class="line">        <span class="keyword">if</span> ((child.mViewFlags &amp; VISIBILITY_MASK) != GONE) &#123;</span><br><span class="line">            measureChild(child, widthMeasureSpec, heightMeasureSpec);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>android.view.ViewGroup#measureChild</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">measureChild</span><span class="params">(View child, <span class="keyword">int</span> parentWidthMeasureSpec,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">int</span> parentHeightMeasureSpec)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> LayoutParams lp = child.getLayoutParams();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,</span><br><span class="line">            mPaddingLeft + mPaddingRight, lp.width);</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,</span><br><span class="line">            mPaddingTop + mPaddingBottom, lp.height);</span><br><span class="line"></span><br><span class="line">    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>显然，measureChild 就是取出LayoutParams，然后和 parentMeasureSpec 一起来决定child 的 MeasureSpec，这个过程与 View 的测量过程是一样的。</p>
+<h3 id="android-view-ViewRootImpl-performTraversals-是谁触发的"><a href="#android-view-ViewRootImpl-performTraversals-是谁触发的" class="headerlink" title="android.view.ViewRootImpl#performTraversals 是谁触发的"></a>android.view.ViewRootImpl#performTraversals 是谁触发的</h3><p>我们知道在 ViewRootImpl 创建出来之前，View是不会执行测量等一系列流程的，这是因为View的测量等都是由 ViewRootImpl 操纵的。</p>
+<p>那么，View的第一次测量是从什么时候开始的呢？</p>
+<blockquote>
+<p>android.view.ViewRootImpl#setView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Schedule the first layout -before- adding to the window</span></span><br><span class="line"><span class="comment">// manager, to make sure we do the relayout before receiving</span></span><br><span class="line"><span class="comment">// any other events from the system.</span></span><br><span class="line">requestLayout();</span><br></pre></td></tr></table></figure>
+
+<p>当 View 被添加到 window 上之前，ViewRootImpl 会执行一次 requestLayout，这个货会触发一系列连锁反应，最后调用到 performTraversals 里面。</p>
+<h3 id="为什么使用-view-post-xxx-可以获取到-view-的宽高？？？"><a href="#为什么使用-view-post-xxx-可以获取到-view-的宽高？？？" class="headerlink" title="为什么使用 view.post(xxx) 可以获取到 view 的宽高？？？"></a>为什么使用 view.post(xxx) 可以获取到 view 的宽高？？？</h3><p>这是因为 view 将 runnable 都存到了自己维护的一个队列中。</p>
+<blockquote>
+<p>android.view.HandlerActionQueue#postDelayed</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postDelayed</span><span class="params">(Runnable action, <span class="keyword">long</span> delayMillis)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> HandlerAction handlerAction = <span class="keyword">new</span> HandlerAction(action, delayMillis);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mActions == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mActions = <span class="keyword">new</span> HandlerAction[<span class="number">4</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        mActions = GrowingArrayUtils.append(mActions, mCount, handlerAction);</span><br><span class="line">        mCount++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>等到 view 显示出来的时候，才会取出来执行。</p>
+<blockquote>
+<p>android.view.ViewRootImpl#performTraversals</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Execute enqueued actions on every traversal in case a detached view enqueued an action</span></span><br><span class="line">getRunQueue().executeActions(mAttachInfo.mHandler);</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，每次执行 performTraversals 的时候，就调用了 View 维护的队列的 executeActions 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeActions</span><span class="params">(Handler handler)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">final</span> HandlerAction[] actions = mActions;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, count = mCount; i &lt; count; i++) &#123;</span><br><span class="line">            <span class="keyword">final</span> HandlerAction handlerAction = actions[i];</span><br><span class="line">            handler.postDelayed(handlerAction.action, handlerAction.delay);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        mActions = <span class="keyword">null</span>;</span><br><span class="line">        mCount = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而这个队列，将 runnable 交给了 handler 去执行，这个 handler 是主线程的 handler。那么这个 runnable 会什么时候执行呢？这里我们先不管，我能只需要知道这个 runnable 与 测量流程 那个先执行就好了。</p>
+<p>performTraversals 在调用了 executeActions 之后，将 runnable 放入主线程的队列，然后就接续往下执行，下面就是 View 的测量-布局-绘制流程了，所以说不管 runnable 什么时候执行，它肯定是在测量流程的后面执行，这也是为什么能在 view.post 的 runnable 可以拿到 view 的宽高的原因。</p>
+<h3 id="View-的-layout-过程"><a href="#View-的-layout-过程" class="headerlink" title="View 的 layout 过程"></a>View 的 layout 过程</h3><p>一个 view 在 layout 方法中会决定自己在父布局的位置，如果这个 view 还有 child，那么它会在 onLayout 方法中调用 child 的 layout 方法，决定 child 的位置。这样达到一个循环…</p>
+<p>其实自定义一个 ViewGroup，它的 onLayout 实现还是比较简单的，只要按照业务流程，慢慢写就好了，就和摆东西一样，每个东西的大小你都知道了，想怎么摆就怎么摆。就是里面的 margin 比较蛋疼，需要细心一点。</p>
+<h3 id="View-的-draw-过程"><a href="#View-的-draw-过程" class="headerlink" title="View 的 draw 过程"></a>View 的 draw 过程</h3><ol>
+<li><p>先绘制背景（肯定的，不然内容被背景盖住了）</p>
+</li>
+<li><p>绘制自己（onDraw）</p>
+</li>
+<li><p>绘制 children （dispatchDraw）</p>
+</li>
+<li><p>绘制装饰 （onDrawScrollBars）</p>
+</li>
+</ol>
+<p>与这个过程有关的有一个很重要的东西，就是补间动画执行的原理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">draw</span><span class="params">(Canvas canvas, ViewGroup parent, <span class="keyword">long</span> drawingTime)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//获取当前Animation</span></span><br><span class="line">    <span class="keyword">final</span> Animation a = getAnimation();</span><br><span class="line">    <span class="keyword">if</span> (a != <span class="keyword">null</span>) &#123;</span><br><span class="line">        more = applyLegacyAnimation(parent, drawingTime, a, scalingRequired);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//处理滑动</span></span><br><span class="line">    <span class="keyword">if</span> (offsetForScroll) &#123;</span><br><span class="line">        canvas.translate(mLeft - sx, mTop - sy);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!drawingWithRenderNode) &#123;</span><br><span class="line">             <span class="comment">//处理滑动</span></span><br><span class="line">            canvas.translate(mLeft, mTop);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (scalingRequired) &#123;</span><br><span class="line">            ...</span><br><span class="line">            <span class="comment">// mAttachInfo cannot be null, otherwise scalingRequired == false</span></span><br><span class="line">            <span class="keyword">final</span> <span class="keyword">float</span> scale = <span class="number">1.0f</span> / mAttachInfo.mApplicationScale;</span><br><span class="line">            <span class="comment">//处理缩放</span></span><br><span class="line">            canvas.scale(scale, scale);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//处理透明度</span></span><br><span class="line">    <span class="keyword">float</span> alpha = drawingWithRenderNode ? <span class="number">1</span> : (getAlpha() * getTransitionAlpha());</span><br><span class="line">    ...</span><br><span class="line">	<span class="keyword">if</span> (drawingWithRenderNode) &#123;</span><br><span class="line">        renderNode.setAlpha(alpha * getAlpha() * getTransitionAlpha());</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (layerType == LAYER_TYPE_NONE) &#123;</span><br><span class="line">        canvas.saveLayerAlpha(sx, sy, sx + getWidth(), sy + getHeight(),</span><br><span class="line">                              multipliedAlpha);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> more;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在 View 的绘制过程中，会获取 view 相关的动画，然后根据动画来计算当前 view 应该所处的位置，透明度等等。所以，如果一个 view 不执行重绘，动画是显示不出来的。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的工作原理/" title="View 的工作原理">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的工作原理/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-View/" rel="tag"># Android-View</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/" rel="next" title="View 的事件分发">
+                  <i class="fa fa-chevron-left"></i> View 的事件分发
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-View/View 的滑动处理（一）/" rel="prev" title="View 的滑动处理（一）">
+                  View 的滑动处理（一） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#ViewRootImpl-amp-DecorView"><span class="nav-number">1.</span> <span class="nav-text">ViewRootImpl &amp; DecorView</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#View的测量过程"><span class="nav-number">2.</span> <span class="nav-text">View的测量过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ViewGroup-的测量过程"><span class="nav-number">3.</span> <span class="nav-text">ViewGroup 的测量过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#android-view-ViewRootImpl-performTraversals-是谁触发的"><span class="nav-number">4.</span> <span class="nav-text">android.view.ViewRootImpl#performTraversals 是谁触发的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么使用-view-post-xxx-可以获取到-view-的宽高？？？"><span class="nav-number">5.</span> <span class="nav-text">为什么使用 view.post(xxx) 可以获取到 view 的宽高？？？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#View-的-layout-过程"><span class="nav-number">6.</span> <span class="nav-text">View 的 layout 过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#View-的-draw-过程"><span class="nav-number">7.</span> <span class="nav-text">View 的 draw 过程</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

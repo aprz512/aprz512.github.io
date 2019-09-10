@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="四大组件的生命周期和简单用法1234567Activity：https://developer.android.google.cn/reference/android/app/Activity.htmlService：https://developer.android.google.cn/guide/components/services.htmlBroadcastReceiver：onRecei">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Android基础面试题">
+<meta property="og:url" content="http://aprz512.github.io/hide/Android基础面试题.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="四大组件的生命周期和简单用法1234567Activity：https://developer.android.google.cn/reference/android/app/Activity.htmlService：https://developer.android.google.cn/guide/components/services.htmlBroadcastReceiver：onRecei">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-03-08T06:03:03.434Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android基础面试题">
+<meta name="twitter:description" content="四大组件的生命周期和简单用法1234567Activity：https://developer.android.google.cn/reference/android/app/Activity.htmlService：https://developer.android.google.cn/guide/components/services.htmlBroadcastReceiver：onRecei">
+  <link rel="canonical" href="http://aprz512.github.io/hide/Android基础面试题">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>Android基础面试题 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">Android基础面试题
+
+</h1>
+
+<div class="post-meta">
+  
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p><strong>四大组件的生命周期和简单用法</strong></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Activity：https://developer.android.google.cn/reference/android/app/Activity.html</span><br><span class="line"></span><br><span class="line">Service：https://developer.android.google.cn/guide/components/services.html</span><br><span class="line"></span><br><span class="line">BroadcastReceiver：onReceive 方法就是生命周期</span><br><span class="line"></span><br><span class="line">ContentProvider：创建进程的时候会解析清单文件，建立ContentProvider，所以生命周期跟随进程</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+<p><strong>Activity之间的通信方式</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">intent</span><br><span class="line">file/sp/db</span><br><span class="line">content provider, broadcast</span><br><span class="line">类公有静态变量，Application 公有变量（不可取）</span><br></pre></td></tr></table></figure>
+
+<p><strong>横竖屏切换的时候，Activity 各种情况下的生命周期</strong></p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">以下测试结果运行环境：</span><br><span class="line">ubuntu <span class="number">16</span><span class="variable">.04</span> LTS</span><br><span class="line">Android Studio <span class="number">3</span><span class="variable">.0</span><span class="variable">.1</span></span><br><span class="line">compileSdkVersion <span class="number">27</span></span><br><span class="line">targetSdkVersion <span class="number">27</span></span><br><span class="line">虚拟机 Pixel2 API <span class="number">27</span></span><br><span class="line"></span><br><span class="line">不配置，横竖屏切换都会走：</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">27</span>:<span class="number">09</span><span class="variable">.496</span> <span class="number">11518</span>-<span class="number">11518</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onPause</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">27</span>:<span class="number">09</span><span class="variable">.498</span> <span class="number">11518</span>-<span class="number">11518</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onSaveInstanceState</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">27</span>:<span class="number">09</span><span class="variable">.501</span> <span class="number">11518</span>-<span class="number">11518</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onStop</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">27</span>:<span class="number">09</span><span class="variable">.502</span> <span class="number">11518</span>-<span class="number">11518</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onDestroy</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">27</span>:<span class="number">09</span><span class="variable">.592</span> <span class="number">11518</span>-<span class="number">11518</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onCreate</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">27</span>:<span class="number">09</span><span class="variable">.593</span> <span class="number">11518</span>-<span class="number">11518</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onStart</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">27</span>:<span class="number">09</span><span class="variable">.594</span> <span class="number">11518</span>-<span class="number">11518</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onRestoreInstanceState</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">27</span>:<span class="number">09</span><span class="variable">.597</span> <span class="number">11518</span>-<span class="number">11518</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onResume</span><br><span class="line"></span><br><span class="line">配置 android:configChanges=<span class="string">"orientation"</span>，横竖屏切换都会走：</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">31</span>:<span class="number">06</span><span class="variable">.329</span> <span class="number">11786</span>-<span class="number">11786</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onConfigurationChanged</span><br><span class="line"></span><br><span class="line">配置 android:configChanges=<span class="string">"orientation|keyboardHidden"</span>，表现同上</span><br><span class="line">配置 android:configChanges=<span class="string">"orientation|keyboardHidden|screenSize"</span>，表现同上</span><br><span class="line"></span><br><span class="line">与网上所写大不相同，下面测试不同的版本。</span><br><span class="line">运行环境：虚拟机 Nexus <span class="number">4</span> API <span class="number">23</span></span><br><span class="line"></span><br><span class="line">配置 android:configChanges=<span class="string">"orientation|keyboardHidden|screenSize"</span>，表现与 API <span class="number">27</span> 相同</span><br><span class="line"></span><br><span class="line">配置 android:configChanges=<span class="string">"orientation|keyboardHidden"</span>，横竖屏切换都会走：</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.343</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onPause</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onSaveInstanceState</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onStop</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onDestroy</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.384</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onCreate</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onStart</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onRestoreInstanceState</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onResume</span><br><span class="line"></span><br><span class="line">配置 android:configChanges=<span class="string">"orientation"</span>，竖屏切横屏都会走：</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.343</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onPause</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onSaveInstanceState</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onStop</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onDestroy</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.384</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onCreate</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onStart</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onRestoreInstanceState</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onResume</span><br><span class="line"></span><br><span class="line">不配置任何属性，竖屏切横屏都会走：</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.343</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onPause</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onSaveInstanceState</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onStop</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.345</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onDestroy</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.384</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onCreate</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onStart</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onRestoreInstanceState</span><br><span class="line"><span class="number">03</span>-<span class="number">07</span> <span class="number">10</span>:<span class="number">37</span>:<span class="number">55</span><span class="variable">.390</span> <span class="number">3626</span>-<span class="number">3626</span>/com<span class="variable">.aprz</span><span class="variable">.glide_demo</span> E/aprz: onResume</span><br><span class="line"></span><br><span class="line">结论：具体的行为与 API 版本有关系，想要不重建 activity，最好设置<span class="number">3</span>个属性</span><br></pre></td></tr></table></figure>
+
+<p><strong>Activity上有Dialog的时候按Home键时的生命周期。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">03-07 10:56:21.160 12357-12357/com.aprz.glide_demo E/aprz: onPause</span><br><span class="line">03-07 10:56:21.261 12357-12357/com.aprz.glide_demo E/aprz: onSaveInstanceState</span><br><span class="line">03-07 10:56:21.280 12357-12357/com.aprz.glide_demo E/aprz: onStop</span><br><span class="line"></span><br><span class="line">这是想考弹出 Dialog 时会不会触发 onPause？</span><br></pre></td></tr></table></figure>
+
+<p><strong>两个Activity 之间跳转时必然会执行的是哪几个方法？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A onPause</span><br><span class="line">B onStart onResume</span><br></pre></td></tr></table></figure>
+
+<p><strong>前台切换到后台，然后再回到前台，Activity生命周期回调方法。弹出Dialog，生命值周期回调方法。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">注意一下 onSaveInstanceState 和 onRestoreInstanceState</span><br><span class="line"></span><br><span class="line">onRestoreInstanceState 用于恢复Activity 被系统销毁时的状态信息和用户保存的信息，也就是说 activity 没有被销毁的话，不关它吊事。</span><br><span class="line"></span><br><span class="line">弹出的 Dialog 与 theme 有关，普通的 Dialog 不会触发什么方法。</span><br></pre></td></tr></table></figure>
+
+<p><strong>Activity的四种启动模式对比</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">standard 模式</span><br><span class="line"></span><br><span class="line"> 	这是默认模式，每次激活Activity时都会创建Activity实例，并放入任务栈中。使用场景：大多数Activity。</span><br><span class="line"></span><br><span class="line"> 	</span><br><span class="line"></span><br><span class="line">singleTop 模式</span><br><span class="line"></span><br><span class="line"> 	如果在任务的栈顶正好存在该Activity的实例，就重用该实例( 会调用实例的 onNewIntent() )，否则就会创建新的实例并放入栈顶，即使栈中已经存在该Activity的实例，只要不在栈顶，都会创建新的实例。使用场景如新闻类或者阅读类App的内容页面。</span><br><span class="line"></span><br><span class="line"> 	</span><br><span class="line"></span><br><span class="line">singleTask 模式</span><br><span class="line"></span><br><span class="line"> 	如果在栈中已经有该Activity的实例，就重用该实例(会调用实例的 onNewIntent() )。重用时，会让该实例回到栈顶，因此在它上面的实例将会被移出栈。如果栈中不存在该实例，将会创建新的实例放入栈中。使用场景如浏览器的主界面。不管从多少个应用启动浏览器，只会启动主界面一次，其余情况都会走onNewIntent，并且会清空主界面上面的其他页面。</span><br><span class="line"></span><br><span class="line"> 	</span><br><span class="line"></span><br><span class="line">singleInstance 模式</span><br><span class="line"></span><br><span class="line"> 	在一个新栈中创建该Activity的实例，并让多个应用共享该栈中的该Activity实例。一旦该模式的Activity实例已经存在于某个栈中，任何应用再激活该Activity时都会重用该栈中的实例( 会调用实例的 onNewIntent() )。其效果相当于多个应用共享一个应用，不管谁激活该 Activity 都会进入同一个应用中。使用场景如闹铃提醒，将闹铃提醒与闹铃设置分离。singleInstance不要用于中间页面，如果用于中间页面，跳转会有问题，比如：A -&gt; B (singleInstance) -&gt; C，退出时是：C -&gt; A -&gt; B。</span><br></pre></td></tr></table></figure>
+
+<p><strong>Fragment中startActivityForResult是哪个类的方法，在什么情况下使用？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Activity、FragmentActivity、Fragment中都有startActivityForResult()方法，也都有用以接收结果的onActivityResult()方法。</span><br><span class="line"></span><br><span class="line">Fragment和FragmentActivity都能接收到自己的发起的请求所返回的结果。</span><br><span class="line"></span><br><span class="line">SDK把Fragment和FragmentActivity的的ruquestCode都限制在了0xffff以内，然后对于Fragment所发起的请求，都通过一个映射，把最终的requestCode变成了一个大于0xffff的值。在获取的结果的时候，也是会通过跟0xffff这个数值来比较，来区分是要把结果交给FragmentActivity还是Fragment来处理。</span><br><span class="line"></span><br><span class="line">FragmentActivity发起的请求，Fragment完全接收不到结果</span><br><span class="line">Fragment发起的请求，虽然在FragmentActivity中能获取到结果，但是requestCode完全对应不上</span><br></pre></td></tr></table></figure>
+
+<p><strong>如何实现Fragment的滑动？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">一般是结合 ViewPager</span><br></pre></td></tr></table></figure>
+
+<p><strong>fragment之间传递数据的方式？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">EventBus</span><br><span class="line">接口</span><br><span class="line">activity findFragmentByTag</span><br></pre></td></tr></table></figure>
+
+<p><strong>service和activity怎么进行数据交互？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bindService</span><br><span class="line">BroadcastReceiver</span><br><span class="line">Messenger + Handler</span><br></pre></td></tr></table></figure>
+
+<p><strong>说说ContentProvider、ContentResolver、ContentObserver 之间的关系？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ContentProvider 提供数据</span><br><span class="line">ContentResolver 获取数据</span><br><span class="line">ContentObserver 监听数据变化</span><br></pre></td></tr></table></figure>
+
+<p><strong>广播的分类</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">有序广播</span><br><span class="line">无序广播</span><br></pre></td></tr></table></figure>
+
+<p><strong>在manifest 和代码中如何注册和使用BroadcastReceiver?</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">manifest 声明以下，配置业务属性</span><br><span class="line">代码中 注册和解注册</span><br></pre></td></tr></table></figure>
+
+<p><strong>广播使用的方式和场景</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">在Android系统中，为什么需要广播机制呢？广播机制，本质上它就是一种组件间的通信方式，如果是两个组件位于不同的进程当中，那么可以用Binder机制来实现，如果两个组件是在同一个进程中，那么它们之间可以用来通信的方式就更多了，这样看来，广播机制似乎是多余的。然而，广播机制却是不可替代的，它和Binder机制不一样的地方在于，广播的发送者和接收者事先是不需要知道对方的存在的，这样带来的好处便是，系统的各个组件可以松耦合地组织在一起，这样系统就具有高度的可扩展性，容易与其它系统进行集成。</span><br><span class="line"></span><br><span class="line">场景：监听系统事件</span><br></pre></td></tr></table></figure>
+
+<p><strong>本地广播和全局广播有什么差别？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LocalBroadcastManager 的好处：</span><br><span class="line">1. 发送的广播只会在自己App内传播，不会泄露给其他App，确保隐私数据不会泄露</span><br><span class="line">2. 	比系统全局广播更加高效</span><br></pre></td></tr></table></figure>
+
+<p><strong>AlertDialog，PopupWindow，Activity区别</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">AlertDialog 弹出之后用户就无法和activity交互了</span><br><span class="line">PopupWindow 弹出之后用户仍然可以与activity交互</span><br><span class="line"></span><br><span class="line">PopupWindow 可以显示在 activity 的任何位置。</span><br><span class="line">PopupWindow 没有新建window</span><br></pre></td></tr></table></figure>
+
+<p><strong>Application 和 Activity 的 Context 对象的区别</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Context 是一个抽象类，是应用环境的全局信息的接口，你可以使用它访问特定的应用资源和类，还能够执行应用级别的操作，启动 activity 等。</span><br><span class="line"></span><br><span class="line">Application Context 的生命周期伴随着整个进程。</span><br><span class="line">Activity Context 的生命周期跟界面相关。</span><br></pre></td></tr></table></figure>
+
+<p><strong>Android属性动画特性</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">可以改变属性</span><br><span class="line">可以为 View 的东西提供动画，比如 离子效果等</span><br></pre></td></tr></table></figure>
+
+<p><strong>如何导入外部数据库?</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当做文件写到指定位置，然后使用</span><br></pre></td></tr></table></figure>
+
+<p><strong>谈谈对接口与回调的理解</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">假设 A 调用了自己的 doA 方法，这个方法里面又调用了 B 的 doB() 方法。</span><br><span class="line">doB() 这个方法是异步的，A 需要 doB() 执行完之后，通知 A 一下。</span><br><span class="line">那么我们设计的时候，通常都会写一个监听，让 A 去实现，然后将 A 的引用传递给 B，B 使用接口来接受。</span><br><span class="line">当 doB() 执行完之后，就使用接口来通知 A。</span><br></pre></td></tr></table></figure>
+
+<p><strong>估值器</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">TimeInterpolator（时间插值器）：</span><br><span class="line">作用：根据时间流逝的百分比计算出当前属性值改变的百分比。</span><br><span class="line"></span><br><span class="line">TypeEvaluator（类型估值算法，即估值器）：</span><br><span class="line">作用：根据当前属性改变的百分比来计算改变后的属性值。</span><br><span class="line"></span><br><span class="line">属性动画是对属性做动画，属性要实现动画，首先由TimeInterpolator（插值器）根据时间流逝的百分比计算出当前属性值改变的百分比，并且插值器将这个百分比返回，这个时候插值器的工作就完成了。比如插值器返回的值是0.5，很显然我们要的不是0.5，而是当前属性的值，即当前属性变成了什么值，这就需要估值器根据当前属性改变的百分比来计算改变后的属性值，根据这个属性值，我们就可以设置当前属性的值了。</span><br></pre></td></tr></table></figure>
+
+<p><strong>Android 数据储存方式</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">①　使用SharedPreferences存储数据　</span><br><span class="line"></span><br><span class="line">②　文件存储数据</span><br><span class="line"></span><br><span class="line">③　 SQLite数据库存储数据</span><br><span class="line"></span><br><span class="line">④　使用ContentProvider存储数据</span><br><span class="line"></span><br><span class="line">⑤　网络存储数据</span><br></pre></td></tr></table></figure>
+
+<p><strong>Requestlayout，onlayout，onDraw，DrawChild区别与联系</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">requestLayout 会导致整个 view 树重新测量，布局。</span><br><span class="line">触发  layout 方法 ，进一步触发  onLayout 方法（如果 view 位置发生变化）</span><br><span class="line"></span><br><span class="line">onDraw 是绘制自己，一般的 ViewGroup 不会触发该方法。</span><br><span class="line"></span><br><span class="line">drawChild 是绘制子 View。</span><br></pre></td></tr></table></figure>
+
+<p><strong>invalidate和postInvalidate的区别及使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">postInvalidate 是 viewRootImpl 使用主线程的 Handler 发送了一个消息。</span><br><span class="line">收到消息之后，就调用了 invalidate 方法。</span><br></pre></td></tr></table></figure>
+
+<p><strong>Activity-Window-View三者的差别</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Activity像一个工匠（控制单元），Window像窗户（承载模型），View像窗花（显示视图）</span><br></pre></td></tr></table></figure>
+
+<p><strong>如何优化自定义View</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. 减少不必要的重绘 使用 clip 方法</span><br><span class="line">2. 保持固定的大小,避免 layout </span><br><span class="line">3. onDraw 里面不要创建对象</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p><strong>低版本SDK如何实现高版本api？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">support 包</span><br></pre></td></tr></table></figure>
+
+<p><strong>描述一次网络请求的流程</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">1. 域名解析</span><br><span class="line">2. 建立TCP连接</span><br><span class="line"></span><br><span class="line">3. 发送请求命令</span><br><span class="line">4. 发送请求头信息</span><br><span class="line"></span><br><span class="line">5. 服务器应答</span><br><span class="line">6. 服务器发送应答头信息</span><br><span class="line">7. 服务器发送数据</span><br><span class="line"></span><br><span class="line">8. 关闭TCP连接</span><br><span class="line"></span><br><span class="line">// 3,4 是一起的</span><br><span class="line">// 5,6,7 也是一起的</span><br></pre></td></tr></table></figure>
+
+<p><strong>HttpUrlConnection 和 okhttp关系</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">HttpUrlConnection 是谷歌官方对 socket 的简单封装</span><br><span class="line">okHttp 也是对 socket 的封装,但是它更强大,使用起来更简单,功能和扩展性都很好</span><br></pre></td></tr></table></figure>
+
+<p><strong>Bitmap对象的理解</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Bitmap对象的内存分为两部分:</span><br><span class="line">1. Bitmap对象</span><br><span class="line">2. Bitmap像素数据</span><br><span class="line"></span><br><span class="line">在Android 2.3.3（API 10）之前，Bitmap的像素数据的内存时分配在Native堆上的，而Bitmap对象的内存则分配在Dalvik堆上的；由于Native堆上的内存时不受DVM管理的，如果想要回收Bitmap的所占用内存的话，那么需要调用Bitmap.recyle()方法。</span><br><span class="line">而API 10之后呢，谷歌将像素数据的内存分配也移到DVM堆上，由DVM管理，因此在dvm回收前;只需要保证Bitmap对象不被任何GC Roots强引用就可以回收这部分内存。</span><br><span class="line"></span><br><span class="line">Bitmap.Config是影响图片画质的重要因素，单位像素占用字节越大，画质越高。</span><br><span class="line"></span><br><span class="line">Bitmap占用内存计算 = 图片最终显示出来的宽 * 图片最终显示出来的高 * 图片品质（Bitmap.Config的值）</span><br></pre></td></tr></table></figure>
+
+<p><strong>ActivityThread，AMS，WMS的工作原理</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">当我们启动一个应用的时候,首先会创建进程,然后创建 Application 对象.</span><br><span class="line">在启动 MainActivity 的过程中,会先去获取到 AMS 在客客户端的代理,顺便将自己这边的 Binder 对象传过去,便于 AMS 与应用进程的通信.</span><br></pre></td></tr></table></figure>
+
+<p><strong>SpareArray 的原理</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">与 HashMap 相比较好处是避免了自动装箱操作.</span><br><span class="line">内部是采用了两个数组来存储 key 和 value.</span><br><span class="line"></span><br><span class="line">在插入数据的时候,会使用二分法来计算 key 在数组中的位置,如果计算出的位置在中间,如果value没有被标记为 delete,则需要移动后面所有的 key 值,所以少量数据可以使用这个.</span><br></pre></td></tr></table></figure>
+
+<p><strong>IntentService原理及作用是什么？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">IntentService是继承于Service并处理异步请求的一个类，在IntentService内有一个工作线程来处理耗时操作.</span><br></pre></td></tr></table></figure>
+
+<p><strong>SharedPreferences 是进程同步的吗?有什么方法做到同步？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">不是同步的,设置了属性也只能做到半同步.</span><br><span class="line">sp 读取的时候会一次性将所有内容全部读取到内存中,设置属性之后,在多进程使用的时候，会在检测到文件变化的时候重新加载文件到内存中.但是并没有文件锁,所以如果不是同时修改的话没有问题,同时修改还会出现问题</span><br></pre></td></tr></table></figure>
+
+<p><strong>AndroidManifest的作用与理解</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">配置 Application</span><br><span class="line">配置权限</span><br><span class="line">配置 四大组件</span><br></pre></td></tr></table></figure>
+
+<p><strong>ThreadLocal原理，实现及如何保证Local属性？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ThreadLocal 是利用的 Thread 类的成员变量,将数据存储到该成员变量中.这样别的线程是无论如何都获取不到的.</span><br><span class="line">blog.xiaohansong.com/2016/08/06/ThreadLocal-memory-leak/</span><br></pre></td></tr></table></figure>
+
+<p><strong>事件分发中的onTouch 和onTouchEvent 有什么区别，又该如何使用？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">onTouch方式是View的OnTouchListener接口中定义的方法。</span><br><span class="line">如果onTouch返回值为true,表示这个Touch事件被onTouch方法处理完毕，也就是说onTouchEvent方法不会被调用</span><br></pre></td></tr></table></figure>
+
+<p><strong>AsyncTask原理及不足</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">内部实现: Handler + 线程池</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">1.cancel方法实现不是很好.</span><br><span class="line">如果你调用了AsyncTask的cancel(false)，doInBackground()仍然会执行到方法结束，只是不会去调用onPostExecute()方法。但是实际上这是让应用程序执行了没有意义的操作。那么是不是我们调用cancel(true)前面的问题就能解决呢？并非如此。如果mayInterruptIfRunning设置为true，会使任务尽早结束，但是如果的doInBackground()有不可打断的方法会失效，比如这个BitmapFactory.decodeStream() IO操作。但是你可以提前关闭IO流并捕获这样操作抛出的异常。但是这样会使得cancel()方法没有任何意义</span><br><span class="line"></span><br><span class="line">2.内存泄露问题</span><br><span class="line">还有一种常见的情况就是，在Activity中使用非静态匿名内部AsyncTask类，由于Java内部类的特点，AsyncTask内部类会持有外部类的隐式引用。由于AsyncTask的生命周期可能比Activity的长，当Activity进行销毁AsyncTask还在执行时，由于AsyncTask持有Activity的引用，导致Activity对象无法回收，进而产生内存泄露。</span><br><span class="line"></span><br><span class="line">3.结果丢失</span><br><span class="line">另一个问题就是在屏幕旋转等造成Activity重新创建时AsyncTask数据丢失的问题。当Activity销毁并创新创建后，还在运行的AsyncTask会持有一个Activity的非法引用即之前的Activity实例。导致onPostExecute()没有任何作用。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">4.串行并行多版本不一致</span><br><span class="line">1.6之前为串行，1.6到2.3为并行，3.0之后又改回为串行，但是可以通过executeOnExecutor(Executor)实现并行处理任务。</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么不能在子线程更新UI？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">从代码角度来讲,是因为 ViewRootImpl.checkThread 函数会检查当前线程是否是主线程.</span><br><span class="line">从设计的角度来讲,是为了避免不同步问题.</span><br></pre></td></tr></table></figure>
+
+<p><strong>ANR定位和修正</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">可以通过查看/data/anr/traces.txt查看ANR信息。</span><br></pre></td></tr></table></figure>
+
+<p><strong>什么情况导致oom？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">常见的 OOM:</span><br><span class="line">bitmap</span><br><span class="line">大数组</span><br><span class="line">Context 泄露</span><br><span class="line">cursor 未关闭</span><br><span class="line"></span><br><span class="line">解决:</span><br><span class="line">好的编码习惯</span><br><span class="line">内部类</span><br><span class="line">线程</span><br><span class="line">Handler</span><br><span class="line">单利</span><br></pre></td></tr></table></figure>
+
+<p><strong>Oom 是否可以try catch？为什么？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">只有在一种情况下，这样做是可行的：</span><br><span class="line"></span><br><span class="line">在try语句中声明了很大的对象，导致OOM，并且可以确认OOM是由try语句中的对象声明导致的，那么在catch语句中，可以释放掉这些对象，解决OOM的问题，继续执行剩余语句。</span><br></pre></td></tr></table></figure>
+
+<p><strong>内存泄漏和内存溢出区别？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">内存泄漏（memory leak）： 是指程序在申请内存后，无法释放已申请的内存空间</span><br><span class="line">内存溢出（out of memory）：程序要求的内存，超出了系统所能分配的范围。</span><br></pre></td></tr></table></figure>
+
+<p><strong>下拉状态栏是不是影响activity的生命周期</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">不会</span><br></pre></td></tr></table></figure>
+
+<p><strong>ViewPager使用细节，如何设置成每次只初始化当前的Fragment，其他的不初始化？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LazyFragment</span><br><span class="line"></span><br><span class="line">标志位 + setUserVisibleHint 或者 onHiddenChanged</span><br></pre></td></tr></table></figure>
+
+<p><strong>请解释安卓为啥要加签名机制?</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://blog.csdn.net/u014225510/article/details/50937013</span><br></pre></td></tr></table></figure>
+
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

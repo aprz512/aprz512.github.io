@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="想来了解以下动画的定义： 动画是指由许多帧静止的画面，以一定的速度（如每秒16张）连续播放时，肉眼因视觉残象产生错觉，而误以为画面活动的作品。 Android中的动画也遵循这个原理，只不过它的每一帧都是通过插值器与估值器动态计算出一个矩阵，然后应用到控件上得到的。在计算的过程中，插值器负责计算动画执行的百分比，估值器负责根据百分比来计算属性值。">
+<meta name="keywords" content="Android-View">
+<meta property="og:type" content="article">
+<meta property="og:title" content="插值器与估值器">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/插值器与估值器/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="想来了解以下动画的定义： 动画是指由许多帧静止的画面，以一定的速度（如每秒16张）连续播放时，肉眼因视觉残象产生错觉，而误以为画面活动的作品。 Android中的动画也遵循这个原理，只不过它的每一帧都是通过插值器与估值器动态计算出一个矩阵，然后应用到控件上得到的。在计算的过程中，插值器负责计算动画执行的百分比，估值器负责根据百分比来计算属性值。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-18T04:16:05.756Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="插值器与估值器">
+<meta name="twitter:description" content="想来了解以下动画的定义： 动画是指由许多帧静止的画面，以一定的速度（如每秒16张）连续播放时，肉眼因视觉残象产生错觉，而误以为画面活动的作品。 Android中的动画也遵循这个原理，只不过它的每一帧都是通过插值器与估值器动态计算出一个矩阵，然后应用到控件上得到的。在计算的过程中，插值器负责计算动画执行的百分比，估值器负责根据百分比来计算属性值。">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/插值器与估值器/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>插值器与估值器 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/插值器与估值器/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">插值器与估值器
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:16:05" itemprop="dateModified" datetime="2019-08-18T12:16:05+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-View/插值器与估值器/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-View/插值器与估值器/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>想来了解以下动画的定义：</p><blockquote>
+<p><strong>动画</strong>是指由许多<a href="https://zh.wikipedia.org/wiki/帧" target="_blank" rel="noopener">帧</a>静止的画面，以一定的速度（如每秒16张）连续播放时，肉眼因<a href="https://zh.wikipedia.org/wiki/视觉残象" target="_blank" rel="noopener">视觉残象</a>产生<a href="https://zh.wikipedia.org/wiki/錯覺" target="_blank" rel="noopener">错觉</a>，而误以为画面活动的作品。</p>
+</blockquote><p>Android中的动画也遵循这个原理，只不过它的每一帧都是通过插值器与估值器动态计算出一个矩阵，然后应用到控件上得到的。</p><p>在计算的过程中，<strong>插值器负责计算动画执行的百分比，估值器负责根据百分比来计算属性值</strong>。</p><a id="more"></a>
+
+
+
+<p>举个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ValueAnimator valueAnimator = ValueAnimator.ofInt(<span class="number">1</span>, <span class="number">100</span>);</span><br><span class="line">valueAnimator.setDuration(<span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这里，我们以 ValueAnimator 举例，做一个值动画，让 1 在 1000ms 内匀速变到 100。</p>
+<p>假设这个动画有11帧，那么在第一帧的时候，是保持原来的位置不动，随着时间的流逝，在过了100ms之后，来到了第2帧，这个时候插值器就派上用场了。根据<strong>匀速运行</strong>的计算，在 100ms 的时候，动画应该执行了 10%，所以会出现一个时间 t 与动画值的函数：</p>
+<blockquote>
+<p>f(t) = t / duration * 100</p>
+<p>记住这个函数，后面的东西都是围绕它来的</p>
+</blockquote>
+<p>让我们看看线性插值器的代码，来对比一下：</p>
+<blockquote>
+<p>android.view.animation.LinearInterpolator#getInterpolation</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getInterpolation</span><span class="params">(<span class="keyword">float</span> input)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">return</span> input;</span><br><span class="line">   &#125;</span><br><span class="line"><span class="comment">// 转换成函数就是 f(x) = x，这个f(x) 相当于上面函数的 t / duration</span></span><br><span class="line"><span class="comment">// 也就是说，这里只是计算了动画执行的百分比，还没有计算到动画的具体值</span></span><br></pre></td></tr></table></figure>
+
+<p>这里的 input 参数，表示的是<strong>时间的流逝百分比</strong>，它返回的是<strong>动画执行的百分比</strong>。</p>
+<p>这与上面的 f(t) 函数的意义是一样的，只不过 f(t) 的参数是 t， 而 getInterpolation 的参数是 t/duration。</p>
+<p>回想一下，刚接触函数的时候，f(x) = x 这个函数，就是一条直线，所以这个插值器叫线性插值器。</p>
+<p>我们再来看看加速插值器的代码：</p>
+<blockquote>
+<p>android.view.animation.AccelerateInterpolator#getInterpolation</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getInterpolation</span><span class="params">(<span class="keyword">float</span> input)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mFactor == <span class="number">1.0f</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> input * input;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">float</span>)Math.pow(input, mDoubleFactor);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们只考虑 mFactor == 1.0f 的情况，所以有这样的一个函数 f(x) = x * x 。</p>
+<p>那么这个函数是什么意思呢？首先，输入范围是 【0，1】，经过函数变换之后，还是【0，1】。这个是很重要的，虽然你可以返回大于1或者小于0的值，但是大于1的会被当成最后一帧处理，小于0的作为第一帧处理。具体请看 android.animation.KeyframeSet#getValue 这个方法。</p>
+<p>再回想一下  f(x) = x * x  这个函数的图像，在【0，1】的范围，它的斜率是从低到高的，所以表现出来的就是一个加速行为。想不通的可以这样想，在前面的 【0， 0.5】 的范围内，f(x) 的值从0只增加到了0.25，而在后面的【0.5，1】的范围内，f(x) 的值从 0.25 增加到了 1，所以是增加的速度越来越快。</p>
+<p>那么，这里我们自定义一个插值器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getInterpolation</span><span class="params">(<span class="keyword">float</span> input)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span> - input;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>猜猜，它会是一个什么样的行为？其实就是一个反向的线性插值器，比如，从 1 到 100，这个插值器会从 100 变到 1。</p>
+<hr>
+<p>再看估值器，一般的我们很少会自定义估值器，除非有特殊的需要，比如计算颜色，颜色的算法不像数值的计算，按照百分比乘一下就完事了，因为颜色涉及到 RGB 3个值，所以需要将 RGB 分开来计算。</p>
+<p>我们还是看看自带的几个估值器的代码。</p>
+<p>先看简单的 int 估值器，这个我们也能写出来，动画的百分比知道了，需要变化的范围我们也知道，用百分比乘以变化范围再加上起始值就ok了。</p>
+<blockquote>
+<p>android.animation.IntEvaluator#evaluate</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">evaluate</span><span class="params">(<span class="keyword">float</span> fraction, Integer startValue, Integer endValue)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> startInt = startValue;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">int</span>)(startInt + fraction * (endValue - startInt));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，和我们想的一摸一样，下一个。</p>
+<p>看看 ARGB 的估值器：</p>
+<blockquote>
+<p>android.animation.ArgbEvaluator#evaluate</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">evaluate</span><span class="params">(<span class="keyword">float</span> fraction, Object startValue, Object endValue)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> startInt = (Integer) startValue;</span><br><span class="line">    <span class="keyword">float</span> startA = ((startInt &gt;&gt; <span class="number">24</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">    <span class="keyword">float</span> startR = ((startInt &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">    <span class="keyword">float</span> startG = ((startInt &gt;&gt;  <span class="number">8</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">    <span class="keyword">float</span> startB = ( startInt        &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> endInt = (Integer) endValue;</span><br><span class="line">    <span class="keyword">float</span> endA = ((endInt &gt;&gt; <span class="number">24</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">    <span class="keyword">float</span> endR = ((endInt &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">    <span class="keyword">float</span> endG = ((endInt &gt;&gt;  <span class="number">8</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">    <span class="keyword">float</span> endB = ( endInt        &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// convert from sRGB to linear</span></span><br><span class="line">    startR = (<span class="keyword">float</span>) Math.pow(startR, <span class="number">2.2</span>);</span><br><span class="line">    startG = (<span class="keyword">float</span>) Math.pow(startG, <span class="number">2.2</span>);</span><br><span class="line">    startB = (<span class="keyword">float</span>) Math.pow(startB, <span class="number">2.2</span>);</span><br><span class="line"></span><br><span class="line">    endR = (<span class="keyword">float</span>) Math.pow(endR, <span class="number">2.2</span>);</span><br><span class="line">    endG = (<span class="keyword">float</span>) Math.pow(endG, <span class="number">2.2</span>);</span><br><span class="line">    endB = (<span class="keyword">float</span>) Math.pow(endB, <span class="number">2.2</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// compute the interpolated color in linear space</span></span><br><span class="line">    <span class="keyword">float</span> a = startA + fraction * (endA - startA);</span><br><span class="line">    <span class="keyword">float</span> r = startR + fraction * (endR - startR);</span><br><span class="line">    <span class="keyword">float</span> g = startG + fraction * (endG - startG);</span><br><span class="line">    <span class="keyword">float</span> b = startB + fraction * (endB - startB);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// convert back to sRGB in the [0..255] range</span></span><br><span class="line">    a = a * <span class="number">255.0f</span>;</span><br><span class="line">    r = (<span class="keyword">float</span>) Math.pow(r, <span class="number">1.0</span> / <span class="number">2.2</span>) * <span class="number">255.0f</span>;</span><br><span class="line">    g = (<span class="keyword">float</span>) Math.pow(g, <span class="number">1.0</span> / <span class="number">2.2</span>) * <span class="number">255.0f</span>;</span><br><span class="line">    b = (<span class="keyword">float</span>) Math.pow(b, <span class="number">1.0</span> / <span class="number">2.2</span>) * <span class="number">255.0f</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Math.round(a) &lt;&lt; <span class="number">24</span> | Math.round(r) &lt;&lt; <span class="number">16</span> | Math.round(g) &lt;&lt; <span class="number">8</span> | Math.round(b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，看上去代码很多，但是我们这里取 R 来分析，G、B 是一样的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 拿到起始颜色值的16-24位</span></span><br><span class="line"><span class="keyword">float</span> startR = ((startInt &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到终止颜色值的16-24位</span></span><br><span class="line"><span class="keyword">float</span> endR = ((endInt &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将起始颜色与终止颜色转化为线性的，便于用百分比计算</span></span><br><span class="line">startR = (<span class="keyword">float</span>) Math.pow(startR, <span class="number">2.2</span>);</span><br><span class="line">endR = (<span class="keyword">float</span>) Math.pow(endR, <span class="number">2.2</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里我们就很熟悉了，与 int 是一样的</span></span><br><span class="line"><span class="keyword">float</span> r = startR + fraction * (endR - startR);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 再将线性的转回 RGB</span></span><br><span class="line">r = (<span class="keyword">float</span>) Math.pow(r, <span class="number">1.0</span> / <span class="number">2.2</span>) * <span class="number">255.0f</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这样一看，是不是条理很清晰。</p>
+<p>总结一下：</p>
+<ul>
+<li>插值器负责计算动画执行的百分比</li>
+<li>估值器起始就是根据动画的百分比、动画变化量（插值器计算得到的）来计算动画值，如果不能直接计算的，需要转换一下再计算。嗯，就这么多。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/插值器与估值器/" title="插值器与估值器">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/插值器与估值器/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-View/" rel="tag"># Android-View</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-View/多指触控/" rel="next" title="多指触控">
+                  <i class="fa fa-chevron-left"></i> 多指触控
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-汉化/压缩、混淆、优化你的App/" rel="prev" title="压缩、混淆、优化你的App">
+                  压缩、混淆、优化你的App <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

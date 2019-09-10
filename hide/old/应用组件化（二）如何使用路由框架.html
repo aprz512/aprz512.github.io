@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="应用为什么要组件化？ 实际业务变化非常快，但是工程之前的业务模块耦合度太高，牵一发而动全身. 对工程所做的任何修改都必须要编译整个工程，编译一次花3~5分钟是很正常的 功能测试和系统测试每次都要进行. 团队协同开发存在较多的冲突.不得不花费更多的时间去沟通和协调,并且在开发过程中,任何一位成员没办法专注于自己的功能点,影响开发效率. 不能灵活的对工程进行配置和组装.比如今天产品经理说加上这个功能,">
+<meta property="og:type" content="website">
+<meta property="og:title" content="应用组件化（二）如何使用路由框架">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/应用组件化（二）如何使用路由框架.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="应用为什么要组件化？ 实际业务变化非常快，但是工程之前的业务模块耦合度太高，牵一发而动全身. 对工程所做的任何修改都必须要编译整个工程，编译一次花3~5分钟是很正常的 功能测试和系统测试每次都要进行. 团队协同开发存在较多的冲突.不得不花费更多的时间去沟通和协调,并且在开发过程中,任何一位成员没办法专注于自己的功能点,影响开发效率. 不能灵活的对工程进行配置和组装.比如今天产品经理说加上这个功能,">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-05-28T15:38:41.298Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="应用组件化（二）如何使用路由框架">
+<meta name="twitter:description" content="应用为什么要组件化？ 实际业务变化非常快，但是工程之前的业务模块耦合度太高，牵一发而动全身. 对工程所做的任何修改都必须要编译整个工程，编译一次花3~5分钟是很正常的 功能测试和系统测试每次都要进行. 团队协同开发存在较多的冲突.不得不花费更多的时间去沟通和协调,并且在开发过程中,任何一位成员没办法专注于自己的功能点,影响开发效率. 不能灵活的对工程进行配置和组装.比如今天产品经理说加上这个功能,">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/应用组件化（二）如何使用路由框架">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>应用组件化（二）如何使用路由框架 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">应用组件化（二）如何使用路由框架
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>应用组件化（二）如何使用路由框架</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>应用为什么要组件化？</p><ol>
+<li>实际业务变化非常快，但是工程之前的业务模块耦合度太高，牵一发而动全身.</li>
+<li>对工程所做的任何修改都必须要编译整个工程，编译一次花3~5分钟是很正常的</li>
+<li>功能测试和系统测试每次都要进行.</li>
+<li>团队协同开发存在较多的冲突.不得不花费更多的时间去沟通和协调,并且在开发过程中,任何一位成员没办法专注于自己的功能点,影响开发效率.</li>
+<li>不能灵活的对工程进行配置和组装.比如今天产品经理说加上这个功能,明天又说去掉,后天在加上.</li>
+</ol><a id="more"></a>
+
+<p>上面都是我从别人的博客 copy 过来的，但是我也是深有体会。</p>
+<p>第一种情况是：自己改某个bug的时候，一旦某个 bug 还需要不断的调试，就陷入一种循环，打一个包，看一下效果，改代码，再打包，看效果….不知不觉的一个小时就没了，全部时间都花在了打包上。回过头来想想其实bug很简单，本来是没有必要花这么长时间的。</p>
+<p>第二种情况是：产品经理要加上某一功能，但是到了上线的时候又说暂时不上这个功能，所有得给这个模块功能加上一个开关，但是由于原来的项目耦合非常的严重，导致要加开关的地方非常多（入口多），就会导致代码出现很多判断，显得很乱。</p>
+<p>看看组件化是如何解决这些问题的。</p>
+<p>首先组件化要求项目进行结构分层，上分层图：</p>
+<p>每个项目的分层都有所区别，但是大致如此，有不懂的可以查阅相关文档。</p>
+<p>现在我们按照分层图来搭建项目，从下面开始，你需要有一定的 gradle 知识。</p>
+<h4 id="组件如何实现单独调试和发布？"><a href="#组件如何实现单独调试和发布？" class="headerlink" title="组件如何实现单独调试和发布？"></a>组件如何实现单独调试和发布？</h4><p>从上面的架构图来看，我们应用的每一个模块（大的功能）都是一个组件，这个组件与功能的不同之处在于，它既可以单独运行又可以当做一个依赖库。为什么要这样做呢？第一是模块可以被重用，比如，你的某个模块想要接入到别的应用里面，就可以直接打包一个 aar 给别人使用。第二个是便于修改和测试，原来我们的项目结构是只有一个工程，只要对项目的某一个地方修改了，整个项目就需要全部重新编译一次（Instant Run 在某些情况下不好使），会花掉比较长的时间，组件化了之后，修改了这个组件的东西，就只需要运行这个组件就好了，测试和改bug都很快。</p>
+<p>下面介绍如果实现这样的效果。</p>
+<p>当我们创建一个项目的时候，它生成的 build.gradle 文件中的第一行是：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply plugin: <span class="string">'com.android.application'</span></span><br></pre></td></tr></table></figure>
+
+<p>这行代码就表示该项目是一个可以单独运行的工程。</p>
+<p>当我们创建一个依赖库的时候，它生成 build.gradle 文件中的第一行是：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply plugin: <span class="string">'com.android.library'</span></span><br></pre></td></tr></table></figure>
+
+<p>这行代码表示该项目只是一个依赖库，无法单独运行。<br>那么我们如何让一个工程既可以单独运行，又可以当作依赖库使用呢？<br>大部分的组件化项目都是使用一个标志位来判断，假设我们在项目的 config.gradle 中定义了一个字段：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">isDebug = <span class="keyword">true</span></span><br></pre></td></tr></table></figure>
+
+<p>那么我们就可以在组件工程的 build.gradle 中添加这样的代码：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (rootProject.ext.isDebug) &#123;</span><br><span class="line">    apply plugin: <span class="string">'com.android.application'</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    apply plugin: <span class="string">'com.android.library'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在我们开发的时候，将 isDebug 设置为 true，那么所有的组件都设置为 com.android.application，在打发布包的时候，就可以将 isDebug 改为 false，那么组件就设置为 com.android.library，这样就解决了单独运行与依赖的冲突。<br>但是在 JIMU 里面，它并不是这样做的，虽然其核心是一样的。我们看看使用 JIMU，我们需要做什么。不需要在 config.gradle 中设置变量，直接在组件工程的 build.gradle 中写上：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply plugin: <span class="string">'com.dd.comgradle'</span></span><br></pre></td></tr></table></figure>
+
+<p>注意这里不需要写：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apply plugin: <span class="string">'com.android.library'</span> </span><br><span class="line">apply plugin: <span class="string">'com.android.application'</span></span><br></pre></td></tr></table></figure>
+
+<p>上面两行代码都不需要，另外，还要加上一个自定义的‘类’：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">combuild &#123;</span><br><span class="line">    applicationName = <span class="string">'com.luojilab.share.runalone.application.ShareApplication'</span></span><br><span class="line">    isRegisterCompoAuto = <span class="keyword">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的 isRegisterCompoAuto 就相当于 isDebug 的作用，applicationName 的作用可以暂时不用管。<br>顺便说一下，com.dd.comgradle 其实就是一个 gradle 插件，这个插件会自动添加 <code>apply plugin: &#39;com.android.library&#39;</code> 或者<code>apply plugin: &#39;com.android.application&#39;</code> 来实现单独运行和依赖，具体的解析会放到后面来说。</p>
+<p>这里搞定之后，还有一处地方需要处理，就是 AndroidManifest.xml 和 Application。一个Android工程要单独运行，这两样是必须要有的，但是在被依赖的时候，App壳工程和组件工程之间就会出现冲突，解决方法就是在 src 目录下新建一个 debug 目录（与main平级），在这个目录里面建立组件的 AndroidManifest.xml 和 Application。</p>
+<p>如下图：</p>
+
+
+<p>debug 里面的目录可以和 main 里面的一模一样，想做啥都行。debug目录里面的东西就是debug的时候才会用得到。解决了 AndroidManifest.xml 的问题，还需要解决 Application 的问题，因为我们在组件里面写 Activity 的时候，需要在 AndroidManifest.xml 里面声明。首先，肯定不能在 debug 的 AndroidManifest.xml 里面声明，在 App 壳工程里面声明也不行，这样耦合性太强了，所以只能在组件的 AndroidManifest.xml 里面声明。写了 AndroidManifest.xml 之后，你会发现必须要 Application 节点，才能写 Activity 节点，写完 Activity 节点，当你运行 App 壳工程的时候会发现 Application 合并冲突，冲突解决方案可以参考 <a href="https://developer.android.com/studio/build/manifest-merge" target="_blank" rel="noopener">Google doc</a>。有一个最简单的解决方法，就是 application 节点里面啥都不写，一个空节点，肯定就没有冲突了，但是如果你有特殊需求，那就自己处理合并规则吧。</p>
+<h4 id="组件之间的通信"><a href="#组件之间的通信" class="headerlink" title="组件之间的通信"></a>组件之间的通信</h4><p>虽然我们的项目做了组件化，但是组件之间的交互还是有的，比如，从A组件跳转到B组件，这种很常见。</p>
+<p>这个时候就需要用到路由框架了。</p>
+<p>由于组件之间是<strong>禁止相互依赖</strong>的，所以如果你想要实现跳转功能，只能借助于路由框架。可以使用ARouter，虽然JIMU也有自己的路由框架，但是暂时还没有支持fragment。</p>
+<p>在使用 ARouter 的过程中，我们遇到的问题是：如果两个模块之间需要传递参数该怎么处理？</p>
+<p>因为如果只是传递简单的数据类型都好说，如果我们有一个 Song 变量，它代表的一首歌，那么我从A模块跳转到B模块的时候，需要传递这个 Song 变量的时候，该怎么做？注意这里 A 和 B 是没有依赖的，也就是 A 模块有个 javaBean 叫 Song，但是 B 模块没有这个 javaBean，就算有它们也不是同一个类。</p>
+<p>我们的解决方案是将这个公用的类抽取出来，放到一个单独的module中。后来我看了JIMU中的解决方法，发现它也是这样做的，并且它还约束了模块之间的通信接口。</p>
+<p>举个例子：</p>
+<p>我们有个音乐类App，想从 Music 模块，跳转到 KTV 模块，需要传递 Song 变量，那么我们可以这样做，首先，新建一个 module，将 song 类放到这个module中，然后新建接口，这个接口约束了 KTV 对外提供的功能，比如说跳转等。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">KTV</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">navagate</span><span class="params">(Song song)</span></span>;</span><br><span class="line">    </span><br><span class="line">    <span class="function">Fragment <span class="title">getRankFragment</span><span class="params">(<span class="keyword">int</span> id)</span></span>;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然这些接口都是我瞎编的，是那个意思。</p>
+<p>Music 模块需要跳转到 KTV 模块，那么它就需要依赖这个module，然后使用这个接口来进行跳转，接口的实现需要 KTV 模块自己实现。</p>
+<p>这里就又有一个问题，Music 模块如果使用这个实现呢？看JIMU的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这个集合里面存放组件提供的接口名和接口实现类    </span></span><br><span class="line"><span class="keyword">private</span> HashMap&lt;String, Object&gt; services = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 组件在初始化的时候会调用 addService 方法，将接口名和实现类添加进去</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">addService</span><span class="params">(String serviceName, Object serviceImpl)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (serviceName == <span class="keyword">null</span> || serviceImpl == <span class="keyword">null</span>) &#123;</span><br><span class="line">           <span class="keyword">return</span>;</span><br><span class="line">       &#125;</span><br><span class="line">       services.put(serviceName, serviceImpl);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于组件是没有 application 的，所以JIMIU写了一个类似application的类，专门用来初始化：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppLike</span> <span class="keyword">implements</span> <span class="title">IApplicationLike</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Router router = Router.getInstance();</span><br><span class="line">    UIRouter uiRouter = UIRouter.getInstance();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        uiRouter.registerUI(<span class="string">"reader"</span>);</span><br><span class="line"><span class="comment">//        router.addService(ReadBookService.class.getSimpleName(), new ReadBookServiceImpl());</span></span><br><span class="line">        router.addService(ReadBookService.class.getSimpleName(), <span class="keyword">new</span> ReadBookServiceImplKotlin());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onStop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        uiRouter.unregisterUI(<span class="string">"reader"</span>);</span><br><span class="line">        router.removeService(ReadBookService.class.getSimpleName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样，想要初始化组件，只需要调用 AppLike 的 onCreate 方法就好了。初始化完毕之后，调用 Router.getService(component_interface_name) 就能拿到组件接口的实现了。</p>
+<p>顺便说一下，初始化组件有两种方法，一种是手动，就是在 App 壳工程中的 application 里面的 onCreate 中调用每个组件的 AppLike 的 onCreate 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">registerComponent</span><span class="params">(@Nullable String classname)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (TextUtils.isEmpty(classname)) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (components.keySet().contains(classname)) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Class clazz = Class.forName(classname);</span><br><span class="line">        <span class="comment">// 这里的实现比较优雅，没有直接 new 一个 applike 出来</span></span><br><span class="line">        <span class="comment">// 然后调用它的 onCreate 方法</span></span><br><span class="line">        IApplicationLike applicationLike = (IApplicationLike) clazz.newInstance();</span><br><span class="line">        applicationLike.onCreate();</span><br><span class="line">        components.put(classname, applicationLike);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二中是字节码插桩的方式，这个之后分析源码的时候会说到，原理就是遍历源代码，先拿到 App 壳工程的 application 类，再拿到所有的 AppLike 类。找到 application 类的 onCreate 方法，在里面插入代码。</p>
+<p>组件之间的通信——共享类是搞定了，还有一个问题，就是跳转，这个在上一篇文章已经解决了，还有一种方式就是使用 ARouter，这个很简单，就不说了。</p>
+<h4 id="资源与依赖管理"><a href="#资源与依赖管理" class="headerlink" title="资源与依赖管理"></a>资源与依赖管理</h4><p>之前我们做这一块的时候有过讨论，就是说如果每个组件的资源都是自己管理的话，那么肯定会有一些重复的东西，但是说将资源抽离出来放到一个单独的 module 里面，这个里面只有资源啥都没有，这样确实能解决一些问题，但是却失去了组件的可重用性。所以我们决定还是每个组件维护自己的资源。</p>
+<p>再说依赖的管理，我们现有的工程是将每个基础库都抽成了一个lib（主要是为了单独复用，我觉得有点过了），比如图片加载是一个lib，日志是一个lib，权限是一个lib，网络是一个lib，但是这样做有很多问题，就是这些lib还需要去依赖一些更基础的东西，比如 util 等，但是这样做肯定是不好的，我们的解决方法就是lib里面维护自己的util，即使有重复的，所以我个人认为将这个东西放在一个 module 里面会好些，这个 module 就相当于一个 sdk，可以用来进行快速开发，虽然可能有些东西用不到，但是这个sdk只放一些必要的就好了。</p>
+<p>再说一个东西，为了防止组件之间的资源冲突，那么有一个解决方法，就是给组件的资源命名添加约束：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">resourcePrefix <span class="string">"music_"</span></span><br></pre></td></tr></table></figure>
+
+<p>在 gradle 里面添加这样一个东西，那么在编译的时候，gradle 就会检测你的资源名的前缀是否是这个，注意这里并不是给你的资源添加一个前缀（可以写脚本跑），而是检测资源名是否有前缀。</p>
+<h4 id="代码边界"><a href="#代码边界" class="headerlink" title="代码边界"></a>代码边界</h4><p>这个问题其实就是看个人的处理的，比如说，我们在 App 壳工程里的 build.gradle 中添加组件的依赖：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api project(:<span class="string">'musicComponent'</span>)</span><br></pre></td></tr></table></figure>
+
+<p>那么我们在 App 工程中是可以使用所有 music 组件中的类的，这可能会导致没有理解组件化的开发人员乱用，因为壳工程中是不能出现组件中的类的，并且还有一个蛋疼的问题，就是组件很多的时候，导入 R 文件的时候简直眼花。</p>
+<p>JIMU 中是没有显示依赖，但是在编译的时候会动态修改 app 的 build.gradle 文件，添加项目依赖语句。</p>
+<p>其实我们是可以最后在壳工程里面添加依赖，只要确保开发人员理解组件化就行。</p>
+<p>有兴趣的可以了解一下 api 与 implement 的区别。</p>
+<p>了解了这些方面之后，基本上就可以动手拆原来的代码了，当然你必须的搞清楚哪些可以作为一个组件，哪些是一个依赖。如果两个组件之间耦合太严重，建议合成一个组件，如果组件之间有公用的业务模块，建议再抽取一层，处在 <strong>组件</strong> 与 <strong>依赖</strong> 之间的中间层。</p>
+<h4 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h4>
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>应用组件化（二）如何使用路由框架</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#组件如何实现单独调试和发布？"><span class="nav-number">1.</span> <span class="nav-text">组件如何实现单独调试和发布？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#组件之间的通信"><span class="nav-number">2.</span> <span class="nav-text">组件之间的通信</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#资源与依赖管理"><span class="nav-number">3.</span> <span class="nav-text">资源与依赖管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#代码边界"><span class="nav-number">4.</span> <span class="nav-text">代码边界</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#源码分析"><span class="nav-number">5.</span> <span class="nav-text">源码分析</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

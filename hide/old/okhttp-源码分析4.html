@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="1CacheInterceptor12CacheInterceptor 是紧跟着 BridgeInterceptor 的拦截器。其主要作用是对响应进行缓存。12345final InternalCache cache;public CacheInterceptor(InternalCache cache) &amp;#123;  this.cache = cache;&amp;#125;">
+<meta property="og:type" content="website">
+<meta property="og:title" content="okhttp 源码分析4">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/okhttp-源码分析4.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="1CacheInterceptor12CacheInterceptor 是紧跟着 BridgeInterceptor 的拦截器。其主要作用是对响应进行缓存。12345final InternalCache cache;public CacheInterceptor(InternalCache cache) &amp;#123;  this.cache = cache;&amp;#125;">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-01-02T02:22:05.506Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="okhttp 源码分析4">
+<meta name="twitter:description" content="1CacheInterceptor12CacheInterceptor 是紧跟着 BridgeInterceptor 的拦截器。其主要作用是对响应进行缓存。12345final InternalCache cache;public CacheInterceptor(InternalCache cache) &amp;#123;  this.cache = cache;&amp;#125;">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/okhttp-源码分析4">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>okhttp 源码分析4 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">okhttp 源码分析4
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>OKHTTP-源码分析4</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CacheInterceptor</span><br></pre></td></tr></table></figure><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure><p>CacheInterceptor 是紧跟着 BridgeInterceptor 的拦截器。其主要作用是对响应进行缓存。</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> InternalCache cache;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CacheInterceptor</span><span class="params">(InternalCache cache)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">this</span>.cache = cache;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+
+
+
+<p>缓存的使用到的类是 InternalCache，这是一个接口，具体的实现类是 Cache。</p>
+<p>看核心方法 intercept：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> Response <span class="title">intercept</span><span class="params">(Chain chain)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  Response cacheCandidate = cache != <span class="keyword">null</span></span><br><span class="line">      ? cache.get(chain.request())</span><br><span class="line">      : <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">long</span> now = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">  CacheStrategy strategy = <span class="keyword">new</span> CacheStrategy.Factory(now, chain.request(), cacheCandidate).get();</span><br><span class="line">  Request networkRequest = strategy.networkRequest;</span><br><span class="line">  Response cacheResponse = strategy.cacheResponse;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">    cache.trackResponse(strategy);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cacheCandidate != <span class="keyword">null</span> &amp;&amp; cacheResponse == <span class="keyword">null</span>) &#123;</span><br><span class="line">    closeQuietly(cacheCandidate.body()); <span class="comment">// The cache candidate wasn't applicable. Close it.</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// If we're forbidden from using the network and the cache is insufficient, fail.</span></span><br><span class="line">  <span class="keyword">if</span> (networkRequest == <span class="keyword">null</span> &amp;&amp; cacheResponse == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Response.Builder()</span><br><span class="line">        .request(chain.request())</span><br><span class="line">        .protocol(Protocol.HTTP_1_1)</span><br><span class="line">        .code(<span class="number">504</span>)</span><br><span class="line">        .message(<span class="string">"Unsatisfiable Request (only-if-cached)"</span>)</span><br><span class="line">        .body(Util.EMPTY_RESPONSE)</span><br><span class="line">        .sentRequestAtMillis(-<span class="number">1L</span>)</span><br><span class="line">        .receivedResponseAtMillis(System.currentTimeMillis())</span><br><span class="line">        .build();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// If we don't need the network, we're done.</span></span><br><span class="line">  <span class="keyword">if</span> (networkRequest == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> cacheResponse.newBuilder()</span><br><span class="line">        .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">        .build();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Response networkResponse = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    networkResponse = chain.proceed(networkRequest);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// If we're crashing on I/O or otherwise, don't leak the cache body.</span></span><br><span class="line">    <span class="keyword">if</span> (networkResponse == <span class="keyword">null</span> &amp;&amp; cacheCandidate != <span class="keyword">null</span>) &#123;</span><br><span class="line">      closeQuietly(cacheCandidate.body());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// If we have a cache response too, then we're doing a conditional get.</span></span><br><span class="line">  <span class="keyword">if</span> (cacheResponse != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (networkResponse.code() == HTTP_NOT_MODIFIED) &#123;</span><br><span class="line">      Response response = cacheResponse.newBuilder()</span><br><span class="line">          .headers(combine(cacheResponse.headers(), networkResponse.headers()))</span><br><span class="line">          .sentRequestAtMillis(networkResponse.sentRequestAtMillis())</span><br><span class="line">          .receivedResponseAtMillis(networkResponse.receivedResponseAtMillis())</span><br><span class="line">          .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">          .networkResponse(stripBody(networkResponse))</span><br><span class="line">          .build();</span><br><span class="line">      networkResponse.body().close();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Update the cache after combining headers but before stripping the</span></span><br><span class="line">      <span class="comment">// Content-Encoding header (as performed by initContentStream()).</span></span><br><span class="line">      cache.trackConditionalCacheHit();</span><br><span class="line">      cache.update(cacheResponse, response);</span><br><span class="line">      <span class="keyword">return</span> response;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      closeQuietly(cacheResponse.body());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Response response = networkResponse.newBuilder()</span><br><span class="line">      .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">      .networkResponse(stripBody(networkResponse))</span><br><span class="line">      .build();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (HttpHeaders.hasBody(response) &amp;&amp; CacheStrategy.isCacheable(response, networkRequest)) &#123;</span><br><span class="line">      <span class="comment">// Offer this request to the cache.</span></span><br><span class="line">      CacheRequest cacheRequest = cache.put(response);</span><br><span class="line">      <span class="keyword">return</span> cacheWritingResponse(cacheRequest, response);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (HttpMethod.invalidatesCache(networkRequest.method())) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        cache.remove(networkRequest);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (IOException ignored) &#123;</span><br><span class="line">        <span class="comment">// The cache cannot be written.</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>开始一行一行的分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Response cacheCandidate = cache != <span class="keyword">null</span></span><br><span class="line">    ? cache.get(chain.request())</span><br><span class="line">    : <span class="keyword">null</span>;</span><br></pre></td></tr></table></figure>
+
+<p>之前我们分析过，这里 cache 是 Cache 的一个实例，看看 get 方法做了什么：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Nullable</span> <span class="function">Response <span class="title">get</span><span class="params">(Request request)</span> </span>&#123;</span><br><span class="line">  String key = key(request.url());</span><br><span class="line">  DiskLruCache.Snapshot snapshot;</span><br><span class="line">  Entry entry;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    snapshot = cache.get(key);</span><br><span class="line">    <span class="keyword">if</span> (snapshot == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    <span class="comment">// Give up because the cache cannot be read.</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    entry = <span class="keyword">new</span> Entry(snapshot.getSource(ENTRY_METADATA));</span><br><span class="line">  &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    Util.closeQuietly(snapshot);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Response response = entry.response(snapshot);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!entry.matches(request, response)) &#123;</span><br><span class="line">    Util.closeQuietly(response.body());</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到了 DiskLruCache，说明缓存的实现还是借用的这个类，实际上就是大神教你使用 DiskLrcCache 系列了。当然这里的 DiskLruCache 是在原来的基础上有所更改，但是核心没有变。DiskLruCache 的源码我就不去分析了，网上应该有比较多的文章。</p>
+<p>使用：<a href="http://blog.csdn.net/guolin_blog/article/details/28863651" target="_blank" rel="noopener">http://blog.csdn.net/guolin_blog/article/details/28863651</a></p>
+<p>分析：<a href="http://blog.csdn.net/lmj623565791/article/details/47251585" target="_blank" rel="noopener">http://blog.csdn.net/lmj623565791/article/details/47251585</a></p>
+<p>get 方法做了这些内容：根据请求的 url，计算出 key，然后使用 DiskLruCache （这个方法中的 cache 是 DiskLruCache 实例） 的 get 方法，拿到 Snapshot，拿不到就说明缓存为空。拿到了之后，就创建一个 Entry （这里的 Entry 不是 DiskLruCache 的 Entry，而是 Cache 中的 Entry）对象。然后利用 Entry 获取到 response 并返回。</p>
+<p>这里需要注意的是：snapshot.getSource(ENTRY_METADATA)。 其中 ENTRY_METADATA 的值为0。为什么要这样写呢？这和 DiskLruCache 的一个属性值 valueCount 有关。我们在创建一个 DiskLruCache 的时候，需要传递几个参数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DiskLruCache.create(fileSystem, directory, VERSION, ENTRY_COUNT, maxSize);</span><br></pre></td></tr></table></figure>
+
+<p>第一个是流操作接口，第二个是缓存目录，第三个是缓存版本，第四个是每个缓存要分几个文件来存，第五个就是缓存的最大字节。注意第4个参数。我们通常使用 DiskLruCache ，可能传递的都是一，因为没有必要分文件存，但是 OkHttp 不一样，OkHttp 缓存网络响应的时候，将响应分为了两个文件。第一个文件是 请求和响应头，第二个文件是响应实体。snapshot.getSource(ENTRY_METADATA) 表示的就是获取到缓存的第一个文件流。</p>
+<p>第二个需要注意的地方就是：    Response response = entry.response(snapshot);</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Response <span class="title">response</span><span class="params">(DiskLruCache.Snapshot snapshot)</span> </span>&#123;</span><br><span class="line">  String contentType = responseHeaders.get(<span class="string">"Content-Type"</span>);</span><br><span class="line">  String contentLength = responseHeaders.get(<span class="string">"Content-Length"</span>);</span><br><span class="line">  Request cacheRequest = <span class="keyword">new</span> Request.Builder()</span><br><span class="line">      .url(url)</span><br><span class="line">      .method(requestMethod, <span class="keyword">null</span>)</span><br><span class="line">      .headers(varyHeaders)</span><br><span class="line">      .build();</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> Response.Builder()</span><br><span class="line">      .request(cacheRequest)</span><br><span class="line">      .protocol(protocol)</span><br><span class="line">      .code(code)</span><br><span class="line">      .message(message)</span><br><span class="line">      .headers(responseHeaders)</span><br><span class="line">      .body(<span class="keyword">new</span> CacheResponseBody(snapshot, contentType, contentLength))</span><br><span class="line">      .handshake(handshake)</span><br><span class="line">      .sentRequestAtMillis(sentRequestMillis)</span><br><span class="line">      .receivedResponseAtMillis(receivedResponseMillis)</span><br><span class="line">      .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里只是创建了一个 Response 对象，注意到在创建 response 的 body 的时候，创建了一个 CacheResponseBody 对象。看看代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">CacheResponseBody(<span class="keyword">final</span> DiskLruCache.Snapshot snapshot,</span><br><span class="line">    String contentType, String contentLength) &#123;</span><br><span class="line">  <span class="keyword">this</span>.snapshot = snapshot;</span><br><span class="line">  <span class="keyword">this</span>.contentType = contentType;</span><br><span class="line">  <span class="keyword">this</span>.contentLength = contentLength;</span><br><span class="line"></span><br><span class="line">  Source source = snapshot.getSource(ENTRY_BODY);</span><br><span class="line">  bodySource = Okio.buffer(<span class="keyword">new</span> ForwardingSource(source) &#123;</span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      snapshot.close();</span><br><span class="line">      <span class="keyword">super</span>.close();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们又看到了熟悉的代码：Source source = snapshot.getSource(ENTRY_BODY); 猜猜 ENTRY_BODY 为几？这里就是获取到了缓存的第二个文件流，然后使用 Okio 将流中数据读出来放到 bodySource 中。</p>
+<p>第一个缓存文件的内容大致如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">------------ HTTP 请求 ---------- 没有这个东西 --------</span><br><span class="line">http://google.com/foo</span><br><span class="line">GET</span><br><span class="line">2</span><br><span class="line">Accept-Language: fr-CA</span><br><span class="line">Accept-Charset: UTF-8</span><br><span class="line">HTTP/1.1 200 OK</span><br><span class="line">3</span><br><span class="line">Content-Type: image/png</span><br><span class="line">Content-Length: 100</span><br><span class="line">Cache-Control: max-age=600</span><br><span class="line"></span><br><span class="line">------------ HTTPS 请求 ---------- 没有这个东西 --------</span><br><span class="line">https://google.com/foo</span><br><span class="line">GET</span><br><span class="line">2</span><br><span class="line">Accept-Language: fr-CA</span><br><span class="line">Accept-Charset: UTF-8</span><br><span class="line">HTTP/1.1 200 OK</span><br><span class="line">3</span><br><span class="line">Content-Type: image/png</span><br><span class="line">Content-Length: 100</span><br><span class="line">Cache-Control: max-age=600</span><br><span class="line"></span><br><span class="line">AES_256_WITH_MD5</span><br><span class="line">2</span><br><span class="line">base64-encoded peerCertificate[0]</span><br><span class="line">base64-encoded peerCertificate[1]</span><br><span class="line">-1</span><br><span class="line">TLSv1.2</span><br></pre></td></tr></table></figure>
+
+<p>第二个缓存内容与具体的请求有关，如果返回的是 json 数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;code&quot;:400,&quot;msg&quot;:&quot;error&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>回到拦截器的 intercept 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">long</span> now = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">CacheStrategy strategy = <span class="keyword">new</span> CacheStrategy.Factory(now, chain.request(), cacheCandidate).get();</span><br><span class="line">Request networkRequest = strategy.networkRequest;</span><br><span class="line">Response cacheResponse = strategy.cacheResponse;</span><br></pre></td></tr></table></figure>
+
+<p>建立缓存策略，CacheStrategy 这个类里面的东西不多，但是这里不适合分析，放在后面单独分析。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">    <span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">      cache.trackResponse(strategy);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Cache.java</span></span><br><span class="line">  <span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">trackResponse</span><span class="params">(CacheStrategy cacheStrategy)</span> </span>&#123;</span><br><span class="line">    requestCount++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (cacheStrategy.networkRequest != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// If this is a conditional request, we'll increment hitCount if/when it hits.</span></span><br><span class="line">      networkCount++;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cacheStrategy.cacheResponse != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// This response uses the cache and not the network. That's a cache hit.</span></span><br><span class="line">      hitCount++;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>trackResponse 只是改变了计数器。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (cacheCandidate != <span class="keyword">null</span> &amp;&amp; cacheResponse == <span class="keyword">null</span>) &#123;</span><br><span class="line">  closeQuietly(cacheCandidate.body()); <span class="comment">// The cache candidate wasn't applicable. Close it.</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果在 Cache 中获取到了 response，但是根据缓存策略却获取不到 response，则认为这个缓存无效，关闭 response 的body。缓存策略是对 request 和 response 做了进一步的判断。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// If we're forbidden from using the network and the cache is insufficient, fail.</span></span><br><span class="line"><span class="keyword">if</span> (networkRequest == <span class="keyword">null</span> &amp;&amp; cacheResponse == <span class="keyword">null</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> Response.Builder()</span><br><span class="line">      .request(chain.request())</span><br><span class="line">      .protocol(Protocol.HTTP_1_1)</span><br><span class="line">      .code(<span class="number">504</span>)</span><br><span class="line">      .message(<span class="string">"Unsatisfiable Request (only-if-cached)"</span>)</span><br><span class="line">      .body(Util.EMPTY_RESPONSE)</span><br><span class="line">      .sentRequestAtMillis(-<span class="number">1L</span>)</span><br><span class="line">      .receivedResponseAtMillis(System.currentTimeMillis())</span><br><span class="line">      .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>networkRequest 为空，表示我们不应该去使用网络来重新请求，而是应该使用之前的缓存。比如 HTTP 请求的头部设置了如下字段：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Cache-Control：only-if-cached</span></span><br><span class="line"><span class="attribute">只使用缓存，不要去请求服务器</span></span><br></pre></td></tr></table></figure>
+
+<p>cacheResponse 也为空的话，表示没有缓存，则返回一个空的 response 对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// If we don't need the network, we're done.</span></span><br><span class="line"><span class="keyword">if</span> (networkRequest == <span class="keyword">null</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> cacheResponse.newBuilder()</span><br><span class="line">      .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">      .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>cacheResponse 不会空，则返回缓存的响应。注意这里设置 response 的 cacheResponse 字段的时候，将 cacheResponse 的 body 设置为空。可能突然无法理解，设置为空了那 body 岂不是没有了。这是因为 cacheResponse 本身也是一个 Response 实例。每个 Response 实例都有两个成员变量：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="meta">@Nullable</span> Response networkResponse;</span><br><span class="line"><span class="keyword">final</span> <span class="meta">@Nullable</span> Response cacheResponse;</span><br></pre></td></tr></table></figure>
+
+<p>因为之前，cacheResponse 对象是根据缓存创建的，它的 body 是 CacheResponseBody，所以设置它的 cacheResponse 成员变量的时候，设置的是自己，但是将 body 给置为空了之后才设置的。这里我也暂时没搞清楚为啥要将成员变量的 body 置为 null，可能是为了避免泄露吧。那么以后我们使用的时候，在 callback 里面只需要调用 response.body() 就能拿到响应的实体内容，不管是缓存还是网络请求的，还可以根据 response.cacheResponse 字段是否为空来判断是否是缓存。要注意的是 response.cacheResponse.body 必定为空。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Response networkResponse = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  networkResponse = chain.proceed(networkRequest);</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  <span class="comment">// If we're crashing on I/O or otherwise, don't leak the cache body.</span></span><br><span class="line">  <span class="keyword">if</span> (networkResponse == <span class="keyword">null</span> &amp;&amp; cacheCandidate != <span class="keyword">null</span>) &#123;</span><br><span class="line">    closeQuietly(cacheCandidate.body());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用 chain 的 proceed 方法，驱动拦截链的执行。如果拦截链返回的响应为空，则需要关闭 body，避免泄露。这里调用 proceed 方法之后，说明进行了网络请求。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// If we have a cache response too, then we're doing a conditional get.</span></span><br><span class="line"><span class="keyword">if</span> (cacheResponse != <span class="keyword">null</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (networkResponse.code() == HTTP_NOT_MODIFIED) &#123;</span><br><span class="line">    Response response = cacheResponse.newBuilder()</span><br><span class="line">        .headers(combine(cacheResponse.headers(), networkResponse.headers()))</span><br><span class="line">        .sentRequestAtMillis(networkResponse.sentRequestAtMillis())</span><br><span class="line">        .receivedResponseAtMillis(networkResponse.receivedResponseAtMillis())</span><br><span class="line">        .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">        .networkResponse(stripBody(networkResponse))</span><br><span class="line">        .build();</span><br><span class="line">    networkResponse.body().close();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update the cache after combining headers but before stripping the</span></span><br><span class="line">    <span class="comment">// Content-Encoding header (as performed by initContentStream()).</span></span><br><span class="line">    cache.trackConditionalCacheHit();</span><br><span class="line">    cache.update(cacheResponse, response);</span><br><span class="line">    <span class="keyword">return</span> response;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    closeQuietly(cacheResponse.body());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>网络请求完成之后，如果本地已经有缓存了，需要判断服务器的返回码。HTTP_NOT_MODIFIED 表示服务器对于所请求的内容没有做更改，可以直接使用缓存，所以代码里面就直接 builder 了一个 response 并返回。注意这里也将 cacheResponse 和 networkResponse 的 body 置为空，然后更新缓存。如果返回码不是 HTTP_NOT_MODIFIED，则将缓存的 body 关闭。</p>
+<p>注意细节：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">networkResponse.body().close();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Update the cache after combining headers but before stripping the</span></span><br><span class="line"><span class="comment">// Content-Encoding header (as performed by initContentStream()).</span></span><br><span class="line">cache.trackConditionalCacheHit();</span><br><span class="line">cache.update(cacheResponse, response);</span><br></pre></td></tr></table></figure>
+
+<p>先将 networkResponse 的 body 关闭，因为有缓存可以使用，记录 hit 次数，然后更新缓存：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">update</span><span class="params">(Response cached, Response network)</span> </span>&#123;</span><br><span class="line">  Entry entry = <span class="keyword">new</span> Entry(network);</span><br><span class="line">  DiskLruCache.Snapshot snapshot = ((CacheResponseBody) cached.body()).snapshot;</span><br><span class="line">  DiskLruCache.Editor editor = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    editor = snapshot.edit(); <span class="comment">// Returns null if snapshot is not current.</span></span><br><span class="line">    <span class="keyword">if</span> (editor != <span class="keyword">null</span>) &#123;</span><br><span class="line">      entry.writeTo(editor);</span><br><span class="line">      editor.commit();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    abortQuietly(editor);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用了 DiskLruCache 的方法，写入缓存，查看 writeTo 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">writeTo</span><span class="params">(DiskLruCache.Editor editor)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  BufferedSink sink = Okio.buffer(editor.newSink(ENTRY_METADATA));</span><br><span class="line"></span><br><span class="line">  sink.writeUtf8(url)</span><br><span class="line">      .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  sink.writeUtf8(requestMethod)</span><br><span class="line">      .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  sink.writeDecimalLong(varyHeaders.size())</span><br><span class="line">      .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, size = varyHeaders.size(); i &lt; size; i++) &#123;</span><br><span class="line">    sink.writeUtf8(varyHeaders.name(i))</span><br><span class="line">        .writeUtf8(<span class="string">": "</span>)</span><br><span class="line">        .writeUtf8(varyHeaders.value(i))</span><br><span class="line">        .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  sink.writeUtf8(<span class="keyword">new</span> StatusLine(protocol, code, message).toString())</span><br><span class="line">      .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  sink.writeDecimalLong(responseHeaders.size() + <span class="number">2</span>)</span><br><span class="line">      .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, size = responseHeaders.size(); i &lt; size; i++) &#123;</span><br><span class="line">    sink.writeUtf8(responseHeaders.name(i))</span><br><span class="line">        .writeUtf8(<span class="string">": "</span>)</span><br><span class="line">        .writeUtf8(responseHeaders.value(i))</span><br><span class="line">        .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  sink.writeUtf8(SENT_MILLIS)</span><br><span class="line">      .writeUtf8(<span class="string">": "</span>)</span><br><span class="line">      .writeDecimalLong(sentRequestMillis)</span><br><span class="line">      .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  sink.writeUtf8(RECEIVED_MILLIS)</span><br><span class="line">      .writeUtf8(<span class="string">": "</span>)</span><br><span class="line">      .writeDecimalLong(receivedResponseMillis)</span><br><span class="line">      .writeByte(<span class="string">'\n'</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (isHttps()) &#123;</span><br><span class="line">    sink.writeByte(<span class="string">'\n'</span>);</span><br><span class="line">    sink.writeUtf8(handshake.cipherSuite().javaName())</span><br><span class="line">        .writeByte(<span class="string">'\n'</span>);</span><br><span class="line">    writeCertList(sink, handshake.peerCertificates());</span><br><span class="line">    writeCertList(sink, handshake.localCertificates());</span><br><span class="line">    sink.writeUtf8(handshake.tlsVersion().javaName()).writeByte(<span class="string">'\n'</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  sink.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>就是上面我们说的，缓存的第一个文件的内容，这里因为服务器返回了 HTTP_NOT_MODIFIED，所以只需要更新第一个文件就好了，第二个文件的内容是不会变的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Response response = networkResponse.newBuilder()</span><br><span class="line">    .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">    .networkResponse(stripBody(networkResponse))</span><br><span class="line">    .build();</span><br></pre></td></tr></table></figure>
+
+<p>走到这里，说明没有缓存可以使用，那么就直接使用网络请求返回的响应。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (HttpHeaders.hasBody(response) &amp;&amp; CacheStrategy.isCacheable(response, networkRequest)) &#123;</span><br><span class="line">    <span class="comment">// Offer this request to the cache.</span></span><br><span class="line">    CacheRequest cacheRequest = cache.put(response);</span><br><span class="line">    <span class="keyword">return</span> cacheWritingResponse(cacheRequest, response);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (HttpMethod.invalidatesCache(networkRequest.method())) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      cache.remove(networkRequest);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException ignored) &#123;</span><br><span class="line">      <span class="comment">// The cache cannot be written.</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一般情况下 cache 是不会为空的，因为有默认的缓存对象。先判断响应是否有响应体，然后根据缓存策略判断这个请求和响应能不能缓存，如果都符合条件，则将响应存入缓存当中。然后判断 HTTP 请求的方法，是否支持缓存。看看 cache 的 put 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Nullable</span> <span class="function">CacheRequest <span class="title">put</span><span class="params">(Response response)</span> </span>&#123;</span><br><span class="line">  String requestMethod = response.request().method();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (HttpMethod.invalidatesCache(response.request().method())) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      remove(response.request());</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException ignored) &#123;</span><br><span class="line">      <span class="comment">// The cache cannot be written.</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (!requestMethod.equals(<span class="string">"GET"</span>)) &#123;</span><br><span class="line">    <span class="comment">// Don't cache non-GET responses. We're technically allowed to cache</span></span><br><span class="line">    <span class="comment">// HEAD requests and some POST requests, but the complexity of doing</span></span><br><span class="line">    <span class="comment">// so is high and the benefit is low.</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (HttpHeaders.hasVaryAll(response)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Entry entry = <span class="keyword">new</span> Entry(response);</span><br><span class="line">  DiskLruCache.Editor editor = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    editor = cache.edit(key(response.request().url()));</span><br><span class="line">    <span class="keyword">if</span> (editor == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    entry.writeTo(editor);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CacheRequestImpl(editor);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    abortQuietly(editor);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，OkHttp 只能缓存 GET 请求，还有一个细节，就是最后返回了一个 CacheRequestImpl 对象 。</p>
+<p>看看这个对象的结构：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">CacheRequestImpl(<span class="keyword">final</span> DiskLruCache.Editor editor) &#123;</span><br><span class="line">  <span class="keyword">this</span>.editor = editor;</span><br><span class="line">  <span class="keyword">this</span>.cacheOut = editor.newSink(ENTRY_BODY);</span><br><span class="line">  <span class="keyword">this</span>.body = <span class="keyword">new</span> ForwardingSink(cacheOut) &#123;</span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      <span class="keyword">synchronized</span> (Cache.<span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (done) &#123;</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        done = <span class="keyword">true</span>;</span><br><span class="line">        writeSuccessCount++;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">super</span>.close();</span><br><span class="line">      editor.commit();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个构造方法里面，我们见到了熟悉的 ENTRY_BODY，那么这里的 this.body 是一个 ForwardingSink 对象，可以看做一个输入流，输出到缓存的第二个文件。这里只是创建了流，并没有使用。</p>
+<p>继续看  cacheWritingResponse(cacheRequest, response); 做了什么：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns a new source that writes bytes to &#123;<span class="doctag">@code</span> cacheRequest&#125; as they are read by the source</span></span><br><span class="line"><span class="comment"> * consumer. This is careful to discard bytes left over when the stream is closed; otherwise we</span></span><br><span class="line"><span class="comment"> * may never exhaust the source stream and therefore not complete the cached response.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> Response <span class="title">cacheWritingResponse</span><span class="params">(<span class="keyword">final</span> CacheRequest cacheRequest, Response response)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="comment">// Some apps return a null body; for compatibility we treat that like a null cache request.</span></span><br><span class="line">  <span class="keyword">if</span> (cacheRequest == <span class="keyword">null</span>) <span class="keyword">return</span> response;</span><br><span class="line">  Sink cacheBodyUnbuffered = cacheRequest.body();</span><br><span class="line">  <span class="keyword">if</span> (cacheBodyUnbuffered == <span class="keyword">null</span>) <span class="keyword">return</span> response;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> BufferedSource source = response.body().source();</span><br><span class="line">  <span class="keyword">final</span> BufferedSink cacheBody = Okio.buffer(cacheBodyUnbuffered);</span><br><span class="line"></span><br><span class="line">  Source cacheWritingSource = <span class="keyword">new</span> Source() &#123;</span><br><span class="line">    <span class="keyword">boolean</span> cacheRequestClosed;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">read</span><span class="params">(Buffer sink, <span class="keyword">long</span> byteCount)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      <span class="keyword">long</span> bytesRead;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        bytesRead = source.read(sink, byteCount);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!cacheRequestClosed) &#123;</span><br><span class="line">          cacheRequestClosed = <span class="keyword">true</span>;</span><br><span class="line">          cacheRequest.abort(); <span class="comment">// Failed to write a complete cache response.</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (bytesRead == -<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!cacheRequestClosed) &#123;</span><br><span class="line">          cacheRequestClosed = <span class="keyword">true</span>;</span><br><span class="line">          cacheBody.close(); <span class="comment">// The cache response is complete!</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      sink.copyTo(cacheBody.buffer(), sink.size() - bytesRead, bytesRead);</span><br><span class="line">      cacheBody.emitCompleteSegments();</span><br><span class="line">      <span class="keyword">return</span> bytesRead;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> Timeout <span class="title">timeout</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> source.timeout();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (!cacheRequestClosed</span><br><span class="line">          &amp;&amp; !discard(<span class="keyword">this</span>, HttpCodec.DISCARD_STREAM_TIMEOUT_MILLIS, MILLISECONDS)) &#123;</span><br><span class="line">        cacheRequestClosed = <span class="keyword">true</span>;</span><br><span class="line">        cacheRequest.abort();</span><br><span class="line">      &#125;</span><br><span class="line">      source.close();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  String contentType = response.header(<span class="string">"Content-Type"</span>);</span><br><span class="line">  <span class="keyword">long</span> contentLength = response.body().contentLength();</span><br><span class="line">  <span class="keyword">return</span> response.newBuilder()</span><br><span class="line">      .body(<span class="keyword">new</span> RealResponseBody(contentType, contentLength, Okio.buffer(cacheWritingSource)))</span><br><span class="line">      .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以肯定，上面创建的流对象，肯定在这里使用了，那么这个方法就主要是将响应体写入之前创建的流中。具体分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这个是之前创建的流对象</span></span><br><span class="line">Sink cacheBodyUnbuffered = cacheRequest.body();</span><br><span class="line"><span class="comment">// 然后将 流对象 buffer 一下</span></span><br><span class="line"><span class="keyword">final</span> BufferedSink cacheBody = Okio.buffer(cacheBodyUnbuffered);</span><br><span class="line"><span class="comment">// 将 response 的响应体当做 输入流</span></span><br><span class="line"><span class="keyword">final</span> BufferedSource source = response.body().source();</span><br></pre></td></tr></table></figure>
+
+<p>再看 Source 的 read 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 先从 source 中读取数据</span></span><br><span class="line">bytesRead = source.read(sink, byteCount);</span><br><span class="line"><span class="comment">// 然后将数据拷贝到 cacheBody 中，也就是输出流</span></span><br><span class="line">sink.copyTo(cacheBody.buffer(), sink.size() - bytesRead, bytesRead);</span><br></pre></td></tr></table></figure>
+
+<p>这样就完成了数据的拷贝，也将网络的响应储存到了文件中。这里需要注意的是，cacheWritingSource 的 read 方法是在使用 response 的 body 的时候才会调用的。假如我们使用 Response response = call.execute(); 这样的代码，响应的实体是还没有被写进缓存的。你需要将 body 里面的东西读出来，才会缓存到文件。另外还要记得只会缓存 GET 请求。</p>
+<p>intercept 方法也就分析完了。</p>
+<p>在介绍一下缓存策略这个类：</p>
+<p>缓存策略有两个成员变量，这两个成员变量的值决定了缓存的策略：</p>
+<table>
+<thead>
+<tr>
+<th align="center">networkRequest</th>
+<th align="center">cacheResponse</th>
+<th align="center">result 结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">null</td>
+<td align="center">null</td>
+<td align="center">only-if-cached (表明不进行网络请求，且缓存不存在或者过期，一定会返回503错误)</td>
+</tr>
+<tr>
+<td align="center">null</td>
+<td align="center">not null</td>
+<td align="center">不进行网络请求，直接返回缓存，不请求网络</td>
+</tr>
+<tr>
+<td align="center">not null</td>
+<td align="center">null</td>
+<td align="center">需要进行网络请求，而且缓存不存在或者过期，直接访问网络</td>
+</tr>
+<tr>
+<td align="center">not null</td>
+<td align="center">not null</td>
+<td align="center">Header中包含ETag/Last-Modified标签，需要在满足条件下请求，还是需要访问网络</td>
+</tr>
+</tbody></table>
+<p>上面的表格是根据下面的代码得出：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns a strategy to satisfy &#123;<span class="doctag">@code</span> request&#125; using the a cached response &#123;<span class="doctag">@code</span> response&#125;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CacheStrategy <span class="title">get</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">//获取当前的缓存策略</span></span><br><span class="line">  CacheStrategy candidate = getCandidate();</span><br><span class="line"> <span class="comment">//如果是网络请求不为null并且请求里面的cacheControl是只用缓存</span></span><br><span class="line">  <span class="keyword">if</span> (candidate.networkRequest != <span class="keyword">null</span> &amp;&amp; request.cacheControl().onlyIfCached()) &#123;</span><br><span class="line">    <span class="comment">// We're forbidden from using the network and the cache is insufficient.</span></span><br><span class="line">    <span class="comment">//使用只用缓存的策略</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CacheStrategy(<span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> candidate;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Returns a strategy to use assuming the request can use the network. */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> CacheStrategy <span class="title">getCandidate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">// No cached response.</span></span><br><span class="line">  <span class="comment">//如果没有缓存响应，返回一个没有响应的策略</span></span><br><span class="line">  <span class="keyword">if</span> (cacheResponse == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CacheStrategy(request, <span class="keyword">null</span>);</span><br><span class="line">  &#125;</span><br><span class="line">   <span class="comment">//如果是https，丢失了握手，返回一个没有响应的策略</span></span><br><span class="line">  <span class="comment">// Drop the cached response if it's missing a required handshake.</span></span><br><span class="line">  <span class="keyword">if</span> (request.isHttps() &amp;&amp; cacheResponse.handshake() == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CacheStrategy(request, <span class="keyword">null</span>);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 响应不能被缓存</span></span><br><span class="line">  <span class="comment">// If this response shouldn't have been stored, it should never be used</span></span><br><span class="line">  <span class="comment">// as a response source. This check should be redundant as long as the</span></span><br><span class="line">  <span class="comment">// persistence store is well-behaved and the rules are constant.</span></span><br><span class="line">  <span class="keyword">if</span> (!isCacheable(cacheResponse, request)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CacheStrategy(request, <span class="keyword">null</span>);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  <span class="comment">//获取请求头里面的CacheControl</span></span><br><span class="line">  CacheControl requestCaching = request.cacheControl();</span><br><span class="line">  <span class="comment">//如果请求里面设置了不缓存，则不缓存</span></span><br><span class="line">  <span class="keyword">if</span> (requestCaching.noCache() || hasConditions(request)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CacheStrategy(request, <span class="keyword">null</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//获取响应的年龄</span></span><br><span class="line">  <span class="keyword">long</span> ageMillis = cacheResponseAge();</span><br><span class="line">  <span class="comment">//获取上次响应刷新的时间</span></span><br><span class="line">  <span class="keyword">long</span> freshMillis = computeFreshnessLifetime();</span><br><span class="line">  <span class="comment">//如果请求里面有最大持久时间要求，则两者选择最短时间的要求</span></span><br><span class="line">  <span class="keyword">if</span> (requestCaching.maxAgeSeconds() != -<span class="number">1</span>) &#123;</span><br><span class="line">    freshMillis = Math.min(freshMillis, SECONDS.toMillis(requestCaching.maxAgeSeconds()));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">long</span> minFreshMillis = <span class="number">0</span>;</span><br><span class="line">  <span class="comment">//如果请求里面有最小刷新时间的限制</span></span><br><span class="line">  <span class="keyword">if</span> (requestCaching.minFreshSeconds() != -<span class="number">1</span>) &#123;</span><br><span class="line">     <span class="comment">//用请求中的最小更新时间来更新最小时间限制</span></span><br><span class="line">    minFreshMillis = SECONDS.toMillis(requestCaching.minFreshSeconds());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//最大验证时间</span></span><br><span class="line">  <span class="keyword">long</span> maxStaleMillis = <span class="number">0</span>;</span><br><span class="line">  <span class="comment">//响应缓存控制器</span></span><br><span class="line">  CacheControl responseCaching = cacheResponse.cacheControl();</span><br><span class="line">  <span class="comment">//如果响应(服务器)那边不是必须验证并且存在最大验证秒数</span></span><br><span class="line">  <span class="keyword">if</span> (!responseCaching.mustRevalidate() &amp;&amp; requestCaching.maxStaleSeconds() != -<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">//更新最大验证时间</span></span><br><span class="line">    maxStaleMillis = SECONDS.toMillis(requestCaching.maxStaleSeconds());</span><br><span class="line">  &#125;</span><br><span class="line"> <span class="comment">//响应支持缓存</span></span><br><span class="line">   <span class="comment">//持续时间+最短刷新时间&lt;上次刷新时间+最大验证时间 则可以缓存</span></span><br><span class="line">  <span class="comment">//现在时间(now)-已经过去的时间（sent）+可以存活的时间&lt;最大存活时间(max-age)</span></span><br><span class="line">  <span class="keyword">if</span> (!responseCaching.noCache() &amp;&amp; ageMillis + minFreshMillis &lt; freshMillis + maxStaleMillis) &#123;</span><br><span class="line">    Response.Builder builder = cacheResponse.newBuilder();</span><br><span class="line">    <span class="keyword">if</span> (ageMillis + minFreshMillis &gt;= freshMillis) &#123;</span><br><span class="line">      builder.addHeader(<span class="string">"Warning"</span>, <span class="string">"110 HttpURLConnection \"Response is stale\""</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">long</span> oneDayMillis = <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">1000L</span>;</span><br><span class="line">    <span class="keyword">if</span> (ageMillis &gt; oneDayMillis &amp;&amp; isFreshnessLifetimeHeuristic()) &#123;</span><br><span class="line">      builder.addHeader(<span class="string">"Warning"</span>, <span class="string">"113 HttpURLConnection \"Heuristic expiration\""</span>);</span><br><span class="line">    &#125;</span><br><span class="line">   <span class="comment">//缓存响应</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CacheStrategy(<span class="keyword">null</span>, builder.build());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//如果想缓存request，必须要满足一定的条件</span></span><br><span class="line">  <span class="comment">// Find a condition to add to the request. If the condition is satisfied, the response body</span></span><br><span class="line">  <span class="comment">// will not be transmitted.</span></span><br><span class="line">  String conditionName;</span><br><span class="line">  String conditionValue;</span><br><span class="line">  <span class="keyword">if</span> (etag != <span class="keyword">null</span>) &#123;</span><br><span class="line">    conditionName = <span class="string">"If-None-Match"</span>;</span><br><span class="line">    conditionValue = etag;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (lastModified != <span class="keyword">null</span>) &#123;</span><br><span class="line">    conditionName = <span class="string">"If-Modified-Since"</span>;</span><br><span class="line">    conditionValue = lastModifiedString;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (servedDate != <span class="keyword">null</span>) &#123;</span><br><span class="line">    conditionName = <span class="string">"If-Modified-Since"</span>;</span><br><span class="line">    conditionValue = servedDateString;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">//没有条件则返回一个定期的request</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CacheStrategy(request, <span class="keyword">null</span>); <span class="comment">// No condition! Make a regular request.</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  Headers.Builder conditionalRequestHeaders = request.headers().newBuilder();</span><br><span class="line">  Internal.instance.addLenient(conditionalRequestHeaders, conditionName, conditionValue);</span><br><span class="line"></span><br><span class="line">  Request conditionalRequest = request.newBuilder()</span><br><span class="line">      .headers(conditionalRequestHeaders.build())</span><br><span class="line">      .build();</span><br><span class="line">  <span class="comment">//返回有条件的缓存request策略</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> CacheStrategy(conditionalRequest, cacheResponse);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还有一个方法，用来判断是否能够缓存：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Returns true if &#123;<span class="doctag">@code</span> response&#125; can be stored to later serve another request. */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isCacheable</span><span class="params">(Response response, Request request)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// Always go to network for uncacheable response codes (RFC 7231 section 6.1),</span></span><br><span class="line">  <span class="comment">// This implementation doesn't support caching partial content.</span></span><br><span class="line">  <span class="keyword">switch</span> (response.code()) &#123;</span><br><span class="line">    <span class="keyword">case</span> HTTP_OK:</span><br><span class="line">    <span class="keyword">case</span> HTTP_NOT_AUTHORITATIVE:</span><br><span class="line">    <span class="keyword">case</span> HTTP_NO_CONTENT:</span><br><span class="line">    <span class="keyword">case</span> HTTP_MULT_CHOICE:</span><br><span class="line">    <span class="keyword">case</span> HTTP_MOVED_PERM:</span><br><span class="line">    <span class="keyword">case</span> HTTP_NOT_FOUND:</span><br><span class="line">    <span class="keyword">case</span> HTTP_BAD_METHOD:</span><br><span class="line">    <span class="keyword">case</span> HTTP_GONE:</span><br><span class="line">    <span class="keyword">case</span> HTTP_REQ_TOO_LONG:</span><br><span class="line">    <span class="keyword">case</span> HTTP_NOT_IMPLEMENTED:</span><br><span class="line">    <span class="keyword">case</span> StatusLine.HTTP_PERM_REDIRECT:</span><br><span class="line">      <span class="comment">// These codes can be cached unless headers forbid it.</span></span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> HTTP_MOVED_TEMP:</span><br><span class="line">    <span class="keyword">case</span> StatusLine.HTTP_TEMP_REDIRECT:</span><br><span class="line">      <span class="comment">// These codes can only be cached with the right response headers.</span></span><br><span class="line">      <span class="comment">// http://tools.ietf.org/html/rfc7234#section-3</span></span><br><span class="line">      <span class="comment">// s-maxage is not checked because OkHttp is a private cache that should ignore s-maxage.</span></span><br><span class="line">      <span class="keyword">if</span> (response.header(<span class="string">"Expires"</span>) != <span class="keyword">null</span></span><br><span class="line">          || response.cacheControl().maxAgeSeconds() != -<span class="number">1</span></span><br><span class="line">          || response.cacheControl().isPublic()</span><br><span class="line">          || response.cacheControl().isPrivate()) &#123;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// Fall-through.</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="comment">// All other codes cannot be cached.</span></span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// A 'no-store' directive on request or response prevents the response from being cached.</span></span><br><span class="line">  <span class="keyword">return</span> !response.cacheControl().noStore() &amp;&amp; !request.cacheControl().noStore();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要是对响应码进行了判断。提出一个问题，如果请求返回了404，会缓存吗？只要不是请求和响应设置了 noStore 那么就会缓存。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>OKHTTP-源码分析4</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

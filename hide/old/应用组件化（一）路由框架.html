@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="以 GitHub 上面的开源框架 JUMU 为例子，研究一下如何实现一个组件化框架，以及在组件化的时候需要注意的地方。关于如何实现一个组件化框架，作者有一个系列的文档，写的比较详细了。要看懂这个框架你需要的知识有： Android annotation processor Gradle 从自定义注解和自定义注解处理器开始。首先，我们需要自定义两个注解：">
+<meta property="og:type" content="website">
+<meta property="og:title" content="应用组件化（一）路由框架">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/应用组件化（一）路由框架.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="以 GitHub 上面的开源框架 JUMU 为例子，研究一下如何实现一个组件化框架，以及在组件化的时候需要注意的地方。关于如何实现一个组件化框架，作者有一个系列的文档，写的比较详细了。要看懂这个框架你需要的知识有： Android annotation processor Gradle 从自定义注解和自定义注解处理器开始。首先，我们需要自定义两个注解：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-05-27T03:55:51.672Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="应用组件化（一）路由框架">
+<meta name="twitter:description" content="以 GitHub 上面的开源框架 JUMU 为例子，研究一下如何实现一个组件化框架，以及在组件化的时候需要注意的地方。关于如何实现一个组件化框架，作者有一个系列的文档，写的比较详细了。要看懂这个框架你需要的知识有： Android annotation processor Gradle 从自定义注解和自定义注解处理器开始。首先，我们需要自定义两个注解：">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/应用组件化（一）路由框架">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>应用组件化（一）路由框架 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">应用组件化（一）路由框架
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>应用组件化（一）路由框架</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>以 GitHub 上面的开源框架 <a href="https://github.com/mqzhangw/JIMU" target="_blank" rel="noopener">JUMU</a> 为例子，研究一下如何实现一个组件化框架，以及在组件化的时候需要注意的地方。</p><p>关于如何实现一个组件化框架，作者有一个<a href="https://www.jianshu.com/p/1b1d77f58e84" target="_blank" rel="noopener">系列的文档</a>，写的比较详细了。</p><p>要看懂这个框架你需要的知识有：</p><ol>
+<li>Android annotation processor</li>
+<li>Gradle</li>
+</ol><p><strong>从自定义注解和自定义注解处理器开始。</strong><br>首先，我们需要自定义两个注解：</p><a id="more"></a>
+
+
+
+
+<ol>
+<li>@RouteNode</li>
+<li>@AutoWired 这个应该是参考的 ARouter</li>
+</ol>
+<p>RouteNode 这个注解需要实现这样的功能：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">这个注解是用来修饰一个界面的。（可以是 Activity 也可以是 Fragment）</span><br><span class="line">这个注解有一个 uri 参数，用来指定该界面对应的路径，如：reader/detail。</span><br></pre></td></tr></table></figure>
+
+<p>这里提一个问题，我们有了界面的全类名，有了对应的 uri，那么让你自己实现的话，要怎么实现这个跳转功能（不考虑参数的传递）？</p>
+<p>答案是使用 map 将这两个存起来，等待跳转的时候，查阅对应的类，直接执行 startActivity 就好了，顺便说一下，JIMU 这个框架还不支持 fragment 的跳转，有兴趣的可以去看一下 ARouter 是怎么做的（其实根本是没有fragment跳转这一说，因为fragment需要实例化之后在使用，所以 ARouter 只是做了一个反射操作，返回一个 fragment 实例）？</p>
+<p>我们给出了 map 方案，那么具体应该如何去实现呢？下面涉及到自定义 Android annotation processor 的东西，如果你对这个不了解，请看这些文章<a href="http://lotabout.me/2017/Notes-on-Java-Annotation-Processor/" target="_blank" rel="noopener">Java Annotation Processor 小记</a> 和 <a href="https://blog.csdn.net/github_35180164/article/details/52171135" target="_blank" rel="noopener">自定义注解</a></p>
+<p>现在，我们能看懂了自定义的东西，那就直接从代码开始吧。</p>
+<p>我们先把定义注解的代码拿出来看看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target</span>(&#123;ElementType.TYPE&#125;)</span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.CLASS)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> RouteNode &#123;</span><br><span class="line">    <span class="function">String <span class="title">path</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function">String <span class="title">desc</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里多了一个 desc 字段，是做描述用的，可以不用分析。<br>看看注解处理器做了什么东西：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * routeElements 是一个集合，里面存放的是所有被 <span class="doctag">@RouteNode</span> 注解修饰的元素</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseRouteNodes</span><span class="params">(Set&lt;? extends Element&gt; routeElements)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (Element element : routeElements) &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// 每一个被 @RouterNode 修饰的都是一个节点</span></span><br><span class="line">        RouteNode route = element.getAnnotation(RouteNode.class);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 当前元素是 activity，只支持 ativity</span></span><br><span class="line">        <span class="keyword">if</span> (types.isSubtype(tm, type_Activity)) &#123;</span><br><span class="line">            ...</span><br><span class="line">            <span class="comment">// paramsType 保存的是字段的 name 与 字段的类型</span></span><br><span class="line">            <span class="comment">// paramsDesc 保存的是字段的 name 与 字段的描述（这个是作者自己规定的）</span></span><br><span class="line">            <span class="comment">// 比如：有一个 String 字段 @Autowired String url;</span></span><br><span class="line">            <span class="comment">// 那么 name 就是 String，如果注解里面指定了 name 的值，那么就是该值</span></span><br><span class="line">            Map&lt;String, Integer&gt; paramsType = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">            Map&lt;String, String&gt; paramsDesc = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">            <span class="comment">// 获取成员信息，注意与 getEnclosingElement 的区别</span></span><br><span class="line">            <span class="comment">// getEnclosedElements 返回的是 activity 类封装的元素，如字段，方法等</span></span><br><span class="line">            <span class="keyword">for</span> (Element field : element.getEnclosedElements()) &#123;</span><br><span class="line">                <span class="comment">// 获取 @Autowired 修饰的字段</span></span><br><span class="line">                <span class="keyword">if</span> (field.getKind().isField() &amp;&amp; field.getAnnotation(Autowired.class) != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    ...</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            ...</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 将 node 信息保存起来</span></span><br><span class="line">            <span class="keyword">if</span> (!routerNodes.contains(node)) &#123;</span><br><span class="line">                routerNodes.add(node);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"only activity can be annotated by RouteNode"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法是遍历了所有被 @RouteNode 修饰的 activity，然后拿到 activity 里面被 @Autowired 修饰的所有字段。将字段的类型与描述用 map 给存放起来。</p>
+<p>拿到了类的信息，并且保存起来了，那么我们什么时候去使用这些信息呢，以及如何使用？<br>Processor除了可以获取注解被修饰的类信息之外，我们还可以利用它动态的生成类，看下面的函数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 这里其实就是生成一个类</span></span><br><span class="line"><span class="comment"> * generate HostUIRouter.java</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">generateRouterImpl</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建生成类的类名 ： com.luojilab.gen.router.ShareUiRouter</span></span><br><span class="line">    String claName = RouteUtils.genHostUIRouterClass(host);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 拿到包名</span></span><br><span class="line">    String pkg = claName.substring(<span class="number">0</span>, claName.lastIndexOf(<span class="string">"."</span>));</span><br><span class="line">    <span class="comment">// 拿到类名</span></span><br><span class="line">    String cn = claName.substring(claName.lastIndexOf(<span class="string">"."</span>) + <span class="number">1</span>);</span><br><span class="line">    <span class="comment">// 指定它的父类</span></span><br><span class="line">    ClassName superClass = ClassName.get(elements.getTypeElement(BASECOMPROUTER));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建一个 getHost 方法</span></span><br><span class="line">    MethodSpec initHostMethod = generateInitHostMethod();</span><br><span class="line">    <span class="comment">// 创建一个 initMap 方法</span></span><br><span class="line">    MethodSpec initMapMethod = generateInitMapMethod();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        JavaFile.builder(pkg, TypeSpec.classBuilder(cn)</span><br><span class="line">                .addModifiers(PUBLIC)</span><br><span class="line">                .superclass(superClass)</span><br><span class="line">                .addMethod(initHostMethod)</span><br><span class="line">                .addMethod(initMapMethod)</span><br><span class="line">                .build()</span><br><span class="line">        ).build().writeTo(mFiler);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，看注释的话还是比较简单的，重点具体看一下 generateInitMapMethod 的实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 生成 initMap 方法</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> MethodSpec <span class="title">generateInitMapMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 返回类型</span></span><br><span class="line">    TypeName returnType = TypeName.VOID;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建方法名，返回类型，注解，修饰符</span></span><br><span class="line">    MethodSpec.Builder openUriMethodSpecBuilder = MethodSpec.methodBuilder(<span class="string">"initMap"</span>)</span><br><span class="line">            .returns(returnType)</span><br><span class="line">            .addAnnotation(Override.class)</span><br><span class="line">            .addModifiers(Modifier.PUBLIC);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 添加方法内语句</span></span><br><span class="line">    openUriMethodSpecBuilder.addStatement(<span class="string">"super.initMap()"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这里的 routerNodes 就是我们上面分析过的一个集合，存放所有路由节点</span></span><br><span class="line">    <span class="keyword">for</span> (Node node : routerNodes) &#123;</span><br><span class="line">        <span class="comment">// put 语句，key：路由路径，value：节点class类型</span></span><br><span class="line">        openUriMethodSpecBuilder.addStatement(</span><br><span class="line">                mRouteMapperFieldName + <span class="string">".put($S,$T.class)"</span>,</span><br><span class="line">                node.getPath(),</span><br><span class="line">                ClassName.get((TypeElement) node.getRawType()));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 这里是因为需要调用 map 的 put 方法，所以采用的是</span></span><br><span class="line">        <span class="comment">// 构造代码块的形式</span></span><br><span class="line">        StringBuilder mapBodyBuilder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        Map&lt;String, Integer&gt; paramsType = node.getParamsType();</span><br><span class="line">        <span class="keyword">if</span> (MapUtils.isNotEmpty(paramsType)) &#123;</span><br><span class="line">            <span class="keyword">for</span> (Map.Entry&lt;String, Integer&gt; types : paramsType.entrySet()) &#123;</span><br><span class="line">                mapBodyBuilder.append(<span class="string">"put(\""</span>).append(types.getKey()).append(<span class="string">"\", "</span>).append(types.getValue()).append(<span class="string">"); "</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        String mapBody = mapBodyBuilder.toString();</span><br><span class="line">        logger.info(<span class="string">"&gt;&gt;&gt; mapBody: "</span> + mapBody + <span class="string">" &lt;&lt;&lt;"</span>);</span><br><span class="line">        <span class="keyword">if</span> (!StringUtils.isEmpty(mapBody)) &#123;</span><br><span class="line">            openUriMethodSpecBuilder.addStatement(</span><br><span class="line">                    mParamsMapperFieldName + <span class="string">".put($T.class,"</span></span><br><span class="line">                            + <span class="string">"new java.util.HashMap&lt;String, Integer&gt;()&#123;&#123;"</span> + mapBody + <span class="string">"&#125;&#125;"</span> + <span class="string">")"</span>,</span><br><span class="line">                    ClassName.get((TypeElement) node.getRawType()));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> openUriMethodSpecBuilder.build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面只有代码，显得不太直观，我就贴一个生成的类，对比着看就简单多了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShareUiRouter</span> <span class="keyword">extends</span> <span class="title">BaseCompRouter</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getHost</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"share"</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.initMap();</span><br><span class="line">    <span class="comment">// 这里存储的是 节点uri 与 节点 class</span></span><br><span class="line">    routeMapper.put(<span class="string">"/shareBook"</span>,ShareActivity.class);</span><br><span class="line">    <span class="comment">// 这里存储的是 节点的参数，就是 @Autowired 实现自动注入的</span></span><br><span class="line">    paramsMapper.put(ShareActivity.class,<span class="keyword">new</span> java.util.HashMap&lt;String, Integer&gt;()&#123;&#123;put(<span class="string">"author"</span>, <span class="number">10</span>); put(<span class="string">"bookName"</span>, <span class="number">8</span>); &#125;&#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么，到这里我们就明白了 @RouteNode 的作用了。<br>这个注解保存了修饰类的信息（类名，类路径，里面需要自动注入的成员变量，成员变量的名字，成员变量的类型）</p>
+<p>接下来，我们分析 @Autowired 是如何实现变量自动注入的，以及它能够支持什么类型的参数。<br>首先，仍然是从注解的定义开始：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target</span>(&#123;ElementType.FIELD&#125;)</span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.CLASS)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Autowired &#123;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">name</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">required</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">throwOnNull</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">desc</span><span class="params">()</span> <span class="keyword">default</span> "none desc."</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>required 与 throwOnNull 都是用来做空判断的，比如注入失败之类的，我们可以不用管，desc 是一个描述，略过。所以，只用关系 name 就好了，之前分析过，name 如果不写就是类的 simpleName。</p>
+<p>再看 processor 是怎么处理的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; set, RoundEnvironment roundEnvironment)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 这个方法的参数 set 集合 有个啥用啊</span></span><br><span class="line">    <span class="comment">// 哦 我明白了，set 是支持的所有注解的集合</span></span><br><span class="line">    printSet(set);</span><br><span class="line">    printSet(roundEnvironment.getElementsAnnotatedWith(Autowired.class));</span><br><span class="line">    <span class="keyword">if</span> (CollectionUtils.isNotEmpty(set)) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            categories(roundEnvironment.getElementsAnnotatedWith(Autowired.class));</span><br><span class="line">            generateHelper();</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            logger.error(e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>里面的核心就是两个方法，先看 categories ：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Categories field, find his papa.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> elements Field need autowired</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">categories</span><span class="params">(Set&lt;? extends Element&gt; elements)</span> <span class="keyword">throws</span> IllegalAccessException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (CollectionUtils.isNotEmpty(elements)) &#123;</span><br><span class="line">        <span class="keyword">for</span> (Element element : elements) &#123;</span><br><span class="line">            <span class="comment">// autowired 是放在变量上的</span></span><br><span class="line">            <span class="comment">// 这里是要获取类的信息</span></span><br><span class="line">            TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 被修饰的变量不能是私有的</span></span><br><span class="line">            <span class="keyword">if</span> (element.getModifiers().contains(Modifier.PRIVATE)) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IllegalAccessException(<span class="string">"The autowired fields CAN NOT BE 'private'!!! please check field ["</span></span><br><span class="line">                        + element.getSimpleName() + <span class="string">"] in class ["</span> + enclosingElement.getQualifiedName() + <span class="string">"]"</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// parentAndChild 是一个 map</span></span><br><span class="line">            <span class="comment">// key 是被修饰变量所属的类，value 是这个类里面所有的被修饰的变量（list）</span></span><br><span class="line">            <span class="keyword">if</span> (parentAndChild.containsKey(enclosingElement)) &#123; <span class="comment">// Has categries</span></span><br><span class="line">                parentAndChild.get(enclosingElement).add(element);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                List&lt;Element&gt; children = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">                children.add(element);</span><br><span class="line">                parentAndChild.put(enclosingElement, children);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        logger.info(<span class="string">"categories finished."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以，categories 方法就是做了一个分类，将 activity 与 activity 里面需要注入的变量对应起来。</p>
+<p>再看 generateHelper 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 这个方法也是生成一个类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">generateHelper</span><span class="params">()</span> <span class="keyword">throws</span> IOException, IllegalAccessException </span>&#123;</span><br><span class="line">    TypeElement type_ISyringe = elements.getTypeElement(Constants.ISYRINGE);</span><br><span class="line"></span><br><span class="line">    TypeElement type_JsonService = elements.getTypeElement(Constants.JSON_SERVICE);</span><br><span class="line"></span><br><span class="line">    TypeMirror activityTm = elements.getTypeElement(Constants.ACTIVITY).asType();</span><br><span class="line">    TypeMirror fragmentTm = elements.getTypeElement(Constants.FRAGMENT).asType();</span><br><span class="line">    TypeMirror fragmentTmV4 = elements.getTypeElement(Constants.FRAGMENT_V4).asType();</span><br><span class="line">    TypeMirror bundleTm = elements.getTypeElement(Constants.BUNDLE).asType();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 方法参数 Object target</span></span><br><span class="line">    ParameterSpec objectParamSpec = ParameterSpec.builder(TypeName.OBJECT, <span class="string">"target"</span>).build();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 方法参数 Bundle bundle</span></span><br><span class="line">    ParameterSpec bundleParamSpec = AnnoUtils.generateMethodParameterSpec(bundleTm, <span class="string">"bundle"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (MapUtils.isNotEmpty(parentAndChild)) &#123;</span><br><span class="line">        <span class="keyword">for</span> (Map.Entry&lt;TypeElement, List&lt;Element&gt;&gt; entry : parentAndChild.entrySet()) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 这里的代码就是如何使用 javapoet 生成一个类</span></span><br><span class="line">            <span class="comment">// 可以先 make project</span></span><br><span class="line">            <span class="comment">// 然后找到使用了 autowired 的 module，查看生成的文件</span></span><br><span class="line">            <span class="comment">// 对比着看就好理解了</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">// 方法  @Override public void inject(Object target) &#123;&#125;</span></span><br><span class="line">            MethodSpec.Builder injectMethodBuilder = MethodSpec.methodBuilder(<span class="string">"inject"</span>)</span><br><span class="line">                    .addAnnotation(Override.class)</span><br><span class="line">                    .addModifiers(PUBLIC)</span><br><span class="line">                    .addParameter(objectParamSpec);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 方法 : @Override public void preCondition(Bundle bundle) throws ParamException &#123;&#125;</span></span><br><span class="line">            MethodSpec.Builder preConditionMethodBuilder = MethodSpec.methodBuilder(<span class="string">"preCondition"</span>)</span><br><span class="line">                    .addAnnotation(Override.class)</span><br><span class="line">                    .addModifiers(PUBLIC)</span><br><span class="line">                    .addException(ParamException)</span><br><span class="line">                    .addParameter(bundleParamSpec);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// activity 类</span></span><br><span class="line">            TypeElement parent = entry.getKey();</span><br><span class="line">            <span class="comment">// activity 类里面需要自动注入的字段</span></span><br><span class="line">            List&lt;Element&gt; children = entry.getValue();</span><br><span class="line">            <span class="comment">// 类全名</span></span><br><span class="line">            String qualifiedName = parent.getQualifiedName().toString();</span><br><span class="line">            <span class="comment">// 包名</span></span><br><span class="line">            String packageName = qualifiedName.substring(<span class="number">0</span>, qualifiedName.lastIndexOf(<span class="string">"."</span>));</span><br><span class="line">            <span class="comment">// 文件名</span></span><br><span class="line">            String fileName = parent.getSimpleName() + SUFFIX_AUTOWIRED;</span><br><span class="line"></span><br><span class="line">            logger.info(<span class="string">"&gt;&gt;&gt; Start process "</span> + children.size() + <span class="string">" field in "</span> + parent.getSimpleName() + <span class="string">" ... &lt;&lt;&lt;"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// com.luojilab.component.componentlib.router.ISyringe</span></span><br><span class="line">            <span class="comment">// public class xxx$$Router$$Autowired implements ISyringe</span></span><br><span class="line">            TypeSpec.Builder helper = TypeSpec.classBuilder(fileName)</span><br><span class="line">                    .addJavadoc(<span class="string">"Auto generated by "</span> + TAG)</span><br><span class="line">                    .addSuperinterface(ClassName.get(type_ISyringe))</span><br><span class="line">                    .addModifiers(PUBLIC);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// com.luojilab.component.componentlib.service.JsonService</span></span><br><span class="line">            <span class="comment">// 字段 private JsonService jsonService;</span></span><br><span class="line">            FieldSpec jsonServiceField = FieldSpec.builder(TypeName.get(type_JsonService.asType()),</span><br><span class="line">                    <span class="string">"jsonService"</span>, Modifier.PRIVATE).build();</span><br><span class="line">            helper.addField(jsonServiceField);</span><br><span class="line"></span><br><span class="line">            logger.info(<span class="string">"======== inject jsonservice"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 添加语句, $T 是一个占位符，由后面的参数来代理</span></span><br><span class="line">            injectMethodBuilder.addStatement(<span class="string">"jsonService = $T.Factory.getSingletonImpl()"</span>,</span><br><span class="line">                    ClassName.get(type_JsonService));</span><br><span class="line"></span><br><span class="line">            injectMethodBuilder.addStatement(<span class="string">"$T substitute = ($T)target"</span>, ClassName.get(parent), ClassName.get(parent));</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Generate method body, start inject.</span></span><br><span class="line">            <span class="keyword">for</span> (Element element : children) &#123;</span><br><span class="line">                <span class="comment">// 获取注解</span></span><br><span class="line">                Autowired fieldConfig = element.getAnnotation(Autowired.class);</span><br><span class="line">                <span class="comment">// 注解字段名</span></span><br><span class="line">                String fieldName = element.getSimpleName().toString();</span><br><span class="line">                <span class="comment">// substitute 是作者起的一个变量名</span></span><br><span class="line">                String originalValue = <span class="string">"substitute."</span> + fieldName;</span><br><span class="line">                String statement = <span class="string">"substitute."</span> + fieldName + <span class="string">" = substitute."</span>;</span><br><span class="line">                <span class="keyword">boolean</span> isActivity = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// 这里处理了 activity 与 fragment，应该是为以后做考虑吧，毕竟现在只支持activity</span></span><br><span class="line">                <span class="keyword">if</span> (types.isSubtype(parent.asType(), activityTm)) &#123;  <span class="comment">// Activity, then use getIntent()</span></span><br><span class="line">                    isActivity = <span class="keyword">true</span>;</span><br><span class="line">                    statement += <span class="string">"getIntent()."</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (types.isSubtype(parent.asType(), fragmentTm) ||</span><br><span class="line">                        types.isSubtype(parent.asType(), fragmentTmV4)) &#123;   <span class="comment">// Fragment, then use getArguments()</span></span><br><span class="line">                    statement += <span class="string">"getArguments()."</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalAccessException(<span class="string">"The field ["</span> + fieldName + <span class="string">"] need "</span> +</span><br><span class="line">                            <span class="string">"autowired from intent, its parent must be activity or fragment!"</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 这个就是生成一个语句：substitute.getIntent().getStringExtra() 这样的</span></span><br><span class="line">                statement = buildStatement(originalValue, statement, typeUtils.typeExchange(element), isActivity);</span><br><span class="line">                <span class="comment">// 如果传递的不是 bundle 本身支持的，而是其他自定义的对象</span></span><br><span class="line">                <span class="comment">// 其实也是利用的 bundle 传递过来的，但是是以 json 的形式</span></span><br><span class="line">                <span class="comment">// 比如：setStringExtra("&#123;a:b&#125;")</span></span><br><span class="line">                <span class="keyword">if</span> (statement.startsWith(<span class="string">"jsonService."</span>)) &#123;   <span class="comment">// Not mortals</span></span><br><span class="line">                    injectMethodBuilder.beginControlFlow(<span class="string">"if (null != jsonService)"</span>);</span><br><span class="line">                    <span class="comment">// 使用 jsonObject 的方式来解析</span></span><br><span class="line">                    injectMethodBuilder.addStatement(</span><br><span class="line">                            <span class="string">"substitute."</span> + fieldName + <span class="string">" = "</span> + statement,</span><br><span class="line">                            (StringUtils.isEmpty(fieldConfig.name()) ? fieldName : fieldConfig.name()),</span><br><span class="line">                            ClassName.get(element.asType())</span><br><span class="line">                    );</span><br><span class="line">                    injectMethodBuilder.nextControlFlow(<span class="string">"else"</span>);</span><br><span class="line">                    injectMethodBuilder.addStatement(</span><br><span class="line">                            <span class="string">"$T.e(\""</span> + TAG + <span class="string">"\", \"You want automatic inject the field '"</span></span><br><span class="line">                                    + fieldName + <span class="string">"' in class '$T' ,"</span> +</span><br><span class="line">                                    <span class="string">" but JsonService not found in Router\")"</span>, AndroidLog, ClassName.get(parent));</span><br><span class="line"></span><br><span class="line">                    injectMethodBuilder.endControlFlow();</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    injectMethodBuilder.addStatement(statement, StringUtils.isEmpty(fieldConfig.name()) ? fieldName : fieldConfig.name());</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// 校验 substitute 是否为空</span></span><br><span class="line">                <span class="keyword">if</span> (fieldConfig.required() &amp;&amp; !element.asType().getKind().isPrimitive()) &#123;  <span class="comment">// Primitive wont be check.</span></span><br><span class="line">                    injectMethodBuilder.beginControlFlow(<span class="string">"if (null == substitute."</span> + fieldName + <span class="string">")"</span>);</span><br><span class="line">                    injectMethodBuilder.addStatement(</span><br><span class="line">                            <span class="string">"$T.e(\""</span> + TAG + <span class="string">"\", \"The field '"</span> + fieldName + <span class="string">"' is null,"</span> + <span class="string">"field description is:"</span> + fieldConfig.desc() +</span><br><span class="line">                                    <span class="string">",in class '\" + $T.class.getName() + \"!\")"</span>, AndroidLog, ClassName.get(parent));</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> (fieldConfig.throwOnNull()) &#123;</span><br><span class="line">                        injectMethodBuilder.addStatement(<span class="string">"throw new $T("</span> +</span><br><span class="line">                                <span class="string">"\"The field '"</span> + fieldName + <span class="string">"' is null,"</span> + <span class="string">"field description is:"</span> + fieldConfig.desc() +</span><br><span class="line">                                <span class="string">",in class '\" + $T.class.getName() + \"!\")"</span>, NullPointerException, ClassName.get(parent));</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    injectMethodBuilder.endControlFlow();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">//preCondition</span></span><br><span class="line">                <span class="comment">// 生成 preCondition 方法</span></span><br><span class="line">                <span class="keyword">if</span> (fieldConfig.required()) &#123;</span><br><span class="line">                    preConditionMethodBuilder.beginControlFlow(<span class="string">"if (!bundle.containsKey(\""</span> + fieldName + <span class="string">"\"))"</span>);</span><br><span class="line"></span><br><span class="line">                    preConditionMethodBuilder.addStatement(<span class="string">"throw new $T("</span> +</span><br><span class="line">                            <span class="string">"\""</span> + fieldName + <span class="string">"\")"</span>, ParamException);</span><br><span class="line"></span><br><span class="line">                    preConditionMethodBuilder.endControlFlow();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            helper.addMethod(injectMethodBuilder.build());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="comment">////////////////</span></span><br><span class="line">            helper.addMethod(preConditionMethodBuilder.build());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="comment">// Generate autowire helper</span></span><br><span class="line">            JavaFile.builder(packageName, helper.build()).build().writeTo(mFiler);</span><br><span class="line"></span><br><span class="line">            logger.info(<span class="string">"&gt;&gt;&gt; "</span> + parent.getSimpleName() + <span class="string">" has been processed, "</span> + fileName + <span class="string">" has been generated. &lt;&lt;&lt;"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        logger.info(<span class="string">"&gt;&gt;&gt; Autowired processor stop. &lt;&lt;&lt;"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，上面的注释还算清晰，就不一行行分析了，直接贴一个它生成的类看看就明白了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Auto generated by AutowiredProcessor */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShareActivity</span>$$<span class="title">Router</span>$$<span class="title">Autowired</span> <span class="keyword">implements</span> <span class="title">ISyringe</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> JsonService jsonService;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inject</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">    jsonService = JsonService.Factory.getSingletonImpl();</span><br><span class="line">    ShareActivity substitute = (ShareActivity)target;</span><br><span class="line">    substitute.bookName = substitute.getIntent().getStringExtra(<span class="string">"bookName"</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != jsonService) &#123;</span><br><span class="line">      substitute.author = jsonService.parseObject(substitute.getIntent().getStringExtra(<span class="string">"author"</span>), Author.class);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      Log.e(<span class="string">"AutowiredProcessor"</span>, <span class="string">"You want automatic inject the field 'author' in class 'ShareActivity' , but JsonService not found in Router"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">preCondition</span><span class="params">(Bundle bundle)</span> <span class="keyword">throws</span> ParamException </span>&#123;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个生成的类的 inject 方法就是用来实现变量的自动注入的，拿到这个类以及需要注入的变量，使用 <code>类.变量</code> 就能进行赋值了。<br>想想这个东西，虽然我一直在说自动注入，但是实际上我们需要自己主动的调用这个方法才行，但是每个类手动调用一遍感觉有点傻逼，所以我们需要在 BaseActivity 里面处理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AutowiredService.Factory.getSingletonImpl().autowire(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
+
+<p>看看内部实现吧：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">autowire</span><span class="params">(Object instance)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 拿到类名 如果是 LoginActivity 就是 "LoginActivity"</span></span><br><span class="line">    String className = instance.getClass().getName();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 不在黑名单里面</span></span><br><span class="line">        <span class="keyword">if</span> (!blackList.contains(className)) &#123;</span><br><span class="line">            <span class="comment">// 这里有个缓存</span></span><br><span class="line">            ISyringe autowiredHelper = classCache.get(className);</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> == autowiredHelper) &#123;  <span class="comment">// No cache.</span></span><br><span class="line">                <span class="comment">// 实例化 Helper 对象，就是 @Autowired 注解自动生成的</span></span><br><span class="line">                autowiredHelper = (ISyringe) Class.forName(instance.getClass().getName() + SUFFIX_AUTOWIRED)</span><br><span class="line">                        .getConstructor().newInstance();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 这里调用了 inject 方法，实现了自动注入</span></span><br><span class="line">            autowiredHelper.inject(instance);</span><br><span class="line">            classCache.put(className, autowiredHelper);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            ILogger.logger.monitor(<span class="string">"[autowire] "</span> + className + <span class="string">"is in blacklist, ignore data inject"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">        <span class="keyword">if</span> (ex <span class="keyword">instanceof</span> NullPointerException) &#123; <span class="comment">// may define custom exception better</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(ex.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">        ex.printStackTrace();</span><br><span class="line">        blackList.add(className);    <span class="comment">// This instance don't need autowired.</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实就是使用反射实例化出相应的对象，然后调用 inject 方法，很简单，nice。</p>
+<p>那么，到这里为止，一个路由框架就有了一个雏形了，接下来我们要说到最重要的部分，那就是怎么实现跳转。嗯，到这里我们又需要思考，跳转的时候，uri需要符合什么规则，总不能瞎传都能跳转吧？<br>看这么一串东西：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">"JIMU://app/uirouter/demo/3?foo=foo string&amp;EXTRA_STR_BAR=bar string"</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">JIMU 是 scheme</span><br><span class="line"></span><br><span class="line">app 是 host</span><br><span class="line"></span><br><span class="line">/uirouter/demo/3 就是 activity 的路由路径</span><br><span class="line"></span><br><span class="line">foo=foo string&amp;EXTRA_STR_BAR=bar string 这个很明显就是参数了</span><br></pre></td></tr></table></figure>
+
+<p>有了这么一个规则，那我们定义一个跳转方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 通过 uri 来传递参数</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">openUri</span><span class="params">(Context context, Uri uri, Bundle bundle, Integer requestCode)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!hasInitMap) &#123;</span><br><span class="line">        <span class="comment">// 注意这个方法，很重要，子类需要实现</span></span><br><span class="line">        <span class="comment">// 子类第一次调用  openUri 的时候会去调用该方法</span></span><br><span class="line">        initMap();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (uri == <span class="keyword">null</span> || context == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取 scheme</span></span><br><span class="line">    String scheme = uri.getScheme();</span><br><span class="line">    <span class="comment">// 获取 host</span></span><br><span class="line">    String host = uri.getHost();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这里的 getHost 方法是子类实现的</span></span><br><span class="line">    <span class="comment">// 判断 host 是否正确</span></span><br><span class="line">    <span class="keyword">if</span> (!getHost().equals(host)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// pathSegments /1/2/3 会得到 1 2 3</span></span><br><span class="line">    List&lt;String&gt; pathSegments = uri.getPathSegments();</span><br><span class="line">    <span class="comment">// 拆了又拼是为了干掉参数</span></span><br><span class="line">    String path = <span class="string">"/"</span> + TextUtils.join(<span class="string">"/"</span>, pathSegments);</span><br><span class="line">    <span class="keyword">if</span> (routeMapper.containsKey(path)) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 这个 routeMapper 是不是有点眼熟</span></span><br><span class="line">        <span class="comment">// 之前 @RouteNode 会生成一个类，那个类是集成 BaseCompRouter 的</span></span><br><span class="line">        <span class="comment">// 里面有个 initMap 方法，这个方法里面就使用了 routeMapper 对象来存放 activity 与 对应的 uri</span></span><br><span class="line">        Class target = routeMapper.get(path);</span><br><span class="line">        <span class="keyword">if</span> (bundle == <span class="keyword">null</span>) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 创建 bundle 对象，用来存放 uri 里面的参数</span></span><br><span class="line">            bundle = <span class="keyword">new</span> Bundle();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 拿到 uri 里面的参数 key-value</span></span><br><span class="line">        Map&lt;String, String&gt; params = UriUtils.parseParams(uri);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 这个 paramsMapper 也是 initMap 中使用了的，它存放了参数的名字与类型</span></span><br><span class="line">        <span class="comment">// 类型之所以是 Integer 是作者给一些常用类型做了对应，比如 1 对应 Byte 等</span></span><br><span class="line">        Map&lt;String, Integer&gt; paramsType = paramsMapper.get(target);</span><br><span class="line">        UriUtils.setBundleValue(bundle, params, paramsType);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 最终还是调用了 startActivity 方法来执行跳转</span></span><br><span class="line">        Intent intent = <span class="keyword">new</span> Intent(context, target);</span><br><span class="line">        intent.putExtras(bundle);</span><br><span class="line">        <span class="keyword">if</span> (requestCode &gt; <span class="number">0</span> &amp;&amp; context <span class="keyword">instanceof</span> Activity) &#123;</span><br><span class="line">            ((Activity) context).startActivityForResult(intent, requestCode);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        context.startActivity(intent);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在，组件的跳转与传递参数我们都实现了，还剩最后一个地方，那就是组件的加载与卸载，这里的加载与卸载并不是先插件化一样动态的加载，而是组件已经存在与工程中，卸载只是禁止访问组件，加载是允许访问组件。<br>加载组件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerUI</span><span class="params">(IComponentRouter router, <span class="keyword">int</span> priority)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (priorities.containsKey(router) &amp;&amp; priority == priorities.get(router)) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 移除旧的，这里是为了考虑优先级不同才这样做的吗</span></span><br><span class="line">    removeOldUIRouter(router);</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 组件按照优先级进行排序，从低到高</span></span><br><span class="line">    <span class="keyword">for</span> (IComponentRouter temp : uiRouters) &#123;</span><br><span class="line">        Integer tp = priorities.get(temp);</span><br><span class="line">        <span class="keyword">if</span> (tp == <span class="keyword">null</span> || tp &lt;= priority) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        i++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 添加到集合中</span></span><br><span class="line">    uiRouters.add(i, router);</span><br><span class="line">    <span class="comment">// 保存组件优先级</span></span><br><span class="line">    priorities.put(router, priority);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之前在分析跳转实现的时候，我省略了一点东西，就是我们 openUri 是哪个对象来执行的，我省略的寻找这个对象的过程，现在我么看一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">openUri</span><span class="params">(Context context, Uri uri, Bundle bundle, Integer requestCode)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (IComponentRouter temp : uiRouters) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//ignore params check</span></span><br><span class="line">            VerifyResult verifyResult = temp.verifyUri(uri,bundle,<span class="keyword">false</span>);</span><br><span class="line">            <span class="keyword">if</span> (verifyResult.isSuccess() &amp;&amp; temp.openUri(context, uri, bundle, requestCode))</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里是做了一个遍历，如果 temp 通过了校验，那么就让这个 temp 去执行 openUri 方法，那么我们看看它是怎么校验的:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@NonNull</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> VerifyResult <span class="title">verifyUri</span><span class="params">(Uri uri, Bundle bundle,<span class="keyword">boolean</span> checkParams)</span> </span>&#123;</span><br><span class="line">    monitorLog(<span class="string">"verify for: "</span> + UriUtils.toSafeString(uri) +</span><br><span class="line">                <span class="string">" in "</span> + getClass().getSimpleName() + <span class="string">" ;host is: "</span> + getHost());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (uri == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> VerifyResult(<span class="keyword">false</span>);</span><br><span class="line">    String host = uri.getHost();</span><br><span class="line">    <span class="keyword">if</span> (!getHost().equals(host)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> VerifyResult(<span class="keyword">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!hasInitMap) &#123;</span><br><span class="line">        initMap();</span><br><span class="line">    &#125;</span><br><span class="line">    List&lt;String&gt; pathSegments = uri.getPathSegments();</span><br><span class="line">    String path = <span class="string">"/"</span> + TextUtils.join(<span class="string">"/"</span>, pathSegments);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!routeMapper.containsKey(path))</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> VerifyResult(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (checkParams) &#123;</span><br><span class="line">            monitorLog(<span class="string">"checking params"</span>);</span><br><span class="line">            Class target = routeMapper.get(path);</span><br><span class="line">            <span class="keyword">if</span> (bundle == <span class="keyword">null</span>) &#123;</span><br><span class="line">                bundle = <span class="keyword">new</span> Bundle();</span><br><span class="line">            &#125;</span><br><span class="line">            Map&lt;String, String&gt; params = UriUtils.parseParams(uri);</span><br><span class="line">            Map&lt;String, Integer&gt; paramsType = paramsMapper.get(target);</span><br><span class="line">            UriUtils.setBundleValue(bundle, params, paramsType);</span><br><span class="line">            AutowiredService.Factory.getSingletonImpl().preCondition(target, bundle);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> VerifyResult(<span class="keyword">true</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ParamException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> VerifyResult(<span class="keyword">false</span>,e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>很简单，就不写注释了，验证了 host，uri，因为 checkParams 是 false，所以就直接跳过。<br>所以，按照这样的逻辑，只要 host 一致并且 uri 也存在，那么就委托给这个 IComponentRouter 去执行。<br>看源码中有一个 Reader 组件，那么它会生成 ReaderUiRouter 类，当我们使用 uri 跳转的时候，只要 host 是 reader，那么就都会委托给 ReaderUiRouter 去执行 openUri 方法。</p>
+<p>到了这里，一个路由框架就完成了，当然还有其他的细节，请自行查看源码吧。说起来上面都是路由框架，它是组件化的基础，当然如果你不想了解如果实现，只想了解如果使用的话，其实还有很多别的开源框架，比如阿里的 ARouter，github上有非常详细的使用文档。</p>
+<p>建议多多查阅别人的开源代码，万一哪天你灵感来了，顺手就能撸一个牛逼的路由框架呢！</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>应用组件化（一）路由框架</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

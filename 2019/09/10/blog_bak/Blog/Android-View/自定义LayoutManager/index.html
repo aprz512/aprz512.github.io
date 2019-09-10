@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="在做了这么长时间的Android开发，还没有遇到过这个需求，不过看了别人的很多效果，感觉很棒，所以找了时间就研究了一下，现在做一些记录，等以后有了相关需要可以快速回顾。在我学习的过程中，不可避免的遇到了很多问题，有的已经解决，有的还未解决，所以这个 Demo 就是看个乐呵吧。自定义一个 LayoutManager 整体给我的感觉是与实现自定义 ViewGroup 的 onLayout 比较像。其他">
+<meta name="keywords" content="Android-View">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自定义LayoutManager">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="在做了这么长时间的Android开发，还没有遇到过这个需求，不过看了别人的很多效果，感觉很棒，所以找了时间就研究了一下，现在做一些记录，等以后有了相关需要可以快速回顾。在我学习的过程中，不可避免的遇到了很多问题，有的已经解决，有的还未解决，所以这个 Demo 就是看个乐呵吧。自定义一个 LayoutManager 整体给我的感觉是与实现自定义 ViewGroup 的 onLayout 比较像。其他">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/layoutmanager/Gif_20190805_140935.gif?raw=true">
+<meta property="og:updated_time" content="2019-08-18T04:16:05.756Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="自定义LayoutManager">
+<meta name="twitter:description" content="在做了这么长时间的Android开发，还没有遇到过这个需求，不过看了别人的很多效果，感觉很棒，所以找了时间就研究了一下，现在做一些记录，等以后有了相关需要可以快速回顾。在我学习的过程中，不可避免的遇到了很多问题，有的已经解决，有的还未解决，所以这个 Demo 就是看个乐呵吧。自定义一个 LayoutManager 整体给我的感觉是与实现自定义 ViewGroup 的 onLayout 比较像。其他">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/layoutmanager/Gif_20190805_140935.gif?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>自定义LayoutManager | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">自定义LayoutManager
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:16:05" itemprop="dateModified" datetime="2019-08-18T12:16:05+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在做了这么长时间的Android开发，还没有遇到过这个需求，不过看了别人的很多效果，感觉很棒，所以找了时间就研究了一下，现在做一些记录，等以后有了相关需要可以快速回顾。</p><p>在我学习的过程中，不可避免的遇到了很多问题，有的已经解决，有的还未解决，所以这个 Demo 就是看个乐呵吧。</p><p>自定义一个 LayoutManager 整体给我的感觉是与实现自定义 ViewGroup 的 onLayout 比较像。其他的测量绘制方法都不需要我们实现，测量方法还有很多可以直接使用的：</p><a id="more"></a>
+
+
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">androidx.recyclerview.widget.RecyclerView.LayoutManager#measureChild</span><br><span class="line">androidx.recyclerview.widget.RecyclerView.LayoutManager#measureChildWithMargins</span><br></pre></td></tr></table></figure>
+
+<p>这两个方法可以测量 child 的大小，一个不计算 child.layoutParams，一个计算。</p>
+<p>测量完成之后，我们就可以获取 child 的大小了：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">androidx.recyclerview.widget.RecyclerView.LayoutManager#getDecoratedMeasuredWidth</span><br><span class="line">androidx.recyclerview.widget.RecyclerView.LayoutManager#getDecoratedMeasuredHeight</span><br></pre></td></tr></table></figure>
+
+<p>这里不直接使用 child.getMeasureWidth 显然是因为 RecyclerView 是有一个 ItemDecorate 可以设置，不设置就是获取的 getMeasureWidth 的值。</p>
+<p>更完美的是，layout child 的时候，也有相应的方法：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">androidx.recyclerview.widget.RecyclerView.LayoutManager#layoutDecoratedWithMargins</span><br></pre></td></tr></table></figure>
+
+<p>使用这个方法，我们就可以将 child 摆到我们想要摆放的位置了，我们只需要传递四大金刚的位置：l,t,r,b。网上看到一个效果就是，它计算出某个 path 的所有点，然后存起来，根据滚动的距离，来取相应的点，然后根据这个点以及child的大小，就可以将这个 child 摆到 path 的路径上，实现一个 item 跟随 path 的效果。只要想清楚了还是不难的。</p>
+<p>了解这些，我们还需要了解一下 RecyclerView 的回收机制，因为 RecyclerView 最吊的地方就是回收复用，如果你搞了一个 LayoutManager 但是却无法回收复用，那岂不是很沙雕，关于回收这里就不仔细讲了，看[我的另一篇文章](<a href="https://github.com/aprz512/blog4aprz512/blob/master/Blog/Android-View/RecyclerView" target="_blank" rel="noopener">https://github.com/aprz512/blog4aprz512/blob/master/Blog/Android-View/RecyclerView</a> 的缓存机制.md) 吧。</p>
+<p>有了上面这些基础，我们就可以开始动手写了。</p>
+<p>首先，我们需要确定我们想要的效果，我们先看一下这个效果图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/layoutmanager/Gif_20190805_140935.gif?raw=true" alt></p>
+<p>可以看到：</p>
+<ul>
+<li>最左边，是有几个 item 堆在一起了的，那么是怎么实现的呢，其实就是 layout 的时候将 item 之间摆进一点就好了。比如：item 的宽度是 100，高度是 150，第一个item的位置为 【（0，0），（100， 150）】，第二个 item 的位置（假设 item 的 divider 宽度为 0）为 【（100, 0），（200, 150）】。但是我在摆第二个 item 的时候，我偏不从 100 开始摆，我从 20 开始摆，那么第二个 item 就叠在第一个 item 上面了。</li>
+<li>右边的就简单了，按照通常的摆法就好了，不搞啥幺蛾子。</li>
+</ul>
+<p>对效果了然于胸，我们就可以开始敲代码了，首先自然是继承父类：</p>
+<blockquote>
+<p>androidx.recyclerview.widget.RecyclerView.LayoutManager#LayoutManager</p>
+</blockquote>
+<p>它只有一个抽象方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">generateDefaultLayoutParams</span><span class="params">()</span></span>: LayoutParams &#123;</span><br><span class="line">    <span class="keyword">return</span> LayoutParams(</span><br><span class="line">        LayoutParams.WRAP_CONTENT,</span><br><span class="line">        LayoutParams.WRAP_CONTENT</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先，网上一致都是这样实现的，我就很蛋疼了，都不说为什么。</p>
+<p>然后，我就去查看了注释，它是这样说的：为 RecyclerView 的 child 生成一个默认的 LayoutParams。那么为何要生成一个默认的 LayoutParams 呢？比如，有的同学在 Adapter 里面加载布局的时候，parent 会传 null，这个时候 child 的就是没有 LayoutParams 的，所以需要生成一个。同样的，PopupWindow 也会遇到。这里我就清楚了，传递 WRAP_CONTENT 是一个保险行为，有最好，没有就使用这个。</p>
+<p>注释还说了，这个返回的是 RecyclerView.LayoutParams，所以如果你还想带一些自带的信息在 LayoutParams 里面，你可以继承这个 LayoutParams，然后实现下面3个方法：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">androidx.recyclerview.widget.RecyclerView.LayoutManager#checkLayoutParams</span><br><span class="line">androidx.recyclerview.widget.RecyclerView.LayoutManager#generateLayoutParams(android.view.ViewGroup.LayoutParams)</span><br><span class="line">androidx.recyclerview.widget.RecyclerView.LayoutManager#generateLayoutParams(android.content.Context, android.util.AttributeSet)</span><br></pre></td></tr></table></figure>
+
+<p>就 OK 了。</p>
+<p>搞定了唯一的一个抽象方法，我们就可以正常运行了，但是没啥效果，我们还需要实现  child 的摆放与回收。首先我们搞定 child 的摆放。child 的摆放是在 </p>
+<blockquote>
+<p>androidx.recyclerview.widget.RecyclerView.LayoutManager#onLayoutChildren </p>
+</blockquote>
+<p>这个方法里面。我们复写一下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onLayoutChildren</span><span class="params">(recycler: <span class="type">Recycler</span>?, state: <span class="type">State</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onLayoutChildren(recycler, state)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好奇的点进去看看父类做了什么：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> void onLayoutChildren(Recycler recycler, State state) &#123;</span><br><span class="line">    Log.e(TAG, <span class="string">"You must override onLayoutChildren(Recycler recycler, State state) "</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，他要我们必须重写这个方法，但是又不是抽象的方法，嗯…有趣的女人…</p>
+<p>一开始，我是完全不知道应该怎么搞了，所以我看了别人的 demo，发现他们都在最开头搞了这样的一个开头：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这个方法看不出来有啥意义啊，应该是根据</span></span><br><span class="line"><span class="comment">// androidx.recyclerview.widget.LinearLayoutManager.onLayoutChildren</span></span><br><span class="line"><span class="comment">// copy 出来的</span></span><br><span class="line"><span class="keyword">if</span> (state?.itemCount == <span class="number">0</span>) &#123;</span><br><span class="line">    recycler?.apply &#123;</span><br><span class="line">        removeAndRecycleAllViews(<span class="keyword">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，我是很奇怪的，为啥要写这个玩意啊，后来我戳到 LinearLayoutManager 学习了一下，发现它有一个类似的代码，但是它是嵌套在 if 里面的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (mPendingSavedState != <span class="keyword">null</span> || mPendingScrollPosition != RecyclerView.NO_POSITION) &#123;</span><br><span class="line">    <span class="keyword">if</span> (state.getItemCount() == <span class="number">0</span>) &#123;</span><br><span class="line">        removeAndRecycleAllViews(recycler);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里，我是真的没有搞懂哦。除非是 itemCount 突然变成 0 了，那么需要将所有 child 都移除并且放到 recycler 里面，但是为啥 LinearLayoutManager 是有条件的呢？？？嗯，猜一下与动画相关吧…</p>
+<p>好的，我们继续往下，这里只不过是一个前置处理，处理某些特殊情况，下面我们开始摆放 child，为了方便我们写一个方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onLayoutChildren</span><span class="params">(recycler: <span class="type">Recycler</span>?, state: <span class="type">State</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onLayoutChildren(recycler, state)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这个方法看不出来有啥意义啊，应该是根据</span></span><br><span class="line">    <span class="comment">// androidx.recyclerview.widget.LinearLayoutManager.onLayoutChildren</span></span><br><span class="line">    <span class="comment">// copy 出来的</span></span><br><span class="line">    <span class="keyword">if</span> (state?.itemCount == <span class="number">0</span>) &#123;</span><br><span class="line">        recycler?.apply &#123;</span><br><span class="line">            removeAndRecycleAllViews(<span class="keyword">this</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    layoutChildren(recycler, state)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样看着会舒服一点，一般我不知道咋下手的时候，就会抽一个方法出来，把能写的都写了，至少思路清晰。</p>
+<p>开始摆放 child，我们需要计算出第一个 item 的 left：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> left = paddingLeft</span><br></pre></td></tr></table></figure>
+
+<p>嗯，很简单。</p>
+<p>这个时候，就有一个问题浮现出来了，我们的每个 item 是一样大吗？？？</p>
+<p>如果是的话，好说，但是 RecyclerView 就成了岳不群了。如果不是的话，那就复杂了。这里为了简单，我们要求 item 是一样的，毕竟，不一样大也没法堆叠。所以其实仔细想想，实现一个看起来特别酷的效果，限制也很多。</p>
+<p>我们定义两个索引值，一个指向屏幕上的第一个 item，一个指向屏幕上的最后一个 item 的后一个位置，就像一个半开区间。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">var</span> firstVisiblePos = <span class="number">0</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">var</span> lastVisiblePos = <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，我们随便取一个 item，测量一下它的大小：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 需要每个child一样大小</span></span><br><span class="line"><span class="keyword">val</span> firstView: View = recycler.getViewForPosition(firstVisiblePos)</span><br><span class="line">measureChildWithMargins(firstView, <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line">unitDistance = getDecoratedMeasuredWidth(firstView) + gap</span><br><span class="line"><span class="comment">// 这个时候，还没有开始摆放，所以用完了再放回去，为了后面的逻辑统一处理</span></span><br><span class="line">recycler.recycleView(firstView)</span><br></pre></td></tr></table></figure>
+
+<p>这里的逻辑很简单，算出 child 的大小，加上 item 之间的距离，算作一个单元距离，就是一个item从一个位置移动到相邻位置的绝对距离。</p>
+<p>这里要说的一个重要的点就是，如果我们需要摆一个 child，只能像 recycler 要，并且，用完了还给 recycler，这样我们神不知鬼不觉的就达成了复用的效果。</p>
+<p>接着，我们根据滚动的距离来计算出第一个item的索引：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 根据 scroll 的距离来计算 firstPos 的位置</span></span><br><span class="line">firstVisiblePos = floor(abs(scrollX).toDouble() / unitDistance).toInt()</span><br></pre></td></tr></table></figure>
+
+<p>这里，我们也可以利用 RecyclerView 的宽度算出 lastVisiblePos 的值，但是就有点重复了，我们在摆放 child 的时候去动态的计算会更好一点，所以这里，我们将 lastVisiblePos 赋值为 itemCount。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 该值会动态更新</span></span><br><span class="line">lastVisiblePos = state.itemCount</span><br></pre></td></tr></table></figure>
+
+<p>计算好了两个索引值，我们还需要处理一个问题，就是根据滚动的距离来计算出 View 的偏移距离。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> frac: <span class="built_in">Float</span> = (abs(scrollX) % unitDistance) / (unitDistance * <span class="number">1f</span>)</span><br><span class="line"><span class="keyword">val</span> stackOffset = (frac * stackGap).toInt()</span><br><span class="line"><span class="keyword">val</span> viewOffset = (frac * unitDistance).toInt()</span><br></pre></td></tr></table></figure>
+
+<p>unitDistance 是相邻item的单位距离，frac就表示移动到的百分比。利用这个百分比换算出堆叠区域和普通区域布局起始位置的偏移量，然后可以开始布局了。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 属于堆叠区域</span></span><br><span class="line"><span class="keyword">if</span> (i - firstVisiblePos &lt; MAX_STACK_COUNT) &#123;</span><br><span class="line">    <span class="comment">// 手指向左滑动，则 scrollX 的值会越来越大，frac 也会慢慢变大（0 -&gt; 1 为一个周期）</span></span><br><span class="line">    <span class="comment">// item 会向右移动</span></span><br><span class="line">    <span class="comment">// 这里需要减去，item 才会向左移动</span></span><br><span class="line">    left -= stackOffset</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里又有几个问题：</p>
+<ul>
+<li>这个 layoutManager 一初始化就会堆叠起来，导致前面几个的内容看不到了， 解决办法就是做出一个无限循环的效果，这样就会对数目有所限制，至少是知道有多少数据，或者是做成动态的，一开始不会堆叠， 滑动的时候再考虑如何堆叠。</li>
+<li>stackOffset 只需要减去一次，后面的 item 不用重复减去该值，这里我使用了笨办法，搞一个变量标识一下</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (i - firstVisiblePos &lt; MAX_STACK_COUNT) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!stackOffsetDone) &#123;</span><br><span class="line">        left -= stackOffset</span><br><span class="line">        stackOffsetDone = <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">    left += stackGap</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 这个 left 就是 child 布局时用到的值了。对于非堆叠区域同样处理。</p>
+<p>后面的代码就简单了：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> view = recycler.getViewForPosition(i)</span><br><span class="line">addView(view)</span><br><span class="line">measureChildWithMargins(view, <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> l = left</span><br><span class="line"><span class="keyword">val</span> t = paddingTop</span><br><span class="line"><span class="keyword">val</span> r = l + getDecoratedMeasuredWidth(view)</span><br><span class="line"><span class="keyword">val</span> b = t + getDecoratedMeasuredHeight(view)</span><br><span class="line">layoutDecoratedWithMargins(view, l, t, r, b)</span><br></pre></td></tr></table></figure>
+
+<p>把上面的这些逻辑放入循环就搞定了。</p>
+<p>这里效果基本就实现了，但是实际上测试的时候会发现，回收复用会有问题。这个有两个方面的问题：</p>
+<ul>
+<li>在 layout 的时候需要将所有 view 全部 detach 再重新布局</li>
+<li>detach 的 view 被放入了 scrap 中，我们需要将 scrap 中残留的 item 全部放入 pool 中。</li>
+</ul>
+<p>所以，我们可以不用自己一个一个的手动回收，而是可以这样：</p>
+<p>在 layout 的前面调用 detachAndScrapAttachedViews ，然后在最后回收。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">layoutChildren</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    recycler: <span class="type">Recycler</span>?,</span></span></span><br><span class="line"><span class="function"><span class="params">    state: <span class="type">State</span>?</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (recycler == <span class="literal">null</span> || state == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    detachAndScrapAttachedViews(recycler)</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">			</span><br><span class="line">    <span class="keyword">val</span> scrapList = recycler.scrapList</span><br><span class="line">    <span class="keyword">for</span> (i <span class="keyword">in</span> scrapList.indices) &#123;</span><br><span class="line">        <span class="keyword">val</span> holder = scrapList[i]</span><br><span class="line">        removeAndRecycleView(holder.itemView, recycler)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际上我测试的效果比之前好了很多，但是我还是不太满意，因为有的时候还是会出现 createViewHolder 的调用，虽然次数极少，但是肯定是哪里出了问题，不然是不会这样的。</p>
+<p>所以建议还是手动的一个个标记回收。我也对回收这个问题还有疑问，所以这里就不说下去了。</p>
+<p>除了回收还有一个问题，就是关于 fling 效果。我测试这个demo 的时候，发现我从最后一个一下滑动到第一个的时候，item停留的位置总是不对，我一直以为是我的计算有问题：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * dx(dy) 表示本次较于上一次的偏移量，&lt;0为 向右(下) 滚动，&gt;0为向左(上) 滚动；</span></span><br><span class="line"><span class="comment"> * 这个算法还是无法满足 fling 的要求，fling 的时候 停留的位置不对</span></span><br><span class="line"><span class="comment"> * 查了一些资料，可能还需要自定义一个 SnapHelper -&gt; https://www.jianshu.com/p/0e4a93d8e2de</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">consume</span><span class="params">(dx: <span class="type">Int</span>)</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> consumed: <span class="built_in">Int</span></span><br><span class="line">    <span class="comment">// dx &lt; 0 表示向右滚动，需要显示左边的内容</span></span><br><span class="line">    <span class="keyword">if</span> (dx &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// 到了最左边</span></span><br><span class="line">        <span class="keyword">if</span> (scrollX + dx &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            consumed = <span class="keyword">if</span> (scrollX &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                dx - scrollX</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="number">0</span></span><br><span class="line">            &#125;</span><br><span class="line">            scrollX = <span class="number">0</span></span><br><span class="line">            <span class="keyword">return</span> consumed</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// dx &gt; 0 表示向左滚动，右边的内容需要显示出来</span></span><br><span class="line">    <span class="keyword">if</span> (dx &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (scrollX + dx &gt; maxScrollX) &#123;</span><br><span class="line">            consumed = <span class="keyword">if</span> (scrollX &lt; maxScrollX) &#123;</span><br><span class="line">                maxScrollX - scrollX</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="number">0</span></span><br><span class="line">            &#125;</span><br><span class="line">            scrollX = maxScrollX</span><br><span class="line">            <span class="keyword">return</span> consumed</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    scrollX += dx</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> dx</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是，经过我的打印，发现，这个计算是没有问题了。</p>
+<p>顺便说一下，要想滑动，需要重写 LayoutManager 的方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">canScrollHorizontally</span><span class="params">()</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，在 scrollHorizontallyBy 返回消耗的值：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">scrollHorizontallyBy</span><span class="params">(dx: <span class="type">Int</span>, recycler: <span class="type">Recycler</span>?, state: <span class="type">State</span>?)</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (dx == <span class="number">0</span> || state?.itemCount == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    layoutChildren(recycler, state)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> consume(dx)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我就感觉这个与 NestedScrolling 接口很相似。</p>
+<p>跑题了，关于 fling，查了一些资料，可能还需要自定义一个 SnapHelper -&gt; <a href="https://www.jianshu.com/p/0e4a93d8e2de。" target="_blank" rel="noopener">https://www.jianshu.com/p/0e4a93d8e2de。</a></p>
+<p>当然你也可以自己监控滑动状态，然后自动的调整滑动位置，就像画廊一样。</p>
+<p>项目地址：</p>
+<p><a href="https://github.com/aprz512/LayoutManagerDemo" target="_blank" rel="noopener">https://github.com/aprz512/LayoutManagerDemo</a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/" title="自定义LayoutManager">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-View/" rel="tag"># Android-View</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-汉化/压缩、混淆、优化你的App/" rel="next" title="压缩、混淆、优化你的App">
+                  <i class="fa fa-chevron-left"></i> 压缩、混淆、优化你的App
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-思考/Apk打包流程/" rel="prev" title="Apk 打包流程及扩展">
+                  Apk 打包流程及扩展 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

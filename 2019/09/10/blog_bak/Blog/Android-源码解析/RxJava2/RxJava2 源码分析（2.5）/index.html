@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="目的分析 IoScheduler 类。首先要说明的是，RxJava2 中虽然使用到了 Java 的线程池，但是还有很多其他的东西，比如，接下来你就会看到 IoScheduler 中自己实现一个简单的线程池。从使用说起1234567// RxJavaScheduler.Worker worker = Schedulers.io().createWorker();worker.schedule();/">
+<meta name="keywords" content="Android-源码解析-RxJava2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RxJava2 源码分析（三）">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="目的分析 IoScheduler 类。首先要说明的是，RxJava2 中虽然使用到了 Java 的线程池，但是还有很多其他的东西，比如，接下来你就会看到 IoScheduler 中自己实现一个简单的线程池。从使用说起1234567// RxJavaScheduler.Worker worker = Schedulers.io().createWorker();worker.schedule();/">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-18T11:01:37.942Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RxJava2 源码分析（三）">
+<meta name="twitter:description" content="目的分析 IoScheduler 类。首先要说明的是，RxJava2 中虽然使用到了 Java 的线程池，但是还有很多其他的东西，比如，接下来你就会看到 IoScheduler 中自己实现一个简单的线程池。从使用说起1234567// RxJavaScheduler.Worker worker = Schedulers.io().createWorker();worker.schedule();/">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>RxJava2 源码分析（三） | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">RxJava2 源码分析（三）
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 19:01:37" itemprop="dateModified" datetime="2019-08-18T19:01:37+08:00">2019-08-18</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/RxJava2/" itemprop="url" rel="index"><span itemprop="name">RxJava2</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>分析 IoScheduler 类。</p><p>首先要说明的是，RxJava2 中虽然使用到了 Java 的线程池，但是还有很多其他的东西，比如，接下来你就会看到 IoScheduler 中自己实现一个简单的线程池。</p><h3 id="从使用说起"><a href="#从使用说起" class="headerlink" title="从使用说起"></a>从使用说起</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RxJava</span></span><br><span class="line">Scheduler.Worker worker = Schedulers.io().createWorker();</span><br><span class="line">worker.schedule();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Java</span></span><br><span class="line">ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(<span class="number">1</span>);</span><br><span class="line">scheduledExecutorService.schedule()</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<p>先不谈运行原理，这里我们比较一下它与我们平时使用的线程池的不同之处。</p>
+<p>一般我们使用的时候，都是先获取线程池的对象，然后传递一个 runnable 给它，让它取执行。</p>
+<p>但是 RxJava 里面，似乎有点不一样。它需要先创建 worker 对象，然后才能将 action 传递给它。与Java方式比较，它多了一个创建 worker 的过程，那么显然本文的核心就是弄清楚，worker 对象是做什么的？为什么设计成需要 worker 对象才能提交任务？</p>
+<p>先说说每个类具体的作用：</p>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Worker</td>
+<td><strong>抽象类</strong>，提供了执行 action 的几个方法，支持单次执行，定时多次执行。定时多次执行是基于单次执行，默认已经在该类中实现。</td>
+</tr>
+<tr>
+<td>NewThreadWorker</td>
+<td><strong>Worker 的子类</strong>，实现了单次执行方法，使用的是 Executors.newScheduledThreadPool 方法。</td>
+</tr>
+<tr>
+<td>ThreadWorker</td>
+<td>NewThreadWorker 的子类，增强了一下，提供了过期时间的判断方法。</td>
+</tr>
+<tr>
+<td>SequentialDisposable</td>
+<td><strong>一种容器</strong>，用来放入 Disposable 的引用，允许以原子方式更新/替换引用值。经过不断的替换引用，从而达到可以支持 Worker 多次执行任务仍然能够 dispose 的功能。</td>
+</tr>
+<tr>
+<td>ScheduledRunnable</td>
+<td>该类是一个集大成的类，它是一个可以<strong>取消任务</strong>，也可以<strong>取消订阅</strong>的 runnable。</td>
+</tr>
+<tr>
+<td>AbstractDirectTask</td>
+<td>这货虽然名字是 task，然是实际上与 ScheduledRunnable 是一路货色，当成 runnable 也可以。</td>
+</tr>
+<tr>
+<td>ScheduledDirectTask</td>
+<td>AbstractDirectTask 的子类</td>
+</tr>
+<tr>
+<td>EventLoopWorker</td>
+<td><strong>Worker 的子类</strong>，使用的是 <strong>NewThreadWorker</strong> 实现了单次执行。</td>
+</tr>
+<tr>
+<td>CachedWorkerPool</td>
+<td>Rxjava自己实现的一个线程池。</td>
+</tr>
+</tbody></table>
+<h3 id="从内部类开始"><a href="#从内部类开始" class="headerlink" title="从内部类开始"></a>从内部类开始</h3><h4 id="IoScheduler"><a href="#IoScheduler" class="headerlink" title="IoScheduler"></a>IoScheduler</h4><p>IoScheduler 源码不长，但是它有3个内部类，我们从内部类开始，因为每个内部类的功能都是比较单一的，分析起来很方便，知道了内部类的作用，外部类的分析就更简单了。</p>
+<blockquote>
+<p>IoScheduler.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">IoScheduler</span> <span class="keyword">extends</span> <span class="title">Scheduler</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">CachedWorkerPool</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;...&#125;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">EventLoopWorker</span> <span class="keyword">extends</span> <span class="title">Scheduler</span>.<span class="title">Worker</span> </span>&#123;...&#125;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadWorker</span> <span class="keyword">extends</span> <span class="title">NewThreadWorker</span> </span>&#123;...&#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="IoScheduler-ThreadWorker"><a href="#IoScheduler-ThreadWorker" class="headerlink" title="IoScheduler.ThreadWorker"></a>IoScheduler.ThreadWorker</h4><p>我们从代码量最少的 ThreadWorker 来开始：</p>
+<blockquote>
+<p>ThreadWorker.java</p>
+<p>可以看出来，ThreadWorker 是对 NewThreadWorker 的一个增强，增加了过期的功能。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadWorker</span> <span class="keyword">extends</span> <span class="title">NewThreadWorker</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> expirationTime;</span><br><span class="line"></span><br><span class="line">    ThreadWorker(ThreadFactory threadFactory) &#123;</span><br><span class="line">        <span class="keyword">super</span>(threadFactory);</span><br><span class="line">        <span class="keyword">this</span>.expirationTime = <span class="number">0L</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取过期时间</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">getExpirationTime</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> expirationTime;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置过期时间</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setExpirationTime</span><span class="params">(<span class="keyword">long</span> expirationTime)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.expirationTime = expirationTime;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ThreadWorker 继承了 NewThreadWorker，那我们就需要看看 NewThreadWorker 是用来做什么的。</p>
+<h4 id="NewThreadWorker"><a href="#NewThreadWorker" class="headerlink" title="NewThreadWorker"></a>NewThreadWorker</h4><blockquote>
+<p>NewThreadWorker.java</p>
+<p>它继承了 Scheduler.Worker。</p>
+<p>从注释上来看，它持有一个单线程的ScheduledExecutorService。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Base class that manages a single-threaded ScheduledExecutorService as a</span></span><br><span class="line"><span class="comment"> * worker but doesn't perform task-tracking operations.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NewThreadWorker</span> <span class="keyword">extends</span> <span class="title">Scheduler</span>.<span class="title">Worker</span> <span class="keyword">implements</span> <span class="title">Disposable</span> </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>####Scheduler.Worker</p>
+<p>由于 NewThreadWorker 类继承了 Scheduler.Worker，Scheduler.Worker 是一个抽象类，它的核心方法如下：</p>
+<blockquote>
+<p>io.reactivex.Scheduler.Worker.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">  <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> <span class="keyword">implements</span> <span class="title">Disposable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">      <span class="meta">@NonNull</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> Disposable <span class="title">schedule</span><span class="params">(@NonNull Runnable run)</span> </span>&#123;</span><br><span class="line">          <span class="comment">// 调用了抽象方法</span></span><br><span class="line">          <span class="keyword">return</span> schedule(run, <span class="number">0L</span>, TimeUnit.NANOSECONDS);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 子类需要实现该方法</span></span><br><span class="line">      <span class="meta">@NonNull</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> Disposable <span class="title">schedule</span><span class="params">(@NonNull Runnable run, <span class="keyword">long</span> delay, @NonNull TimeUnit unit)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 有一个默认实现周期性的方法，子类如果有特殊需要，可以覆盖该方法</span></span><br><span class="line">      <span class="meta">@NonNull</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> Disposable <span class="title">schedulePeriodically</span><span class="params">(@NonNull Runnable run, <span class="keyword">final</span> <span class="keyword">long</span> initialDelay, <span class="keyword">final</span> <span class="keyword">long</span> period, @NonNull <span class="keyword">final</span> TimeUnit unit)</span> </span>&#123;</span><br><span class="line">	...</span><br><span class="line">          <span class="keyword">return</span> sd;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">now</span><span class="params">(@NonNull TimeUnit unit)</span> </span>&#123;</span><br><span class="line">          <span class="keyword">return</span> unit.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以我们只需要分析两个方法：</p>
+<ol>
+<li>io.reactivex.Scheduler.Worker#schedule(java.lang.Runnable, long, java.util.concurrent.TimeUnit)</li>
+<li>io.reactivex.Scheduler.Worker#schedulePeriodically</li>
+</ol>
+<p>第一个方法是抽象的，所以我们先放着。</p>
+<p>我们先看 <code>schedulePeriodically</code> 这个方法是如何实现周期性的。</p>
+<blockquote>
+<p>io.reactivex.Scheduler.Worker.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">schedulePeriodically</span><span class="params">(@NonNull Runnable run, <span class="keyword">final</span> <span class="keyword">long</span> initialDelay, <span class="keyword">final</span> <span class="keyword">long</span> period, @NonNull <span class="keyword">final</span> TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> SequentialDisposable first = <span class="keyword">new</span> SequentialDisposable();</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> sd;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一行就出现了一个新的类，SequentialDisposable，这个类比较简单，我们看看：</p>
+<h4 id="SequentialDisposable"><a href="#SequentialDisposable" class="headerlink" title="SequentialDisposable"></a>SequentialDisposable</h4><blockquote>
+<p> SequentialDisposable.java</p>
+<p>该类是一种容器，用来放入 Disposable 的引用，允许以原子方式更新/替换引用值。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">SequentialDisposable</span></span></span><br><span class="line"><span class="class"><span class="keyword">extends</span> <span class="title">AtomicReference</span>&lt;<span class="title">Disposable</span>&gt;</span></span><br><span class="line"><span class="class"><span class="keyword">implements</span> <span class="title">Disposable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">754898800686245608L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SequentialDisposable</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// nothing to do</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SequentialDisposable</span><span class="params">(Disposable initial)</span> </span>&#123;</span><br><span class="line">        lazySet(initial);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 原子的：将引用值换成next，会对之前的引用对象调用 dispose</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">update</span><span class="params">(Disposable next)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> DisposableHelper.set(<span class="keyword">this</span>, next);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 原子的：将引用值换成next，不会对之前的引用对象调用 dispose</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">replace</span><span class="params">(Disposable next)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> DisposableHelper.replace(<span class="keyword">this</span>, next);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dispose</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        DisposableHelper.dispose(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isDisposed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> DisposableHelper.isDisposed(get());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个类很是很简单的，没有什么复杂的代码，我们把它当作一个容器就好了。</p>
+<p>再回到 schedulePeriodically 方法中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">     <span class="function"><span class="keyword">public</span> Disposable <span class="title">schedulePeriodically</span><span class="params">(@NonNull Runnable run, <span class="keyword">final</span> <span class="keyword">long</span> initialDelay, <span class="keyword">final</span> <span class="keyword">long</span> period, @NonNull <span class="keyword">final</span> TimeUnit unit)</span> </span>&#123;</span><br><span class="line">         <span class="comment">// 创建一个容器，引用值为null</span></span><br><span class="line">         <span class="keyword">final</span> SequentialDisposable first = <span class="keyword">new</span> SequentialDisposable();</span><br><span class="line"><span class="comment">// 创建一个容易，引用值为 first</span></span><br><span class="line">         <span class="keyword">final</span> SequentialDisposable sd = <span class="keyword">new</span> SequentialDisposable(first);</span><br><span class="line"></span><br><span class="line">         <span class="comment">// 这个暂时没啥作用，当作 decoratedRun = run 理解就好</span></span><br><span class="line">         <span class="keyword">final</span> Runnable decoratedRun = RxJavaPlugins.onSchedule(run);</span><br><span class="line"></span><br><span class="line">         <span class="comment">// 计算时间，我就不细说了，有兴趣自己算一算</span></span><br><span class="line">         <span class="keyword">final</span> <span class="keyword">long</span> periodInNanoseconds = unit.toNanos(period);</span><br><span class="line">         <span class="keyword">final</span> <span class="keyword">long</span> firstNowNanoseconds = now(TimeUnit.NANOSECONDS);</span><br><span class="line">         <span class="keyword">final</span> <span class="keyword">long</span> firstStartInNanoseconds = firstNowNanoseconds + unit.toNanos(initialDelay);</span><br><span class="line"></span><br><span class="line">         <span class="comment">// 这里调用了 schedule ，它是一个抽象方法</span></span><br><span class="line">         <span class="comment">// 暂时不会去分析 schedule，我们这里可以把它理解为 pool 的 execute 方法</span></span><br><span class="line">         <span class="comment">// 反正它会去执行我们传递的 runnable</span></span><br><span class="line">         <span class="comment">// PeriodicTask 就是一个 runnable</span></span><br><span class="line">         <span class="comment">// 后面的参数，是指定延时长度与单位</span></span><br><span class="line">         Disposable d = schedule(<span class="keyword">new</span> PeriodicTask(firstStartInNanoseconds, decoratedRun, firstNowNanoseconds, sd,</span><br><span class="line">                 periodInNanoseconds), initialDelay, unit);</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span> (d == EmptyDisposable.INSTANCE) &#123;</span><br><span class="line">             <span class="keyword">return</span> d;</span><br><span class="line">         &#125;</span><br><span class="line">         <span class="comment">// 将 first 的引用值改为 d</span></span><br><span class="line">         <span class="comment">// 这里之所以要赋值，是因为第一次执行时，如果使用者调用了 dispose，那么我们必须取消订阅</span></span><br><span class="line">         <span class="comment">// 由于返回了 sd，所以 sd 会调用 first 的 dispose，first 会调用 d 的 dispose</span></span><br><span class="line">         <span class="comment">// 这样就取消订阅了</span></span><br><span class="line">         first.replace(d);</span><br><span class="line"></span><br><span class="line">         <span class="keyword">return</span> sd;</span><br><span class="line">     &#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面注释写的比较详细了，下面我们看 PeriodicTask 是如何周期执行的，这里我们可以想一下我们使用 Hander 写一个定时器的做法，其实是一样的。</p>
+<h4 id="Scheduler-Worker-PeriodicTask"><a href="#Scheduler-Worker-PeriodicTask" class="headerlink" title="Scheduler.Worker.PeriodicTask"></a>Scheduler.Worker.PeriodicTask</h4><blockquote>
+<p>io.reactivex.Scheduler.Worker.PeriodicTask</p>
+<p>PeriodicTask 是 Worker 的一个内部类，Worker 是 Scheduler 的内部类。</p>
+<p>该类就是用来实现周期任务的。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">PeriodicTask</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>既然是实现了 Runnable，那我们只看 run 方法。</p>
+<blockquote>
+<p>io.reactivex.Scheduler.Worker.PeriodicTask#run</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 这里就是 run 执行的位置，我们需要执行的 runnable 就是在这里执行的</span></span><br><span class="line">    decoratedRun.run();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 没有取消订阅</span></span><br><span class="line">    <span class="keyword">if</span> (!sd.isDisposed()) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 下面的一段是计算下一次运行的时间，嗯，自己看看吧</span></span><br><span class="line">        <span class="keyword">long</span> nextTick;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">long</span> nowNanoseconds = now(TimeUnit.NANOSECONDS);</span><br><span class="line">        <span class="comment">// If the clock moved in a direction quite a bit, rebase the repetition period</span></span><br><span class="line">        <span class="keyword">if</span> (nowNanoseconds + CLOCK_DRIFT_TOLERANCE_NANOSECONDS &lt; lastNowNanoseconds</span><br><span class="line">                || nowNanoseconds &gt;= lastNowNanoseconds + periodInNanoseconds + CLOCK_DRIFT_TOLERANCE_NANOSECONDS) &#123;</span><br><span class="line">            nextTick = nowNanoseconds + periodInNanoseconds;</span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">             * Shift the start point back by the drift as if the whole thing</span></span><br><span class="line"><span class="comment">             * started count periods ago.</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            startInNanoseconds = nextTick - (periodInNanoseconds * (++count));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            nextTick = startInNanoseconds + (++count * periodInNanoseconds);</span><br><span class="line">        &#125;</span><br><span class="line">        lastNowNanoseconds = nowNanoseconds;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">long</span> delay = nextTick - nowNanoseconds;</span><br><span class="line">        <span class="comment">// 这里将 sd 的引用替换为新的 disposable</span></span><br><span class="line">        <span class="comment">// 因为旧的任务在第一行代码已经执行完了，所以替换掉</span></span><br><span class="line">        <span class="comment">// schedule 方法有安排了下一次的任务，这样就成了一个循环，达到了周期性的目的</span></span><br><span class="line">        sd.replace(schedule(<span class="keyword">this</span>, delay, TimeUnit.NANOSECONDS));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，到了这里，<code>io.reactivex.Scheduler.Worker</code>类就分析完了，下面回到我们的 NewThreadWorker 类中。</p>
+<p>####NewThreadWorker</p>
+<p>看构造方法：</p>
+<blockquote>
+<p>NewThreadWorker.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">NewThreadWorker</span><span class="params">(ThreadFactory threadFactory)</span> </span>&#123;</span><br><span class="line">    executor = SchedulerPoolFactory.create(threadFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>构造函数中调用 SchedulerPoolFactory 的 create 方法，创建了一个 executor 对象。</p>
+<h4 id="SchedulerPoolFactory"><a href="#SchedulerPoolFactory" class="headerlink" title="SchedulerPoolFactory"></a>SchedulerPoolFactory</h4><p>看看 SchedulerPoolFactory 的 create 方法：</p>
+<blockquote>
+<p>SchedulerPoolFactory .java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ScheduledExecutorService <span class="title">create</span><span class="params">(ThreadFactory factory)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ScheduledExecutorService exec = Executors.newScheduledThreadPool(<span class="number">1</span>, factory);</span><br><span class="line">    <span class="comment">// PURGE_ENABLED 的值与系统有关，暂且不提</span></span><br><span class="line">    <span class="keyword">if</span> (PURGE_ENABLED &amp;&amp; exec <span class="keyword">instanceof</span> ScheduledThreadPoolExecutor) &#123;</span><br><span class="line">        ScheduledThreadPoolExecutor e = (ScheduledThreadPoolExecutor) exec;</span><br><span class="line">        POOLS.put(e, exec);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> exec;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们只关注第一行代码，与注释说的一样，它创建了一个单线程的 ScheduledExecutorService 对象。</p>
+<p>####NewThreadWorker</p>
+<p>构造方法与父类，我们都分析完了，现在看看它是怎么实现那个抽象方法的。</p>
+<blockquote>
+<p>NewThreadWorker</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@NonNull</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">schedule</span><span class="params">(@NonNull <span class="keyword">final</span> Runnable run)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 这里它覆盖了原来的默认实现，传递了一个null</span></span><br><span class="line">    <span class="comment">// 没看懂，方法参数不接受 null 啊</span></span><br><span class="line">    <span class="keyword">return</span> schedule(run, <span class="number">0</span>, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@NonNull</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">schedule</span><span class="params">(@NonNull <span class="keyword">final</span> Runnable action, <span class="keyword">long</span> delayTime, @NonNull TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// disposed 就没啥说的</span></span><br><span class="line">    <span class="keyword">if</span> (disposed) &#123;</span><br><span class="line">        <span class="keyword">return</span> EmptyDisposable.INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 调用了 scheduleActual 方法</span></span><br><span class="line">    <span class="keyword">return</span> scheduleActual(action, delayTime, unit, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将runnnable 包装成 ScheduledRunnable，交给 ScheduledExecutorService 去执行 </span></span><br><span class="line"><span class="comment"> * 如果调度被驳回， ScheduledRunnable.wasScheduled 的值为 false。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@NonNull</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ScheduledRunnable <span class="title">scheduleActual</span><span class="params">(<span class="keyword">final</span> Runnable run, <span class="keyword">long</span> delayTime, @NonNull TimeUnit unit, @Nullable DisposableContainer parent)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 直接理解成 decoratedRun = run</span></span><br><span class="line">    Runnable decoratedRun = RxJavaPlugins.onSchedule(run);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将 decoratedRun 包装一下</span></span><br><span class="line">    ScheduledRunnable sr = <span class="keyword">new</span> ScheduledRunnable(decoratedRun, parent);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 传递的参数为 null，这一段跳过</span></span><br><span class="line">    <span class="keyword">if</span> (parent != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!parent.add(sr)) &#123;</span><br><span class="line">            <span class="keyword">return</span> sr;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Future&lt;?&gt; f;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (delayTime &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// 不延迟就直接执行</span></span><br><span class="line">            f = executor.submit((Callable&lt;Object&gt;)sr);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 延迟执行</span></span><br><span class="line">            f = executor.schedule((Callable&lt;Object&gt;)sr, delayTime, unit);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 设置 future，便于获取执行结果</span></span><br><span class="line">        sr.setFuture(f);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RejectedExecutionException ex) &#123;</span><br><span class="line">        <span class="keyword">if</span> (parent != <span class="keyword">null</span>) &#123;</span><br><span class="line">            parent.remove(sr);</span><br><span class="line">        &#125;</span><br><span class="line">        RxJavaPlugins.onError(ex);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> sr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，现在，我们需要看看 ScheduledRunnable 到底是个什么，起什么作用。</p>
+<h4 id="ScheduledRunnable"><a href="#ScheduledRunnable" class="headerlink" title="ScheduledRunnable"></a>ScheduledRunnable</h4><blockquote>
+<p>ScheduledRunnable</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ScheduledRunnable</span> <span class="keyword">extends</span> <span class="title">AtomicReferenceArray</span>&lt;<span class="title">Object</span>&gt;</span></span><br><span class="line"><span class="class"><span class="keyword">implements</span> <span class="title">Runnable</span>, <span class="title">Callable</span>&lt;<span class="title">Object</span>&gt;, <span class="title">Disposable</span> </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个类的源码比较奇特，我就不展开了，我们把它当作一个 Callable 使用就可以了，但是它也支持 Disposable。源码里面都是一些原子性的赋值更新处理。</p>
+<p>回到 NewThreadWorker 类，它的 schedule 方法就是将我们传递的 runnable 包装一下，然后将这个包装好的 ScheduledRunnable 交给 ScheduledExecutorService 去处理。</p>
+<p>因为 ScheduledRunnable 实现了 Disposable，所以直接返回它，可以用于取消订阅。ScheduledRunnable 还实现了 Callable 是因为我们取消订阅的时候，可以用于线程池取消任务（f.cancel(true)）。</p>
+<h4 id="NewThreadWorker-1"><a href="#NewThreadWorker-1" class="headerlink" title="NewThreadWorker"></a>NewThreadWorker</h4><p>到了这里 NewThreadWorker 的一系列 schedule 方法就分析完了，然而，我们发现，它除了 schedule  方法之外，还提供了一些别的public的方法，顺便看了算求。</p>
+<blockquote>
+<p>io.reactivex.internal.schedulers.NewThreadWorker#scheduleDirect</p>
+<p>这个方法也是提交一个 runnable 给线程池执行，然是不是使用了 ScheduledRunnable 来包装，</p>
+<p>而是使用的 ScheduledDirectTask</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">scheduleDirect</span><span class="params">(<span class="keyword">final</span> Runnable run, <span class="keyword">long</span> delayTime, TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 这里出了一个新类</span></span><br><span class="line">    ScheduledDirectTask task = <span class="keyword">new</span> ScheduledDirectTask(RxJavaPlugins.onSchedule(run));</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 下面的代码与之前分析的一样，就跳过</span></span><br><span class="line">        Future&lt;?&gt; f;</span><br><span class="line">        <span class="keyword">if</span> (delayTime &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">            f = executor.submit(task);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            f = executor.schedule(task, delayTime, unit);</span><br><span class="line">        &#125;</span><br><span class="line">        task.setFuture(f);</span><br><span class="line">        <span class="keyword">return</span> task;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RejectedExecutionException ex) &#123;</span><br><span class="line">        RxJavaPlugins.onError(ex);</span><br><span class="line">        <span class="keyword">return</span> EmptyDisposable.INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那我们就来分析分析 ScheduledDirectTask 类。</p>
+<h4 id="ScheduledDirectTask"><a href="#ScheduledDirectTask" class="headerlink" title="ScheduledDirectTask"></a>ScheduledDirectTask</h4><blockquote>
+<p>ScheduledDirectTask </p>
+<p>继承了 AbstractDirectTask 类</p>
+<p>主要是实现了 call 方法，给 runner 赋值，调用 runnable 的 run 方法</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ScheduledDirectTask</span> <span class="keyword">extends</span> <span class="title">AbstractDirectTask</span> <span class="keyword">implements</span> <span class="title">Callable</span>&lt;<span class="title">Void</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1811839108042568751L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ScheduledDirectTask</span><span class="params">(Runnable runnable)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(runnable);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Void <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        runner = Thread.currentThread();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            runnable.run();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="comment">// 设置为完成状态</span></span><br><span class="line">            <span class="comment">// 还是没有搞太明白，set 与 lazySet 的区别，什么内存屏障啊</span></span><br><span class="line">            lazySet(FINISHED);</span><br><span class="line">            runner = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="AbstractDirectTask"><a href="#AbstractDirectTask" class="headerlink" title="AbstractDirectTask"></a>AbstractDirectTask</h4><blockquote>
+<p>AbstractDirectTask</p>
+<p>源码不长，我就全部贴出来了</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractDirectTask</span></span></span><br><span class="line"><span class="class"><span class="keyword">extends</span> <span class="title">AtomicReference</span>&lt;<span class="title">Future</span>&lt;?&gt;&gt;</span></span><br><span class="line"><span class="class"><span class="keyword">implements</span> <span class="title">Disposable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1811839108042568751L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">final</span> Runnable runnable;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> Thread runner;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 哦，我还不知道有个 Functions.EMPTY_RUNNABLE 可以用</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> FutureTask&lt;Void&gt; FINISHED = <span class="keyword">new</span> FutureTask&lt;Void&gt;(Functions.EMPTY_RUNNABLE, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> FutureTask&lt;Void&gt; DISPOSED = <span class="keyword">new</span> FutureTask&lt;Void&gt;(Functions.EMPTY_RUNNABLE, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    AbstractDirectTask(Runnable runnable) &#123;</span><br><span class="line">        <span class="keyword">this</span>.runnable = runnable;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">dispose</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Future&lt;?&gt; f = get();</span><br><span class="line">        <span class="keyword">if</span> (f != FINISHED &amp;&amp; f != DISPOSED) &#123;</span><br><span class="line">        	<span class="comment">// 将状态设置为取消</span></span><br><span class="line">            <span class="keyword">if</span> (compareAndSet(f, DISPOSED)) &#123;</span><br><span class="line">            	<span class="comment">// 取消线程池里的任务</span></span><br><span class="line">                <span class="keyword">if</span> (f != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    f.cancel(runner != Thread.currentThread());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">isDisposed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Future&lt;?&gt; f = get();</span><br><span class="line">        <span class="keyword">return</span> f == FINISHED || f == DISPOSED;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">setFuture</span><span class="params">(Future&lt;?&gt; future)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            Future&lt;?&gt; f = get();</span><br><span class="line">            <span class="keyword">if</span> (f == FINISHED) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (f == DISPOSED) &#123;</span><br><span class="line">            <span class="comment">// 取消线程池里的任务</span></span><br><span class="line">                future.cancel(runner != Thread.currentThread());</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 设置引用值为 f</span></span><br><span class="line">            <span class="keyword">if</span> (compareAndSet(f, future)) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>感觉，ScheduledDirectTask  这个类的功能与 ScheduledRunnable 的功能差不多啊，ScheduledRunnable 更强力一点。至少在我们分析的这个流程里面，感觉不到区别，嗯，不过想到 <code>scheduleActual</code> 方法比 <code>scheduleDirect</code>多了一个参数，想来，玄机应该在这里，有兴趣的自己再去找找。</p>
+<p>如果实在心里想不通的，把 ScheduledDirectTask  与 ScheduledRunnable  都当成具有解除订阅与取消任务的增强型 Runnable 就好了。</p>
+<h4 id="NewThreadWorker-2"><a href="#NewThreadWorker-2" class="headerlink" title="NewThreadWorker"></a>NewThreadWorker</h4><p>再次回到 NewThreadWorker，还有一个方法没有说到：</p>
+<blockquote>
+<p>io.reactivex.internal.schedulers.NewThreadWorker#schedulePeriodicallyDirect</p>
+<p>该方法用于周期性的执行任务</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">schedulePeriodicallyDirect</span><span class="params">(Runnable run, <span class="keyword">long</span> initialDelay, <span class="keyword">long</span> period, TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Runnable decoratedRun = RxJavaPlugins.onSchedule(run);</span><br><span class="line">    <span class="comment">// 这里如果周期性设置为0，也就是说没有间隔的重复执行任务</span></span><br><span class="line">    <span class="keyword">if</span> (period &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 没有间隔的话，使用 InstantPeriodicTask</span></span><br><span class="line">        InstantPeriodicTask periodicWrapper = <span class="keyword">new</span> InstantPeriodicTask(decoratedRun, executor);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Future&lt;?&gt; f;</span><br><span class="line">            <span class="keyword">if</span> (initialDelay &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">                f = executor.submit(periodicWrapper);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                f = executor.schedule(periodicWrapper, initialDelay, unit);</span><br><span class="line">            &#125;</span><br><span class="line">            periodicWrapper.setFirst(f);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RejectedExecutionException ex) &#123;</span><br><span class="line">            RxJavaPlugins.onError(ex);</span><br><span class="line">            <span class="keyword">return</span> EmptyDisposable.INSTANCE;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> periodicWrapper;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 有间隔的话，使用 ScheduledDirectPeriodicTask</span></span><br><span class="line">    ScheduledDirectPeriodicTask task = <span class="keyword">new</span> ScheduledDirectPeriodicTask(decoratedRun);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Future&lt;?&gt; f = executor.scheduleAtFixedRate(task, initialDelay, period, unit);</span><br><span class="line">        task.setFuture(f);</span><br><span class="line">        <span class="keyword">return</span> task;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RejectedExecutionException ex) &#123;</span><br><span class="line">        RxJavaPlugins.onError(ex);</span><br><span class="line">        <span class="keyword">return</span> EmptyDisposable.INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>里面，线程池的使用，Task 的分析就不展开了，因为之前已经分析过一个 Task，想一想都能知道里面的代码大概长什么样，有兴趣的自己去看看吧。</p>
+<p>好了，到这里，NewThreadWorker 类，我们就分析完了，没想到这么短的一个内部类，里面有这么多东西。不过，总结一下，里面的东西其实并不多。</p>
+<ol>
+<li>schedule 等方法，用于提交任务，内部使用的是 ScheduledExecutorService 线程池</li>
+<li>schedule 等方法返回一个 Disposable，用于解除订阅，解除订阅时，也会取消该任务。</li>
+<li>周期性的实现，有两种方式，一种是自己调用自己实现的，一种是使用 ScheduledExecutorService 的 scheduleAtFixedRate 方法实现的。</li>
+</ol>
+<h4 id="IoScheduler-EventLoopWorker"><a href="#IoScheduler-EventLoopWorker" class="headerlink" title="IoScheduler.EventLoopWorker"></a>IoScheduler.EventLoopWorker</h4><p>接下来，我们趁热打铁，看另外一个继承至 Scheduler.Worker 的内部类。</p>
+<blockquote>
+<p>io.reactivex.internal.schedulers.IoScheduler.EventLoopWorker</p>
+<p>EventLoopWorker 继承至 Scheduler.Worker</p>
+<p>Worker 上面分析过，是用来执行任务的。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">EventLoopWorker</span> <span class="keyword">extends</span> <span class="title">Scheduler</span>.<span class="title">Worker</span> </span>&#123;</span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">final</span> CompositeDisposable tasks;</span><br><span class="line">     <span class="comment">// 这里有一个新东西</span></span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">final</span> CachedWorkerPool pool;</span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">final</span> ThreadWorker threadWorker;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">final</span> AtomicBoolean once = <span class="keyword">new</span> AtomicBoolean();</span><br><span class="line"></span><br><span class="line">     EventLoopWorker(CachedWorkerPool pool) &#123;</span><br><span class="line">         <span class="keyword">this</span>.pool = pool;</span><br><span class="line">         <span class="keyword">this</span>.tasks = <span class="keyword">new</span> CompositeDisposable();</span><br><span class="line">         <span class="keyword">this</span>.threadWorker = pool.get();</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="meta">@Override</span></span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dispose</span><span class="params">()</span> </span>&#123;</span><br><span class="line">         <span class="keyword">if</span> (once.compareAndSet(<span class="keyword">false</span>, <span class="keyword">true</span>)) &#123;</span><br><span class="line">             tasks.dispose();</span><br><span class="line"></span><br><span class="line">             <span class="comment">// releasing the pool should be the last action</span></span><br><span class="line">             <span class="comment">// 将线程返回线程池里面去</span></span><br><span class="line">             pool.release(threadWorker);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="meta">@Override</span></span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isDisposed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">         <span class="keyword">return</span> once.get();</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="meta">@NonNull</span></span><br><span class="line">     <span class="meta">@Override</span></span><br><span class="line">     <span class="function"><span class="keyword">public</span> Disposable <span class="title">schedule</span><span class="params">(@NonNull Runnable action, <span class="keyword">long</span> delayTime, @NonNull TimeUnit unit)</span> </span>&#123;</span><br><span class="line">         <span class="keyword">if</span> (tasks.isDisposed()) &#123;</span><br><span class="line">             <span class="comment">// don't schedule, we are unsubscribed</span></span><br><span class="line">             <span class="keyword">return</span> EmptyDisposable.INSTANCE;</span><br><span class="line">         &#125;</span><br><span class="line"><span class="comment">// 让 ThreadWorker 去执行一个 aciton 任务，这里最后一个参数注意一下</span></span><br><span class="line">         <span class="comment">// threadWorker 里面只有一个线程，所以，任务是顺序执行的</span></span><br><span class="line">         <span class="keyword">return</span> threadWorker.scheduleActual(action, delayTime, unit, tasks);</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>看里面的代码还是非常简单的，它的构造方法接收一个 CachedWorkerPool，这个是 EventLoopWorker 类里面，唯一一个陌生类，看看这个类：</p>
+<h4 id="IoScheduler-CachedWorkerPool"><a href="#IoScheduler-CachedWorkerPool" class="headerlink" title="IoScheduler.CachedWorkerPool"></a>IoScheduler.CachedWorkerPool</h4><p>欸，太好了，这个也是 IoScheduler 的内部类，这样的话，把这个类分析完了之后， IoScheduler 的内部类就分析完成了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">CachedWorkerPool</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">long</span> keepAliveTime;</span><br><span class="line">    <span class="comment">// 队列</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ConcurrentLinkedQueue&lt;ThreadWorker&gt; expiringWorkerQueue;</span><br><span class="line">    <span class="keyword">final</span> CompositeDisposable allWorkers;</span><br><span class="line">    <span class="comment">// java 的线程池</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ScheduledExecutorService evictorService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Future&lt;?&gt; evictorTask;</span><br><span class="line">    <span class="comment">// 线程工程，一般就 new 一个 Thread，然后给个名字就完事了</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ThreadFactory threadFactory;</span><br><span class="line"></span><br><span class="line">    CachedWorkerPool(<span class="keyword">long</span> keepAliveTime, TimeUnit unit, ThreadFactory threadFactory) &#123;</span><br><span class="line">        <span class="keyword">this</span>.keepAliveTime = unit != <span class="keyword">null</span> ? unit.toNanos(keepAliveTime) : <span class="number">0L</span>;</span><br><span class="line">        <span class="keyword">this</span>.expiringWorkerQueue = <span class="keyword">new</span> ConcurrentLinkedQueue&lt;ThreadWorker&gt;();</span><br><span class="line">        <span class="keyword">this</span>.allWorkers = <span class="keyword">new</span> CompositeDisposable();</span><br><span class="line">        <span class="keyword">this</span>.threadFactory = threadFactory;</span><br><span class="line"></span><br><span class="line">        ScheduledExecutorService evictor = <span class="keyword">null</span>;</span><br><span class="line">        Future&lt;?&gt; task = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (unit != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 这里也创建了一个单个线程的线程池</span></span><br><span class="line">            evictor = Executors.newScheduledThreadPool(<span class="number">1</span>, EVICTOR_THREAD_FACTORY);</span><br><span class="line">            <span class="comment">// 创建定时任务，runnable 是 this，就是 run 里面的代码</span></span><br><span class="line">            task = evictor.scheduleWithFixedDelay(<span class="keyword">this</span>, <span class="keyword">this</span>.keepAliveTime, <span class="keyword">this</span>.keepAliveTime, TimeUnit.NANOSECONDS);</span><br><span class="line">        &#125;</span><br><span class="line">        evictorService = evictor;</span><br><span class="line">        evictorTask = task;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        evictExpiredWorkers();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">ThreadWorker <span class="title">get</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 如果线程池关闭了，则返回一个关闭的线程池</span></span><br><span class="line">        <span class="keyword">if</span> (allWorkers.isDisposed()) &#123;</span><br><span class="line">            <span class="keyword">return</span> SHUTDOWN_THREAD_WORKER;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 队列不为空，从队列中取一个 worker 出来</span></span><br><span class="line">        <span class="keyword">while</span> (!expiringWorkerQueue.isEmpty()) &#123;</span><br><span class="line">            ThreadWorker threadWorker = expiringWorkerQueue.poll();</span><br><span class="line">            <span class="keyword">if</span> (threadWorker != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> threadWorker;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 队列没有 worker，new 一个出来</span></span><br><span class="line">        <span class="comment">// No cached worker found, so create a new one.</span></span><br><span class="line">        ThreadWorker w = <span class="keyword">new</span> ThreadWorker(threadFactory);</span><br><span class="line">        <span class="comment">// ThreadWorker 继承 NewThreadWorker</span></span><br><span class="line">        <span class="comment">// NewThreadWorker 实现了 Disposable</span></span><br><span class="line">        <span class="comment">// 调用 dispose 会关闭里面的线程池</span></span><br><span class="line">        allWorkers.add(w);</span><br><span class="line">        <span class="keyword">return</span> w;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将 worker 重新放入到线程池（队列）中，将过期时间重置</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">release</span><span class="params">(ThreadWorker threadWorker)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Refresh expire time before putting worker back in pool</span></span><br><span class="line">        threadWorker.setExpirationTime(now() + keepAliveTime);</span><br><span class="line"></span><br><span class="line">        expiringWorkerQueue.offer(threadWorker);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 移除过期 worker</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">evictExpiredWorkers</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!expiringWorkerQueue.isEmpty()) &#123;</span><br><span class="line">            <span class="keyword">long</span> currentTimestamp = now();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 遍历队列</span></span><br><span class="line">            <span class="keyword">for</span> (ThreadWorker threadWorker : expiringWorkerQueue) &#123;</span><br><span class="line">                <span class="comment">// 看看 threadWorker 过期了没有</span></span><br><span class="line">                <span class="keyword">if</span> (threadWorker.getExpirationTime() &lt;= currentTimestamp) &#123;</span><br><span class="line">                    <span class="comment">// 过期了就移除</span></span><br><span class="line">                    <span class="keyword">if</span> (expiringWorkerQueue.remove(threadWorker)) &#123;</span><br><span class="line">                        <span class="comment">// 从队列移除成功后，将 Disposable 也移除掉</span></span><br><span class="line">                        allWorkers.remove(threadWorker);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// 因为队列是按照时间排列的，所以找到第一个没有过期的就可以退出循环了</span></span><br><span class="line">                    <span class="comment">// Queue is ordered with the worker that will expire first in the beginning, so when we</span></span><br><span class="line">                    <span class="comment">// find a non-expired worker we can stop evicting.</span></span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">long</span> <span class="title">now</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> System.nanoTime();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关闭线程池</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">shutdown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        allWorkers.dispose();</span><br><span class="line">        <span class="keyword">if</span> (evictorTask != <span class="keyword">null</span>) &#123;</span><br><span class="line">            evictorTask.cancel(<span class="keyword">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (evictorService != <span class="keyword">null</span>) &#123;</span><br><span class="line">            evictorService.shutdownNow();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注释很清晰，如果你阅读过Java的线程池源码，会更容易理解，这里就是教我们如果实现一个自己的 CacheThreadPool 线程池啊。只不过这个线程池（ConcurrentLinkedQueue）的每一个 worker 都是一个线程池（NewThreadWorker）。</p>
+<p>嗯，到这里，IoScheduler 的内部类就讲完了，我们看看它的其他方法吧。</p>
+<p>首先，IoScheduler 是继承至 Scheduler 的，所以我们先从它对抽象方法的实现看起。</p>
+<h4 id="IoScheduler-1"><a href="#IoScheduler-1" class="headerlink" title="IoScheduler"></a>IoScheduler</h4><blockquote>
+<p>IoScheduler</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Worker <span class="title">createWorker</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> EventLoopWorker(pool.get());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它是直接创建一个 EventLoopWorker 对象并返回。</p>
+<p>根据我们上面的分析，EventLoopWorker 将任务给了 ThreadWorker 去执行，ThreadWorker 又将任务给了一个单个线程的线程池去执行。</p>
+<p>而且，ThreadWorker 是线程池中的线程池，因为它就一个线程，所以可以把它当作单个线程而不是线程池，那么就是说，IoScheduler 的线程池就是一个功能与Java中的<code>Executors.newCachedThreadPool()</code>方法创建出来的线程池功能是差不多的。</p>
+<p>好吧，虽然差不多，但是毕竟这里里面的线程池与线程提供了对 Disposable 接口的支持。</p>
+<p>感觉，EventLoopWorker 的作用，只是一个代理啊，最后还是将任务转给了 CachedWorkerPool。可能为了支持 dispose 操作花费了很多心思。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/" title="RxJava2 源码分析（三）">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-源码解析-RxJava2/" rel="tag"># Android-源码解析-RxJava2</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（一）/" rel="next" title="RxJava2 源码分析（一）">
+                  <i class="fa fa-chevron-left"></i> RxJava2 源码分析（一）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Java/Java Final 关键字/" rel="prev" title="Java Final 关键字">
+                  Java Final 关键字 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#目的"><span class="nav-number">1.</span> <span class="nav-text">目的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从使用说起"><span class="nav-number">2.</span> <span class="nav-text">从使用说起</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从内部类开始"><span class="nav-number">3.</span> <span class="nav-text">从内部类开始</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IoScheduler"><span class="nav-number">3.1.</span> <span class="nav-text">IoScheduler</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoScheduler-ThreadWorker"><span class="nav-number">3.2.</span> <span class="nav-text">IoScheduler.ThreadWorker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NewThreadWorker"><span class="nav-number">3.3.</span> <span class="nav-text">NewThreadWorker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SequentialDisposable"><span class="nav-number">3.4.</span> <span class="nav-text">SequentialDisposable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Scheduler-Worker-PeriodicTask"><span class="nav-number">3.5.</span> <span class="nav-text">Scheduler.Worker.PeriodicTask</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SchedulerPoolFactory"><span class="nav-number">3.6.</span> <span class="nav-text">SchedulerPoolFactory</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ScheduledRunnable"><span class="nav-number">3.7.</span> <span class="nav-text">ScheduledRunnable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NewThreadWorker-1"><span class="nav-number">3.8.</span> <span class="nav-text">NewThreadWorker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ScheduledDirectTask"><span class="nav-number">3.9.</span> <span class="nav-text">ScheduledDirectTask</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AbstractDirectTask"><span class="nav-number">3.10.</span> <span class="nav-text">AbstractDirectTask</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NewThreadWorker-2"><span class="nav-number">3.11.</span> <span class="nav-text">NewThreadWorker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoScheduler-EventLoopWorker"><span class="nav-number">3.12.</span> <span class="nav-text">IoScheduler.EventLoopWorker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoScheduler-CachedWorkerPool"><span class="nav-number">3.13.</span> <span class="nav-text">IoScheduler.CachedWorkerPool</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoScheduler-1"><span class="nav-number">3.14.</span> <span class="nav-text">IoScheduler</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

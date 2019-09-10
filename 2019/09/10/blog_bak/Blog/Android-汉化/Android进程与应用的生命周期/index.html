@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="官方文档在这里。本来，官方文档的部分内容已经汉化了，但是翻译实在是惨不忍睹，而且有些内容与原文还不一致，真不晓得是怎么回事。大多数情况下，每个 Android 应用程序运行在自己的 Liunx 进程当中。在应用中的某些代码需要运行的时候，这个进程就会被创建出来，它会一直运行，直到该进程不再被需要了或者系统需要释放该进程占用的内存以便让别的应用运行。">
+<meta name="keywords" content="Android-汉化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android进程与应用的生命周期">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-汉化/Android进程与应用的生命周期/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="官方文档在这里。本来，官方文档的部分内容已经汉化了，但是翻译实在是惨不忍睹，而且有些内容与原文还不一致，真不晓得是怎么回事。大多数情况下，每个 Android 应用程序运行在自己的 Liunx 进程当中。在应用中的某些代码需要运行的时候，这个进程就会被创建出来，它会一直运行，直到该进程不再被需要了或者系统需要释放该进程占用的内存以便让别的应用运行。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-18T04:48:54.607Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android进程与应用的生命周期">
+<meta name="twitter:description" content="官方文档在这里。本来，官方文档的部分内容已经汉化了，但是翻译实在是惨不忍睹，而且有些内容与原文还不一致，真不晓得是怎么回事。大多数情况下，每个 Android 应用程序运行在自己的 Liunx 进程当中。在应用中的某些代码需要运行的时候，这个进程就会被创建出来，它会一直运行，直到该进程不再被需要了或者系统需要释放该进程占用的内存以便让别的应用运行。">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-汉化/Android进程与应用的生命周期/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>Android进程与应用的生命周期 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-汉化/Android进程与应用的生命周期/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Android进程与应用的生命周期
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:48:54" itemprop="dateModified" datetime="2019-08-18T12:48:54+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-汉化/Android进程与应用的生命周期/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-汉化/Android进程与应用的生命周期/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>官方文档在<a href="https://developer.android.com/guide/components/activities/process-lifecycle" target="_blank" rel="noopener">这里</a>。</p><p>本来，官方文档的部分内容已经汉化了，但是翻译实在是惨不忍睹，而且有些内容<strong>与原文还不一致</strong>，真不晓得是怎么回事。</p><p>大多数情况下，每个 Android 应用程序运行在自己的 Liunx 进程当中。在应用中的某些代码需要运行的时候，这个进程就会被创建出来，它会一直运行，直到该进程不再被需要了或者系统需要释放该进程占用的内存以便让别的应用运行。</p><a id="more"></a>
+
+
+<p>Android 有一个特殊的基本特征：<strong>应用程序进程的生命周期不是由自己本身直接控制的</strong>。取而代之的，是由系统通过几个方面的综合考量来决定的：系统知道的正在运行的应用程序，这些应用程序对用户的重要性，系统可用的剩余内存。</p>
+<p>开发者需要理解应用程序的不同组件（特别是 Activity，Service，BroadcastReceiver）对应用程序进程生命周期的影响。如果没有正确的使用这些组件，可能会导致你在执行某些很重要的任务时突然进程被系统给干掉了。</p>
+<p>这里有一个例子，是关于进程生命周期的 bug 的。我们在使用 BroadcastReceiver 的时候，当它的 onReceive 方法被触发，我们会开启一个线程去执行任务，onReceive 方法会直接返回。一旦 onReceive 方法返回了，系统就会认为 BroadcastReceiver 不再处于活动状态，所以，它所在的进程也就不需要了（除非进程里面还有其他的组件处于活动状态）。然后系统可能在任何时候杀掉这个进程来回收内存，这样就会终止进程里面正在运行的线程。这个问题的解决方案是使用 JobService，使用了 JobSerive 之后，系统就会知道进程里面仍然有活要干。</p>
+<p>为了确定在内存不足的时候应该干掉哪些进程，Android 会根据进程中运行的组件以及这个组件的状态来给每个进程分配一个级别（按重要性排序）：</p>
+<ol>
+<li><p><strong>前台进程</strong>：用户正在与之交互的进程。前台进程有多种产生的情况：</p>
+<ul>
+<li>有一个用户正在交互的处于屏幕最顶部的 Activity（onResume 执行过了）</li>
+<li>有一个正在运行的广播（BroadcastReceiver.onReceive() 方法正在执行）</li>
+<li>有一个正在执行回调方法代码（onCreate，onStart，onDestroy）的 Service</li>
+</ul>
+<p>系统中这样的进程非常少，只有当可用内存极少，而且这些进程都无法正常运行的时候，才会将它们杀掉。</p>
+<p>文档还有一句话，我不是很理解：</p>
+<blockquote>
+<p> Generally, at this point, the device has reached a memory paging state, so this action is required in order to keep the user interface responsive.</p>
+</blockquote>
+<p><strong>内存分页我知道，内存分页状态是个啥？？？</strong></p>
+</li>
+<li><p><strong>可见进程</strong>：可见进程中运行的任务用户是可以注意到的，所以杀掉它会给用户体验产生明显的负面影响。满足下面的一些条件的是可见进程：</p>
+<ul>
+<li><p>Activity 可见但是不处于前台，比如：一个前台的 activity 以 dialog 的形式显示出来，那么在它后面的那个 activity 就是可见状态。</p>
+</li>
+<li><p>Service 调用了  <code>Service.startForeground()</code> 方法。这会让系统意识到该服务是会让用户注意到或者可见的。</p>
+</li>
+<li><blockquote>
+<p>It is hosting a service that the system is using for a particular feature that the user is aware, such as a live wallpaper, input method service, etc.</p>
+<p>这个我不太明白意思。</p>
+</blockquote>
+</li>
+</ul>
+<p>可见进程的数量比前台进程要多，但是也多不了多少，处于可管控的范围之内。这些进程是非常重要的，只有在前台进程无法正常运行的时候，才会杀掉它们。</p>
+</li>
+<li><p><strong>服务进程</strong>：一个Service通过 <code>startService()</code> 方法启动即为服务进程。尽管它们对用户不可见，但是它们通常都在后台做一些用户关系的事情（比如：上传与下载）。所以系统一般也不会杀掉它们，除非系统无法保证所有的前台与可见进程正常运行。</p>
+<p>长时间运行的服务（超过30分钟）其优先级会降低（在下面所说的 LRU 表中会向后移动）。这有助于避免出现内存泄漏或其他问题的长时间运行的服务占用大量RAM而导致系统无法有效使用缓存进程的情形。</p>
+</li>
+<li><p><strong>缓存进程</strong>：缓存进程是指当前不需要的，当系统需要内存的时候是可以随意杀掉的进程。在一个正常运行的系统中，内存管理应该只会涉及到缓存进程：运行良好的系统将始终提供多个缓存进程（以便在应用程序之间进行更高效的切换），并根据需要定期终止最旧的进程。只有在非常极端（且不可取）的情况下，系统才会杀死所有缓存进程，而且必须开始终止服务进程。</p>
+<p>这些进程通常保留了一个或者多个 Activity 的实例（onStop 方法被调用而且返回了），这些 Activity 对用户都不可见。如果开发者正确的实现了 Activity 的生命周期，当系统杀掉这些进程的时候，用户是感知不到的，而且当用户返回这个 App 的时候，也不会影响用户体验：因为系统保存了当前 Activity 的状态，会重新创建该 Activity。</p>
+<p>这些进程保存在伪LRU列表中，列表中的最后一个进程是第一个被回收内存的进程。这个列表通常会将更有用的进程（桌面应用程序，用户最后一个使用的 app）放到其他进程的前面。杀掉进程可能还会有其他的策略（依赖于具体平台的实现）：对进程的数量进行限制，对进程可缓存的时间进行限制。</p>
+<p>在决定如何对进程进行分类时，系统将根据进程中当前活动的所有组件中找到的最重要级别做出决策。具体查看  <code>Activity</code>, <code>Service</code>, and <code>BroadcastReceiver</code> 的文档。它们的文档都详细地描述了它们是如何影响应用程序的整个生命周期的。</p>
+<p>当一个进程被其他进程依赖时，该进程的优先级可能会增加。例如，进程A使用Context.BIND_AUTO_CREATE标志绑定到Service，或者正在使用进程B中的ContentProvider，则进程B的重要级别将始终至少与进程A一样重要。</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-汉化/Android进程与应用的生命周期/" title="Android进程与应用的生命周期">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-汉化/Android进程与应用的生命周期/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-汉化/" rel="tag"># Android-汉化</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-思考/在 Activity 的 onDestroy 方法里面调用 finish 会发生什么/" rel="next" title="在 Activity 的 onDestroy 方法里面调用 finish 会发生什么">
+                  <i class="fa fa-chevron-left"></i> 在 Activity 的 onDestroy 方法里面调用 finish 会发生什么
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-JetPack/Navigation 的使用记录/" rel="prev" title="Navigation 的使用记录">
+                  Navigation 的使用记录 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="在 【Android V1 V2 签名机制】里面分析了美团在 V1 签名机制下的多渠道打包，但是没有分析 V2 机制的多渠道打包。由于 V2 机制下多渠道打包涉及到 APK 结构，所以这里专门新起一篇。由于 APK 也是一个压缩包，所以我们先来看一下 ZIP 文件的结构。ZIP 文件结构一个普通的 ZIP 文件结构如下：">
+<meta name="keywords" content="Android-高级">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多渠道打包">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="在 【Android V1 V2 签名机制】里面分析了美团在 V1 签名机制下的多渠道打包，但是没有分析 V2 机制的多渠道打包。由于 V2 机制下多渠道打包涉及到 APK 结构，所以这里专门新起一篇。由于 APK 也是一个压缩包，所以我们先来看一下 ZIP 文件的结构。ZIP 文件结构一个普通的 ZIP 文件结构如下：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E7%AD%BE%E5%90%8D/11.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/10.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/1.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/2.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/3.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/4.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/5.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/6.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/7.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/8.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/9.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/11.png?raw=true">
+<meta property="og:updated_time" content="2019-08-18T04:48:54.607Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="多渠道打包">
+<meta name="twitter:description" content="在 【Android V1 V2 签名机制】里面分析了美团在 V1 签名机制下的多渠道打包，但是没有分析 V2 机制的多渠道打包。由于 V2 机制下多渠道打包涉及到 APK 结构，所以这里专门新起一篇。由于 APK 也是一个压缩包，所以我们先来看一下 ZIP 文件的结构。ZIP 文件结构一个普通的 ZIP 文件结构如下：">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E7%AD%BE%E5%90%8D/11.png?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>多渠道打包 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">多渠道打包
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:48:54" itemprop="dateModified" datetime="2019-08-18T12:48:54+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在 【Android V1 V2 签名机制】里面分析了美团在 V1 签名机制下的多渠道打包，但是没有分析 V2 机制的多渠道打包。</p><p>由于 V2 机制下多渠道打包涉及到 APK 结构，所以这里专门新起一篇。</p><p>由于 APK 也是一个压缩包，所以我们先来看一下 ZIP 文件的结构。</p><h2 id="ZIP-文件结构"><a href="#ZIP-文件结构" class="headerlink" title="ZIP 文件结构"></a>ZIP 文件结构</h2><p>一个普通的 ZIP 文件结构如下：</p><a id="more"></a>
+
+
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[文件头+文件数据+数据描述符]&#123;此处可重复n次&#125; + 中央目录 + 中央目录结束标识</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E7%AD%BE%E5%90%8D/11.png?raw=true" alt></p>
+<p>我们对着这个图看一下，apk在签名前和一个普通的 zip 文件的结构一样，<strong>中央目录</strong> 与 <strong>中央目录结束标识</strong> 对应后面两块。</p>
+<p>ZIP 文件分3块，每块内容大致如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">数据区（Contents of ZIP entries）：存储文件压缩内容</span><br><span class="line">中央目录区（Central Directory Header）：存储zip文件里面包含的所有目录</span><br><span class="line">中央目录结束标识（End of Central Directory Record：ECDR）：存储zip文件的整体信息</span><br></pre></td></tr></table></figure>
+
+<p>其中，<strong>中央目录结束标识</strong>的结构是我们最需要搞清楚的。</p>
+<p>我们拿一个例子来分析 中央目录结束标识 里面都有什么东西。</p>
+<blockquote>
+<p>新建一个名为123.txt的文本文件，内容为123456，将123.txt压缩为123.zip</p>
+</blockquote>
+<p>使用notepad++打开该文件，如下图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/10.png?raw=true" alt></p>
+<p>有8根红线，每根红线对应的数据意义如下：</p>
+<table>
+<thead>
+<tr>
+<th>地址</th>
+<th>字节数</th>
+<th>字节内容</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>00000062</td>
+<td>4</td>
+<td>50 4b 05 06</td>
+<td>中央目录结束标记（0x06054b50，<strong>固定内容</strong>）</td>
+</tr>
+<tr>
+<td>00000084</td>
+<td>2</td>
+<td>00 00</td>
+<td>当前磁盘编号</td>
+</tr>
+<tr>
+<td>00000088</td>
+<td>2</td>
+<td>00 00</td>
+<td>中央目录开始位置的磁盘编号</td>
+</tr>
+<tr>
+<td>0000008a</td>
+<td>2</td>
+<td>01 00</td>
+<td>该磁盘上所记录的核心目录数量</td>
+</tr>
+<tr>
+<td>0000008c</td>
+<td>2</td>
+<td>01 00</td>
+<td>中央目录结构总数</td>
+</tr>
+<tr>
+<td>0000008e</td>
+<td>4</td>
+<td>59 00 00 00</td>
+<td>中央目录的大小</td>
+</tr>
+<tr>
+<td>00000090</td>
+<td>4</td>
+<td>2b 00 00 00</td>
+<td><strong>中央目录开始位置</strong>相对于archive开始的位移</td>
+</tr>
+<tr>
+<td>00000094</td>
+<td>2</td>
+<td>00 00</td>
+<td>注释长度</td>
+</tr>
+</tbody></table>
+<p>中央目录结束标识 <strong>这一块的数据长度是不固定的，因为注释的长度不固定</strong>。</p>
+<p>但是 中央目录结束标识 的<strong>起始位置的内容是固定的</strong>，我们就可以从 ZIP 文件的最后往前遍历，直到找到 4 个连续直接的内容与 0x06054b50 相等。找到了起始地址，从这个<strong>起始地址往后偏移 20 个字节，我们就知道了注释的长度</strong>。</p>
+<p>我们看一下 walle 的代码吧：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> expectedCommentLength = <span class="number">0</span>; expectedCommentLength &lt;= maxCommentLength;</span><br><span class="line">     expectedCommentLength++) &#123;</span><br><span class="line">    <span class="comment">// 这里假设 注释的长度为 expectedCommentLength，从 0 开始一个一个试</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 我们从文件的倒数第 22 个字节开始往前遍历</span></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">long</span> eocdStartPos = eocdWithEmptyCommentStartPosition - expectedCommentLength;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 分配4个字节</span></span><br><span class="line">    <span class="keyword">final</span> ByteBuffer byteBuffer = ByteBuffer.allocate(<span class="number">4</span>);</span><br><span class="line">    <span class="comment">// 定位到倒数第22、23、24...个字节的位置</span></span><br><span class="line">    fileChannel.position(eocdStartPos);</span><br><span class="line">    <span class="comment">// 读取4个字节到buffer中</span></span><br><span class="line">    fileChannel.read(byteBuffer);</span><br><span class="line">    <span class="comment">// 将字节排序，因为 zip 文件的字节排序与我们阅读的顺序不一样</span></span><br><span class="line">    <span class="comment">// 比如：0X0ff8，在 zip 文件中是这样存放的：f8 0f</span></span><br><span class="line">    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 判断该 4 个字节的值是不是 0x06054b50</span></span><br><span class="line">    <span class="keyword">if</span> (byteBuffer.getInt(<span class="number">0</span>) == ZIP_EOCD_REC_SIG) &#123;</span><br><span class="line">        <span class="comment">// 分配2个字节</span></span><br><span class="line">        <span class="keyword">final</span> ByteBuffer commentLengthByteBuffer = ByteBuffer.allocate(<span class="number">2</span>);</span><br><span class="line">        <span class="comment">// 往前 22 个字节，定位到存放 注释长度 的字节处</span></span><br><span class="line">        fileChannel.position(eocdStartPos + ZIP_EOCD_COMMENT_LENGTH_FIELD_OFFSET);</span><br><span class="line">        fileChannel.read(commentLengthByteBuffer);</span><br><span class="line">        commentLengthByteBuffer.order(ByteOrder.LITTLE_ENDIAN);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取</span></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> actualCommentLength = commentLengthByteBuffer.getShort(<span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (actualCommentLength == expectedCommentLength) &#123;</span><br><span class="line">            <span class="keyword">return</span> actualCommentLength;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>拿到注释长度之后，我们就可以准确的定位到记录“中央目录开始位置”的字节处</strong>（其实上面如果不往后20个字节，只往后16个字节，就可以直接拿到，但是这里为了分析源码）。</p>
+<p>再看代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">      <span class="keyword">final</span> ByteBuffer zipCentralDirectoryStart = ByteBuffer.allocate(<span class="number">4</span>);</span><br><span class="line">      zipCentralDirectoryStart.order(ByteOrder.LITTLE_ENDIAN);</span><br><span class="line"><span class="comment">// 6 = 2 (Comment length) + 4 (Offset of start of central directory, relative to start of archive)</span></span><br><span class="line">      fileChannel.position(fileChannel.size() - commentLength - <span class="number">6</span>); </span><br><span class="line">      fileChannel.read(zipCentralDirectoryStart);</span><br><span class="line">      <span class="keyword">final</span> <span class="keyword">long</span> centralDirStartOffset = zipCentralDirectoryStart.getInt(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这都不用说了，很清晰，ZIP 文件的长度 - 注释的长度 - 存放注释长度的2个字节 - 存放中央目录偏移位置的4个字节，就是存放中央目录偏移位置的字节起始位置了。</p>
+<p>我们知道，apk 签名之后是多了一块叫做 ‘APK Signing Block’ 的东西，这块内容正好在中央目录的前面。而上面我们又知道了中央目录的偏移位置，所以只要我们知道 ‘APK Signing Block’  的大小，我们就能将 ‘APK Signing Block’  这一块里面的所有字节都取出来。</p>
+<p>要想知道 ‘APK Signing Block’  的大小，我们还是要了解 ‘APK Signing Block’  的结构：</p>
+<table>
+<thead>
+<tr>
+<th>偏移</th>
+<th>字节数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@+0 （从前往后第0个字节）</td>
+<td>8</td>
+<td>这个 block 的长度 （不包括这8个字节）</td>
+</tr>
+<tr>
+<td>@+8 （从前往后第8个字节）</td>
+<td>n</td>
+<td>一组 ID-VALUE</td>
+</tr>
+<tr>
+<td>@-24 （从后往前第24个字节）</td>
+<td>8</td>
+<td>这个 block 的长度（与上面的值一样）</td>
+</tr>
+<tr>
+<td>@-16 （从后往前第16个字节）</td>
+<td>16</td>
+<td>魔数 “APK Sig Block 42”</td>
+</tr>
+</tbody></table>
+<p>可以看出，APK Signing Block 分为4小块，第1、3块都储存的是 APK Signing Block 的大小。第 4 块是固定的。第 3块是不固定的，我们的渠道信息就是写在这个键值对区域的。</p>
+<p>我们知道了中央目录的偏移位置，知道了中央目录的偏移位置前是一个固定的魔数，魔数前就是 APK Signing Block 的大小，这样，我们就可以拿到整个 APK Signing Block 块里面的所有东西了。</p>
+<p>看看代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 中央目录偏移位置往前24个字节，就是存 APK Signing Block 的长度的字节起始位置</span></span><br><span class="line">fileChannel.position(centralDirOffset - <span class="number">24</span>);</span><br><span class="line"><span class="comment">// 分配24个字节空间</span></span><br><span class="line"><span class="keyword">final</span> ByteBuffer footer = ByteBuffer.allocate(<span class="number">24</span>);</span><br><span class="line">fileChannel.read(footer);</span><br><span class="line"><span class="comment">// 读取前8个字节，就是 APK Signing Block 的长度</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> apkSigBlockSizeInFooter = footer.getLong(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到储存的 APK Signing Block 的长度，还要加上 8 个字节，才是整个 APK Signing Block 的长度</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> totalSize = (<span class="keyword">int</span>) (apkSigBlockSizeInFooter + <span class="number">8</span>);</span><br><span class="line"><span class="comment">// 计算 APK Signing Block 的起始偏移位置</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> apkSigBlockOffset = centralDirOffset - totalSize;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定位到 APK Signing Block 的起始偏移位置</span></span><br><span class="line">fileChannel.position(apkSigBlockOffset);</span><br><span class="line"><span class="keyword">final</span> ByteBuffer apkSigBlock = ByteBuffer.allocate(totalSize);</span><br><span class="line"><span class="comment">// 读取整个 APK Signing Block 块</span></span><br><span class="line">fileChannel.read(apkSigBlock);</span><br><span class="line">apkSigBlock.order(ByteOrder.LITTLE_ENDIAN);</span><br></pre></td></tr></table></figure>
+
+<p>拿到了 APK Signing Block 块，我们就可以拿到里面 ID-VALUE 键值对了，由于我们在打包时放入了渠道名，现在我们就可以取出来。</p>
+<p>我们先看看一个 ID-VALUE 键值对的结构：</p>
+<table>
+<thead>
+<tr>
+<th>字节数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>8</td>
+<td>该 ID-VALUE 的长度（不包括自己）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ID</td>
+</tr>
+<tr>
+<td>n - 4</td>
+<td>VALUE</td>
+</tr>
+</tbody></table>
+<p>看看代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 去掉前8与后24个字节</span></span><br><span class="line"><span class="keyword">final</span> ByteBuffer pairs = sliceFromTo(apkSigningBlock, <span class="number">8</span>, apkSigningBlock.capacity() - <span class="number">24</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> entryCount = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span> (pairs.hasRemaining()) &#123;</span><br><span class="line">    entryCount++;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// 取当前这个 ID-VALUE 对的长度</span></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">long</span> lenLong = pairs.getLong();</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> len = (<span class="keyword">int</span>) lenLong;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 下一个 ID-VALUE 对的起始位置</span></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> nextEntryPos = pairs.position() + len;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 取 ID 的值</span></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> id = pairs.getInt();</span><br><span class="line">    <span class="comment">// 取 VALUE 的值</span></span><br><span class="line">    idValues.put(id, getByteBuffer(pairs, len - <span class="number">4</span>));</span><br><span class="line"></span><br><span class="line">    pairs.position(nextEntryPos);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里还需要判断一下，是否有V2签名标识：</p>
+<blockquote>
+<p><a href="https://source.android.com/security/apksigning/v2.html#apk-signing-block" target="_blank" rel="noopener">https://source.android.com/security/apksigning/v2.html#apk-signing-block</a></p>
+<p>根据官方文档的描述，V2签名信息储存在 ID 为  0x7109871a 的键值对中。</p>
+</blockquote>
+<p>我们可以判断一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Find the APK Signature Scheme v2 Block inside the APK Signing Block.</span></span><br><span class="line"><span class="keyword">final</span> ByteBuffer apkSignatureSchemeV2Block = originIdValues.get(ApkUtil.APK_SIGNATURE_SCHEME_V2_BLOCK_ID);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (apkSignatureSchemeV2Block == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> IOException(</span><br><span class="line">        <span class="string">"No APK Signature Scheme v2 block in APK Signing Block"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>到此为止，我们就完整了分析了多渠道相关的知识，现在我们看看 walle 是如何注入 ID-VALUE 渠道信息的，因为注入信息之后，必然需要更新相关的地址值，否则就错乱了。</p>
+<p>我们可以回想一下，需要更新哪些值。</p>
+<p>当我们写完渠道信息之后，中央目录起始偏移肯定变了，所以需要更新储存这个值的字节。</p>
+<p>APK Signing Block 块的大小也变了，也需要更新，这有两个地方存，所以一共需要更新3个地方。</p>
+<p>但是由于我们有了 APK Signing Block 的所有字节信息，所以我们可以直接覆盖原来的 APK Signing Block  块，最后更新 中央目录起始偏移 位置就好了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将中央目录与中央目录结尾标识的所有字节存起来</span></span><br><span class="line">centralDirBytes = <span class="keyword">new</span> <span class="keyword">byte</span>[(<span class="keyword">int</span>) (fileChannel.size() - centralDirStartOffset)];</span><br><span class="line">fIn.read(centralDirBytes);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 写更新之后的 APK Signing Block</span></span><br><span class="line">fileChannel.position(apkSigningBlockOffset);</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> length = apkSigningBlock.writeApkSigningBlock(fIn);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 写中央目录与中央目录结尾标识</span></span><br><span class="line">fIn.write(centralDirBytes);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新长度</span></span><br><span class="line">fIn.setLength(fIn.getFilePointer());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定位到储存中央目录结束标志的字节位置</span></span><br><span class="line">fIn.seek(fileChannel.size() - commentLength - <span class="number">6</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新该值</span></span><br><span class="line"><span class="comment">// 6 = 2(Comment length) + 4 (Offset of start of central directory, relative to start of archive)</span></span><br><span class="line"><span class="keyword">final</span> ByteBuffer temp = ByteBuffer.allocate(<span class="number">4</span>);</span><br><span class="line">temp.order(ByteOrder.LITTLE_ENDIAN);</span><br><span class="line">temp.putInt((<span class="keyword">int</span>) (centralDirStartOffset + length + <span class="number">8</span> - (centralDirStartOffset - apkSigningBlockOffset)));</span><br><span class="line"><span class="comment">// 8 = size of block in bytes (excluding this field) (uint64)</span></span><br><span class="line">temp.flip();</span><br><span class="line">fIn.write(temp.array());</span><br></pre></td></tr></table></figure>
+
+<p>好了， walle 的核心代码就分析的差不多了，多渠道打包的原理也讲的差不多了。</p>
+<h2 id="手动的分析一个apk"><a href="#手动的分析一个apk" class="headerlink" title="手动的分析一个apk"></a>手动的分析一个apk</h2><p>随便取一个 apk，用 notepad++ 打开，定位到文件末尾：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/1.png?raw=true" alt></p>
+<p>可以看到，确实是有一个固定的标识的。</p>
+<p>然后我们找到 中央目录的偏移位置：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/2.png?raw=true" alt></p>
+<p>中央目录结束标记 0x06054b50 的后面 16 个就是中央目录的偏移地址了。</p>
+<p>偏移位置为 <code>74 ee 50 02</code>，但是我们知道这个地址是反过来的，所以正确的地址为 <code>0x0250ee74</code>。</p>
+<p>我们搜索这个地址：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/3.png?raw=true" alt></p>
+<p>在这个地址的前面，应该是也是固定的字节，为魔数”APK Sig Block 42”，将它换成字节，是 <code>41 50 4B 20 53 69 67 20 42 6C 6F 63 6B 20 34 32</code>，我们对比一下：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/4.png?raw=true" alt></p>
+<p>果然是一摸一样的。</p>
+<p>魔数前面8个字节存放的是 APK Signing Block 的长度，我们往前找8个字节看看：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/5.png?raw=true" alt></p>
+<p>看来，APK Signing Block 的长度为 <code>0x0ff8</code>。由于中央目录偏移地址为 <code>0x025ee74</code>，减去这个地址得到<code>0x0250de7c</code>：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/6.png?raw=true" alt></p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/7.png?raw=true" alt></p>
+<p>再搜索这个地址：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/8.png?raw=true" alt></p>
+<p>可以看到，这个地址往前8个字节也是储存的 APK Signing Block 的长度，这样就说明，我们分析的过程是正确的。所以 APK Signing Block 的所有字节如下：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/9.png?raw=true" alt></p>
+<p>图中 1 和 2 之间的内容，就是 ID-VALUE 键值对了。由于我分析的这个 apk 没有写入渠道信息，所以我找了一个网上的图片：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E5%A4%9A%E6%B8%A0%E9%81%93/11.png?raw=true" alt></p>
+<p>这个里面，写入了渠道信息：</p>
+<ul>
+<li>ID 为：0x71777777</li>
+<li>渠道信息为：<code>{&quot;channel&quot;:&quot;meituan&quot;}</code></li>
+</ul>
+<p>我们直接在 ID-VALUE 里面搜索 <code>0x71777777</code>，就可以得到上面的图了。</p>
+<ul>
+<li>长度：00 00 00 00 00 00 00 19=25 （长度是25字节）</li>
+<li>ID：71 77 77 77 （我们自定义的ID）</li>
+<li>存入内容： {“channel”:”meituan”} 21字节</li>
+<li>21+4=25，刚好等于长度的值</li>
+</ul>
+<p>至此，我们就成功的通过分析APK的二进制数据，得到了walle注入的数据。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/" title="多渠道打包">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-高级/" rel="tag"># Android-高级</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-高级/混合编译器/" rel="next" title="混合编译器">
+                  <i class="fa fa-chevron-left"></i> 混合编译器
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/" rel="prev" title="Gradle Transform API ：直接修改 class 文件">
+                  Gradle Transform API ：直接修改 class 文件 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ZIP-文件结构"><span class="nav-number">1.</span> <span class="nav-text">ZIP 文件结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#手动的分析一个apk"><span class="nav-number">2.</span> <span class="nav-text">手动的分析一个apk</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="hashmap 的实现原理，是不是线程安全的？ 链表数组，jdk1.8 如果链表过于长，会替换为红黑树，非线程安全。 ​  如何解决hashmap线程不安全问题？ 完全同步使用HashTable，或者Collections同步，非完全同步（读取的值过期）采用ConcurrentHashMap. ​  弱引用和软引用的区别，有没有用到过？ 强引用是使用最普遍的引用。如果一个对象具有强引用，那垃圾回">
+<meta property="og:type" content="website">
+<meta property="og:title" content="面试题">
+<meta property="og:url" content="http://aprz512.github.io/hide/面试题.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="hashmap 的实现原理，是不是线程安全的？ 链表数组，jdk1.8 如果链表过于长，会替换为红黑树，非线程安全。 ​  如何解决hashmap线程不安全问题？ 完全同步使用HashTable，或者Collections同步，非完全同步（读取的值过期）采用ConcurrentHashMap. ​  弱引用和软引用的区别，有没有用到过？ 强引用是使用最普遍的引用。如果一个对象具有强引用，那垃圾回">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-03-18T14:04:06.683Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="面试题">
+<meta name="twitter:description" content="hashmap 的实现原理，是不是线程安全的？ 链表数组，jdk1.8 如果链表过于长，会替换为红黑树，非线程安全。 ​  如何解决hashmap线程不安全问题？ 完全同步使用HashTable，或者Collections同步，非完全同步（读取的值过期）采用ConcurrentHashMap. ​  弱引用和软引用的区别，有没有用到过？ 强引用是使用最普遍的引用。如果一个对象具有强引用，那垃圾回">
+  <link rel="canonical" href="http://aprz512.github.io/hide/面试题">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>面试题 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">面试题
+
+</h1>
+
+<div class="post-meta">
+  
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <ol>
+<li><p>hashmap 的实现原理，是不是线程安全的？</p>
+<p>链表数组，jdk1.8 如果链表过于长，会替换为红黑树，非线程安全。</p>
+<p>​</p>
+</li>
+<li><p>如何解决hashmap线程不安全问题？</p>
+<p>完全同步使用HashTable，或者Collections同步，非完全同步（读取的值过期）采用ConcurrentHashMap.</p>
+<p>​</p>
+</li>
+<li><p>弱引用和软引用的区别，有没有用到过？</p>
+<p>强引用是使用最普遍的引用。如果一个对象具有强引用，那垃圾回收器绝不会回收它。</p>
+<p>如果一个对象只具有软引用，则内存空间足够，垃圾回收器就不会回收它；如果内存空间不足了，就会回收这些对象的内存。</p>
+<p>在垃圾回收器线程扫描它所管辖的内存区域的过程中，一旦发现了只具有弱引用的对象，不管当前内存空间足够与否，都会回收它的内存。</p>
+<p>虚引用主要用来跟踪对象被垃圾回收器回收的活动。虚引用与软引用和弱引用的一个区别在于：虚引用必须和引用队列 （ReferenceQueue）联合使用。当垃圾回收器准备回收一个对象时，如果发现它还有虚引用，就会在回收对象的内存之前，把这个虚引用加入到与之 关联的引用队列中。</p>
+<p>注意：软引用，弱引用，虚引用都可以和引用队列一起使用，只不过虚引用是强制的。</p>
+<p><a href="http://www.jianshu.com/p/371e269ac7ae" target="_blank" rel="noopener">http://www.jianshu.com/p/371e269ac7ae</a></p>
+<p>PS：弱引用 + 引用队列 + 手动触发GC 就是 LeakCanary 的原理。</p>
+<p>PPS：LeakCanary 什么时候触发内存泄露的检测呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Looper.myQueue().addIdleHandler(<span class="keyword">new</span> MessageQueue.IdleHandler() &#123;</span><br><span class="line">          <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">queueIdle</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            backgroundHandler.postDelayed(runnable, DELAY_MILLIS);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>在消息队列为空的时候。</p>
+<p>​</p>
+</li>
+<li><p>如何用一个数组实现一个队列？如果满了怎么办（扩容），扩容怎么实现？</p>
+<p>队列是一种特殊的<a href="http://baike.baidu.com/view/178622.htm" target="_blank" rel="noopener">线性表</a>，特殊之处在于它只允许在表的前端（front）进行删除操作，而在表的后端（rear）进行插入操作，和栈一样，队列是一种操作受限制的线性表。进行插入操作的端称为队尾，进行删除操作的端称为队头。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArrayQueue</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] arrInt;<span class="comment">// 内置数组  </span></span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 保存队头和队尾的位置</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> front;<span class="comment">// 头指针  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> rear;<span class="comment">// 尾指针  </span></span><br><span class="line">   </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ArrayQueue</span><span class="params">(<span class="keyword">int</span> size)</span> </span>&#123;  </span><br><span class="line">       <span class="keyword">this</span>.arrInt = <span class="keyword">new</span> <span class="keyword">int</span>[size];  </span><br><span class="line">       front = <span class="number">0</span>;  </span><br><span class="line">       rear = -<span class="number">1</span>;  </span><br><span class="line">    &#125;  </span><br><span class="line">   </span><br><span class="line">    <span class="comment">/** </span></span><br><span class="line"><span class="comment">     * 判断队列是否为空 </span></span><br><span class="line"><span class="comment">     * </span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> </span></span><br><span class="line"><span class="comment">     */</span>  </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">       <span class="keyword">return</span> front == arrInt.length;  </span><br><span class="line">    &#125;  </span><br><span class="line">   </span><br><span class="line">    <span class="comment">/** </span></span><br><span class="line"><span class="comment">     * 判断队列是否已满 </span></span><br><span class="line"><span class="comment">     * </span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> </span></span><br><span class="line"><span class="comment">     */</span>  </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isFull</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">       <span class="keyword">return</span> arrInt.length - <span class="number">1</span> == rear;  </span><br><span class="line">    &#125;  </span><br><span class="line">   </span><br><span class="line">    <span class="comment">/** </span></span><br><span class="line"><span class="comment">     * 向队列的队尾插入一个元素 </span></span><br><span class="line"><span class="comment">     */</span>  </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">insert</span><span class="params">(<span class="keyword">int</span> item)</span> </span>&#123;  </span><br><span class="line">       <span class="keyword">if</span> (isFull()) &#123;  </span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"队列已满"</span>);  </span><br><span class="line">       &#125;  </span><br><span class="line">       arrInt[++rear] = item;  </span><br><span class="line">    &#125;  </span><br><span class="line">   </span><br><span class="line">    <span class="comment">/** </span></span><br><span class="line"><span class="comment">     * 从队列的对头移除一个元素 </span></span><br><span class="line"><span class="comment">     * </span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> </span></span><br><span class="line"><span class="comment">     */</span>  </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">remove</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">       <span class="keyword">if</span> (isEmpty()) &#123;  </span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"队列为空"</span>);  </span><br><span class="line">       &#125;  </span><br><span class="line">       <span class="keyword">return</span> arrInt[front++];  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重点在于，必须要保存队头和队尾的索引位置。</p>
+<p>删除元素的时候，并不是真正的删除该元素，只是将指针向后移动。</p>
+<p>每次删除元素的时候，还要考虑是否需要移动元素，如果移动元素，则队头的位置不变，如果不移动元素，那么可以做一个循环数组。</p>
+<p>对于循环数组的实现，怎么实现扩容？</p>
+<p>既然要扩容，那么隐含条件就是，队列已经满了，就只需要分两次copy，第一次是从 head 到数组末尾，</p>
+<p>第二次就是从数组头部到 tail。使用System.arraycopy().</p>
+<p>​</p>
+</li>
+<li><p>java异常介绍</p>
+<p>在 Java 中，所有的异常都有一个共同的祖先 Throwable（可抛出）。</p>
+<p>类层次结构：</p>
+
+
+<p><strong>Error（错误）:</strong>是程序无法处理的错误，表示运行应用程序中较严重问题。</p>
+<p><strong>Exception（异常）:</strong>是程序本身可以处理的异常。</p>
+<p>比如说，我们需要解析json，将字符串转化为数字，我们就需要去try一下（试图执行某段逻辑），如果转换成功，则执行对的逻辑，如果转换失败执行错误处理的逻辑。</p>
+<p>通常用到的都是 try catch 语句，如果涉及到资源的关闭，还需要使用 finally。</p>
+<p>比如在volley的源码中，请求网络重试的逻辑，就使用到了异常，就是在一个while true循环内部，内部的代码用 try 包含起来，如果请求遇到了错误，就会抛出一个自定义的异常，在catch中去处理，在catch中判断请求次数。</p>
+<p>​</p>
+</li>
+<li><p>Android的事件分发机制，down 事件和 move up事件的监听，传递状态</p>
+<p>事件序列：down -&gt; move -&gt; up. 当然中间也有可能以 cancel 结束。</p>
+<p>事件传递方向：activity -&gt; viewGroup -&gt; view，有个源码细节 decorview -&gt; activity -&gt; window -&gt; decorview</p>
+<p>涉及到的方法：dispatchTouchEvent(), onInterceptTouchEvent(), onTouchEvent()</p>
+<p>具体的传递流程图如下：</p>
+
+
+<p>需要注意的是，某个view想要拦截事件序列，它必须要能够消费该事件序列的down事件。从上图可知，如果该view的child没有能力消费down事件，那么之后的事件序列就都不会往该viewgroup的child传递，而是由自己处理。同时，之后的事件来临时，也不会触发 onInterceptTouchEvent 方法。所以事件处理，最好放在 dispatchTouchEvent 里面。</p>
+<p>onTouchListener 会屏蔽onTouchEvent ，onTouchEvent 里面会调用 onClick。</p>
+</li>
+<li><p>handler和looper之间的关系，他们怎样通信的，怎么实现事件的分发？</p>
+<p>在哪个线程创建的handler就会对应到哪个线程的looper，每个线程只有一个looper。handler 是通过 threadlocal 来获取 looper 对象，然后将msg方入队列中。looper里面实现了一个循环，从队列里面去取msg，取方法是阻塞的，取到之后，根据msg拿到handler，调用handler的处理方法。</p>
+</li>
+<li><p>如何在一个非UI线程中启动一个looper？</p>
+<p>调用 looper.prepare() ，写逻辑，调用 looper.loop()。looper.loop() 之后的代码永远不会执行。主线程 activityThread 已经替我们做了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    Looper.prepareMainLooper();</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">      </span><br><span class="line">    Looper.loop();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Main thread loop unexpectedly exited"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>looper.loop() 内部实现机制</p>
+<p>一个无限循环 for(;;)</p>
+<p>在循环里面取消息，然后处理消息</p>
+</li>
+<li><p>链表插入节点，反转链表</p>
+<p><a href="http://blog.csdn.net/feliciafay/article/details/6841115" target="_blank" rel="noopener">http://blog.csdn.net/feliciafay/article/details/6841115</a></p>
+<p>插入节点：假设想要在 Node A 之后插入 Node C，Node A 之后的节点是 Node B。首先获取到 B，将 C 的next 赋值为 B，然后将 A 的next 赋值为 C，这样就搞定了。操作不能反了。如果先将 A 的next赋值为C，那么就找不到B了。</p>
+<p>反转链表：我说一种非递归的方式。</p>
+<p>如果链表长度小于3，那么直接反转就好了，如果长度大于等于3，可以按照这样的一种思路：从第3个节点到第N个节点，依次逐节点插入到第1个节点(head节点)之后，(N-1)次这样的操作结束之后将第1个节点挪到新表的表尾即可。</p>
+<p>举例：将第3个节点，插入到第1个节点之后，有两布操作，首先将第3个节点拿出来，就是将第2个节点的next赋值为第3个节点的next。然后将第3个节点插入到第一个节点之后，这和上面的插入操作一毛一样。直到后面没有节点之后，将最后一个节点指向头节点（形成环），然后将头节点重新赋值，将最后一个节点的next 的next 置为null（断开环）。</p>
+<p>递归方法：假设后面的N-1个节点已经翻转好了，那么就只需要将第1个节点放到最后就行了，这样一直递归下去，直到没有节点了。最后的一次递归，head（这里其实是原链表的tail） 就是新链表的head。</p>
+</li>
+<li><p>快速排序<br>两个指针（i,j）一个从前往后，一个从后往前，与数组的第一个数（基准数）进行比较，找到比基准数大（i）或者小(j)的则停止，等到两个指针都找到了，则交换两个数的位置，知道 i&gt;=j，然后将 j 与基准数交换，这样就形成了基准数左边小，右边大的情况。然后递归，将左右两边再进行如此排序。</p>
+<p>​</p>
+</li>
+<li><p>http请求头，响应头，状态码</p>
+<p><a href="http://www.cnblogs.com/biyeymyhjob/archive/2012/07/28/2612910.html" target="_blank" rel="noopener">http://www.cnblogs.com/biyeymyhjob/archive/2012/07/28/2612910.html</a></p>
+</li>
+<li><p>http和tcp之间的关系</p>
+<p>socket则是对TCP/IP协议的封装和应用(程序员层面上)。<br>也可以说，TPC/IP协议是传输层协议，主要解决数据如何在网络中传输，<br>而HTTP是应用层协议，主要解决如何包装数据。</p>
+<p>传输层的TCP是基于网络层的IP协议的，而应用层的HTTP协议又是基于传输层的TCP协议的。</p>
+</li>
+<li><p>三次握手和四次挥手</p>
+<p>三次握手<br>　　C -&gt; S：你能听到我说话吗？</p>
+<p>​    S - &gt; C：能，你能听到我说话吗？</p>
+<p>​    C - &gt; S：能。</p>
+<p>​    开始聊天……</p>
+<p>四次挥手：</p>
+<p>​    C -&gt; S：我的话说完了。服务器关闭读通道</p>
+<p>​    S -&gt; C：我知道了。客服端关闭写通道</p>
+<p>​    然后，S 可能还有话说……</p>
+<p>​    S -&gt; C：我的话也说完了。服务器关闭写通道</p>
+<p>​    C -&gt; S：我知道了。客服端关闭读通道</p>
+</li>
+<li><p>get和post区别</p>
+<p>GET请求的数据会附在URL之后（就是把数据放置在HTTP协议头中），以?分割URL和传输数据，参数之间以&amp;相连.</p>
+<p>POST把提交的数据则放置在是HTTP包的包体中。</p>
+<p>最直观的就是语义上的区别，get用于获取数据，post用于提交数据。</p>
+</li>
+<li><p>如何实现断点续传</p>
+<p>写文件：使用RandomAccessFile，从上次结束位置开始写。</p>
+<p>请求头：conn.setRequestProperty(“Range”, “bytes=” + 500 + “-“ + 1000);请求指定范围的数据。</p>
+<p>数据库：保存上次线程下载了多少字节，便于恢复下载。</p>
+</li>
+<li><p>java引用传递和值传递</p>
+<p>要知道基本类型和引用类型。</p>
+<p><a href="https://www.zhihu.com/question/31203609" target="_blank" rel="noopener">https://www.zhihu.com/question/31203609</a></p>
+</li>
+<li><p>如何实现http请求上传一个图片，实时显示上传百分比，怎样获取这个比例呢？</p>
+<p>To upload data to a web server, configure the connection for output using <code>setDoOutput(true)</code></p>
+<p>For best performance, you should call either <code>setFixedLengthStreamingMode(int)</code> when the body length is known in advance, or <code>setChunkedStreamingMode(int)</code> when it is not. Otherwise <code>HttpURLConnection</code> will be forced to buffer the complete request body in memory before it is transmitted, wasting (and possibly exhausting) heap and increasing latency.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  urlConnection.setDoOutput(<span class="keyword">true</span>);</span><br><span class="line">  urlConnection.setChunkedStreamingMode(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">  OutputStream out = <span class="keyword">new</span> BufferedOutputStream(urlConnection.getOutputStream());</span><br><span class="line">  writeStream(out);</span><br><span class="line"></span><br><span class="line">  InputStream in = <span class="keyword">new</span> BufferedInputStream(urlConnection.getInputStream());</span><br><span class="line">  readStream(in);</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  urlConnection.disconnect();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​</p>
+</li>
+<li><p>链表的排序</p>
+<p>如果只考虑交换 Node 中的 value，那么基本和数组的排序一样。</p>
+<p>快速排序可能有点变化，因为单链表没法从后往前遍历。</p>
+<p>归并也有变化，因为要找到中间节点（快慢指针）。</p>
+<p>如果考虑Node交换，就有点麻烦了。</p>
+<p>​</p>
+</li>
+<li><p>一个数组，如果存在一个递增序列，则返回true，其中递增序列位置不一定连续，如[1，-1,3,2,5]，则1 3 5 构成一个递增序列，如果一个都不存在的话返回false，如[1，-2,0，-7] (实现方式见leetcode/<em>16</em>.java，时间复杂度为n^2).</p>
+<p>写两个for循环，判断 <strong>当前位置的数</strong> 与 <strong>之后的所有数</strong> 相比，都满足大于条件即可。</p>
+</li>
+<li><p>数组插入元素，考虑扩容情况</p>
+<p>先判断是否已满，未满则将插入位置之后的元素全部向后移动一格。已满则申请新的空间，然后将数组全部复制过去，然后再将插入位置之后的元素全部向后移动一格。</p>
+</li>
+<li><p>浏览器输入网址后的逻辑</p>
+<ol>
+<li>浏览器解析链接执行页面的url ，取出 host</li>
+<li>浏览器向DNS请求解析 url host 对应的 ip 地址</li>
+<li>根据 ip 地址建立 tcp 连接。</li>
+<li>浏览器发送http请求</li>
+<li>服务器返回http响应</li>
+<li>断开tcp链接</li>
+<li>浏览器显示请求结果</li>
+</ol>
+</li>
+<li><p>操作系统内存管理</p>
+<p><a href="http://www.cnblogs.com/CareySon/archive/2012/04/25/2470063.html" target="_blank" rel="noopener">http://www.cnblogs.com/CareySon/archive/2012/04/25/2470063.html</a></p>
+</li>
+<li><p>jvm内存管理，垃圾回收机制</p>
+</li>
+<li><p>java内部类为什么可以访问外部类的属性成员</p>
+<p>只有非静态内部类才能访问外部全部属性成员，静态内部类，只能访问静态成员。</p>
+</li>
+<li><p>设计一个联系人快速查询，可按照姓名，手机号，全拼等前缀匹配</p>
+<p>首先要先能够判断，用户输入的是 姓名 还是 手机号 还是 全拼（使用正则匹配）</p>
+<p>拿到处理过的输入之后，接下来的处理有两种思路。</p>
+<p>第一种是使用数据库的模糊查询 （like），将查询出来的结果显示就好了。</p>
+<p>第二种是将联系人全部读取出来，使用 listview 的 filter 功能。需要自定义 Filter 完成对用户输入的过滤。</p>
+<p>​</p>
+</li>
+</ol><a id="more"></a>
+<h3 id="java基础-Android基础-补充"><a href="#java基础-Android基础-补充" class="headerlink" title="java基础  Android基础 补充"></a>java基础  Android基础 补充</h3><p>锁相关 – 读写锁 自旋锁</p>
+<p>application 能否启动 activity</p>
+<p>斐波那契级数 递归 非递归</p>
+<p>为啥要采用双亲委派模型？— 避免被攻击</p>
+<p>down 和 up 的区别？— </p>
+<p>cancel 什么时候触发？ — 后续事件被父布局拦截</p>
+<p>DNS 端口 和 实现协议？ – </p>
+<p>cookie 请求限制？— 域名</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#java基础-Android基础-补充"><span class="nav-number">1.</span> <span class="nav-text">java基础  Android基础 补充</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="其实关于这方面的东西，还是有不少开源项目的，像 MultiTtype，BaseRecycleViewAdapterHolder，参考了之后还是决定自己写一个玩玩。运行图如下：思路如下：首先，使用 RecycleView 可以做到，不同的布局大小，可以使用 GridLayoutManager，然后设置一下 spanSize 就可以。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="多类型布局通用适配器思考">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/多类型布局通用适配器思考.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="其实关于这方面的东西，还是有不少开源项目的，像 MultiTtype，BaseRecycleViewAdapterHolder，参考了之后还是决定自己写一个玩玩。运行图如下：思路如下：首先，使用 RecycleView 可以做到，不同的布局大小，可以使用 GridLayoutManager，然后设置一下 spanSize 就可以。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://aprz512.github.io/hide/old/2017%E5%B9%B412%E6%9C%8826%E6%97%A517:41:33.png">
+<meta property="og:updated_time" content="2018-01-02T01:17:42.488Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="多类型布局通用适配器思考">
+<meta name="twitter:description" content="其实关于这方面的东西，还是有不少开源项目的，像 MultiTtype，BaseRecycleViewAdapterHolder，参考了之后还是决定自己写一个玩玩。运行图如下：思路如下：首先，使用 RecycleView 可以做到，不同的布局大小，可以使用 GridLayoutManager，然后设置一下 spanSize 就可以。">
+<meta name="twitter:image" content="http://aprz512.github.io/hide/old/2017%E5%B9%B412%E6%9C%8826%E6%97%A517:41:33.png">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/多类型布局通用适配器思考">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>多类型布局通用适配器思考 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">多类型布局通用适配器思考
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>多类型布局通用适配器思考</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>其实关于这方面的东西，还是有不少开源项目的，像 MultiTtype，BaseRecycleViewAdapterHolder，参考了之后还是决定自己写一个玩玩。</p><p>运行图如下：</p><p><img src="2017%E5%B9%B412%E6%9C%8826%E6%97%A517:41:33.png" alt></p><p>思路如下：</p><p>首先，使用 RecycleView 可以做到，不同的布局大小，可以使用 GridLayoutManager，然后设置一下 spanSize 就可以。</p><a id="more"></a>
+
+
+
+
+<p>布局中的每个类型抽象为一个 Section。每个 Section 会有一个到多个 Item，每一个 Item 就代表着一个数据。</p>
+<p>如上图：title 是一个 section，可以创建一个 titleSection。下面的 4 个方块是一个 section，可以创建一个 ContenSection 等等。</p>
+<p>Section 中的 Item 布局必定是一样的，所以我将  spanSize 和 itemType 这些属性放到了 Section 中。由于这些信息放到了 Section 中，那么在  Adapter 中获取到 Item 的时候，必须要获取到对应的 Section 才能获取到 ItemType 等信息。</p>
+<p>最终 Item 设计为一个抽象类，提供一个 setSection 的方法，供 adapter 使用，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Item</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Section mSection;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Section <span class="title">getSection</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mSection;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSection</span><span class="params">(Section section)</span> </span>&#123;</span><br><span class="line">        mSection = section;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是不好的地方就在于，我们以后的 Bean 对象，需要继承 Item。</p>
+<p>考虑到更加复杂的业务需求，比如某个布局在一个页面占一半的宽度，在另一个页面占1/4的宽度，所以我将 spanSize 等设计为动态设置的，就是要在创建 Section 的时候（见下文的 SectionFactory），手动的调用。</p>
+<p>Section 代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Section</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> SectionViewManager mViewManager;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">int</span> mSectionType = -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">int</span> mSpanSize = -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">protected</span> List&lt;Item&gt; mDataList;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> SectionViewManager <span class="title">initSectionViewManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"You must override this method~~~"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSpanSize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mSpanSize == -<span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"set section type first!!!"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mSpanSize;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSectionType</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mSectionType == -<span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"set section type first!!!"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> mSectionType;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">final</span> SectionViewManager <span class="title">getSectionViewManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mViewManager == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mViewManager = initSectionViewManager();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> mViewManager;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Item&gt; <span class="title">getDataList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mDataList;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">mapSection</span><span class="params">(List&lt;Item&gt; items)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (Item item : items) &#123;</span><br><span class="line">            item.setSection(<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Section 主要是提供了几个 get 方法，用来获取 Section 的信息，比如：spanSize，itemType，dataList等。需要注意的是：SectionViewManager。</p>
+<p>看名字就能看出来，是管理 View 的。因为 Section 里面的 Item 都是相同的布局，所以可以使用一个 SectionViewManager 来管理。SectionViewManager 是一个接口，使用这个最重要的就是不想在 Adapter 里面看到 switch 和 if - else：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">SectionViewManager</span>&lt;<span class="title">VH</span> <span class="keyword">extends</span> <span class="title">RecyclerView</span>.<span class="title">ViewHolder</span>, <span class="title">DATA</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> VH <span class="title">onCreateViewHolder</span><span class="params">(View itemView)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">onBindItemViewHolder</span><span class="params">(VH holder, DATA itemData, <span class="keyword">int</span> position)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">int</span> <span class="title">getLayoutResourceId</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>就是用来加载布局，创建 ViewHolder，bindViewHolder 等工作。</p>
+<p>SectionsAdapter 代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SectionsAdapter</span> <span class="keyword">extends</span> <span class="title">RecyclerView</span>.<span class="title">Adapter</span>&lt;<span class="title">RecyclerView</span>.<span class="title">ViewHolder</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ViewHoldCreator mViewHoldCreator;</span><br><span class="line">    <span class="keyword">private</span> List&lt;Item&gt; mItems = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SectionsAdapter</span><span class="params">(List&lt;Section&gt; sections)</span> </span>&#123;</span><br><span class="line">        Assert.assertNotNull(sections);</span><br><span class="line">        mItems = expandSections(sections);</span><br><span class="line">        mViewHoldCreator = <span class="keyword">new</span> ViewHoldCreator(mItems);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> List&lt;Item&gt; <span class="title">expandSections</span><span class="params">(List&lt;Section&gt; sections)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        List&lt;Item&gt; items = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (Section section : sections) &#123;</span><br><span class="line">            items.addAll(section.getDataList());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> items;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> RecyclerView.<span class="function">ViewHolder <span class="title">onCreateViewHolder</span><span class="params">(ViewGroup parent, <span class="keyword">int</span> viewType)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mViewHoldCreator.createViewHolder(parent, viewType);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这里有泛型的一个转换</span></span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onBindViewHolder</span><span class="params">(RecyclerView.ViewHolder holder, <span class="keyword">int</span> position)</span> </span>&#123;</span><br><span class="line">        Section section = getSection(position);</span><br><span class="line">        SectionViewManager sectionViewManager = section.getSectionViewManager();</span><br><span class="line">        sectionViewManager.onBindItemViewHolder(holder, mItems.get(position), position);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getItemViewType</span><span class="params">(<span class="keyword">int</span> position)</span> </span>&#123;</span><br><span class="line">        Section section = mItems.get(position).getSection();</span><br><span class="line">        <span class="keyword">return</span> section.getSectionType();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getItemCount</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mItems.size();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Section <span class="title">getSection</span><span class="params">(<span class="keyword">int</span> position)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mItems.get(position).getSection();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> GridLayoutManager.<span class="function">SpanSizeLookup <span class="title">createSpanSizeLookUp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> GridLayoutManager.SpanSizeLookup() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSpanSize</span><span class="params">(<span class="keyword">int</span> position)</span> </span>&#123;</span><br><span class="line">                Section section = getSection(position);</span><br><span class="line">                <span class="keyword">return</span> section.getSpanSize();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destory</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mViewHoldCreator.destroy();</span><br><span class="line">        mItems.clear();</span><br><span class="line">        mViewHoldCreator = <span class="keyword">null</span>;</span><br><span class="line">        mItems = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看最重要的 3 个方法：</p>
+<ol>
+<li>getItemViewType ， 根据 position 拿到对应的 Item，然后拿到 Section，然后拿到 itemType。</li>
+<li>onCreateViewHolder ，这里我使用了一个辅助类 ViewHoldCreator 用来创建 ViewHolder，下面会介绍。</li>
+<li>onBindViewHolder ，根据 position 拿到对应的 Item，然后拿到 Section，然后拿到 SectionViewManager，然后调用子类自己的方法。</li>
+</ol>
+<p>ViewHoldCreator 的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ViewHoldCreator</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ArrayList&lt;Integer&gt; mTypes = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> ArrayList&lt;SectionViewManager&gt; mViewManagers = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ViewHoldCreator</span><span class="params">(List&lt;Item&gt; items)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> size = items.size();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;size; i++) &#123;</span><br><span class="line">            Section section = items.get(i).getSection();</span><br><span class="line">            <span class="keyword">int</span> type = section.getSectionType();</span><br><span class="line">            <span class="keyword">if</span> (!mTypes.contains(type)) &#123;</span><br><span class="line">                mTypes.add(type);</span><br><span class="line">                mViewManagers.add(section.getSectionViewManager());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> RecyclerView.<span class="function">ViewHolder <span class="title">createViewHolder</span><span class="params">(ViewGroup parent, <span class="keyword">int</span> itemType)</span></span>&#123;</span><br><span class="line">        RecyclerView.ViewHolder viewHolder;</span><br><span class="line">        <span class="keyword">int</span> index = mTypes.indexOf(itemType);</span><br><span class="line">        SectionViewManager sectionViewManager = mViewManagers.get(index);</span><br><span class="line">        View itemView = LayoutInflater.from(parent.getContext())</span><br><span class="line">                .inflate(sectionViewManager.getLayoutResourceId(), parent, <span class="keyword">false</span>);</span><br><span class="line">        viewHolder = sectionViewManager.onCreateViewHolder(itemView);</span><br><span class="line">        <span class="keyword">return</span> viewHolder;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mTypes.clear();</span><br><span class="line">        mViewManagers.clear();</span><br><span class="line">        mTypes = <span class="keyword">null</span>;</span><br><span class="line">        mViewManagers = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实就是将 itemType 和 SectionViewManager 对应起来了，因为 RecycleView 的 Adapter 的 onCreateViewHolder 方法没有 position 值传递过来，所以只好使用这种方法了。</p>
+<p>另外，为了使用方便，还提供了创建 Section 的方法类，SectionFactory：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SectionFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> sectionType = -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> spanSize = -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">private</span> List&lt;Item&gt; dataList;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> SectionFactory <span class="title">dataList</span><span class="params">(List&lt;Item&gt; dataList)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.dataList = dataList;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> SectionFactory <span class="title">data</span><span class="params">(Item item)</span> </span>&#123;</span><br><span class="line">        List&lt;Item&gt; items = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        items.add(item);</span><br><span class="line">        <span class="keyword">return</span> dataList(items);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> SectionFactory <span class="title">spanSize</span><span class="params">(<span class="keyword">int</span> spanSize)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.spanSize = spanSize;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> SectionFactory <span class="title">sectionType</span><span class="params">(<span class="keyword">int</span> sectionType)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.sectionType = sectionType;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> &lt;S extends Section&gt; <span class="function">Section <span class="title">create</span><span class="params">(Class&lt;S&gt; cClass)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            S s = cClass.newInstance();</span><br><span class="line">            s.mSpanSize = <span class="keyword">this</span>.spanSize;</span><br><span class="line">            s.mSectionType = <span class="keyword">this</span>.sectionType;</span><br><span class="line">            s.mDataList = <span class="keyword">this</span>.dataList;</span><br><span class="line">            s.mapSection(s.mDataList);</span><br><span class="line">            <span class="keyword">return</span> s;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InstantiationException | IllegalAccessException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面是具体的使用，使用的时候只需要：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RecyclerView recyclerView = findViewById(R.id.recycle_view);</span><br><span class="line">SectionsAdapter adapter = <span class="keyword">new</span> SectionsAdapter(sections);</span><br><span class="line">GridLayoutManager gridLayoutManager = <span class="keyword">new</span> GridLayoutManager(<span class="keyword">this</span>, <span class="number">6</span>);</span><br><span class="line">gridLayoutManager.setSpanSizeLookup(adapter.createSpanSizeLookUp());</span><br><span class="line">recyclerView.setLayoutManager(gridLayoutManager);</span><br><span class="line">recyclerView.setAdapter(adapter);</span><br></pre></td></tr></table></figure>
+
+<p>创建假数据：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ArrayList&lt;Section&gt; <span class="title">createFakeData</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Title title = <span class="keyword">new</span> Title();</span><br><span class="line"></span><br><span class="line">        Content content1 = <span class="keyword">new</span> Content();</span><br><span class="line">        Content content2 = <span class="keyword">new</span> Content();</span><br><span class="line">        Content content3 = <span class="keyword">new</span> Content();</span><br><span class="line">        Content content4 = <span class="keyword">new</span> Content();</span><br><span class="line">        List&lt;Item&gt; contentList1 = <span class="keyword">new</span> ArrayList&lt;&gt;(<span class="number">10</span>);</span><br><span class="line">        contentList1.add(content1);</span><br><span class="line">        contentList1.add(content2);</span><br><span class="line">        contentList1.add(content3);</span><br><span class="line">        contentList1.add(content4);</span><br><span class="line"></span><br><span class="line">        Content content11 = <span class="keyword">new</span> Content();</span><br><span class="line">        Content content22 = <span class="keyword">new</span> Content();</span><br><span class="line">        Content content33 = <span class="keyword">new</span> Content();</span><br><span class="line">        Content content44 = <span class="keyword">new</span> Content();</span><br><span class="line">        Content content55 = <span class="keyword">new</span> Content();</span><br><span class="line">        Content content66 = <span class="keyword">new</span> Content();</span><br><span class="line">        List&lt;Item&gt; contentList2 = <span class="keyword">new</span> ArrayList&lt;&gt;(<span class="number">10</span>);</span><br><span class="line">        contentList2.add(content11);</span><br><span class="line">        contentList2.add(content22);</span><br><span class="line">        contentList2.add(content33);</span><br><span class="line">        contentList2.add(content44);</span><br><span class="line">        contentList2.add(content55);</span><br><span class="line">        contentList2.add(content66);</span><br><span class="line"></span><br><span class="line">        ArrayList&lt;Section&gt; sections = <span class="keyword">new</span> ArrayList&lt;&gt;(<span class="number">10</span>);</span><br><span class="line">        sections.add(<span class="keyword">new</span> SectionFactory()</span><br><span class="line">                .data(title)</span><br><span class="line">                .sectionType(<span class="number">0</span>)</span><br><span class="line">                .spanSize(<span class="number">6</span>)</span><br><span class="line">                .create(TitleSection.class));</span><br><span class="line">        sections.add(<span class="keyword">new</span> SectionFactory()</span><br><span class="line">                .dataList(contentList1)</span><br><span class="line">                .sectionType(<span class="number">1</span>)</span><br><span class="line">                .spanSize(<span class="number">3</span>)</span><br><span class="line">                .create(ContentSection.class));</span><br><span class="line">        sections.add(<span class="keyword">new</span> SectionFactory()</span><br><span class="line">                .data(title)</span><br><span class="line">                .sectionType(<span class="number">0</span>)</span><br><span class="line">                .spanSize(<span class="number">6</span>)</span><br><span class="line">                .create(TitleSection.class));</span><br><span class="line">        sections.add(<span class="keyword">new</span> SectionFactory()</span><br><span class="line">                .dataList(contentList2)</span><br><span class="line">                .sectionType(<span class="number">2</span>)</span><br><span class="line">                .spanSize(<span class="number">2</span>)</span><br><span class="line">                .create(ContentSection.class));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> sections;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>只需要注意：不同的 Section 设置不同的 SectionType，spanSize 根据自己的业务需求决定。</p>
+<p>TitleSection 的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TitleSection</span> <span class="keyword">extends</span> <span class="title">Section</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> SectionViewManager <span class="title">initSectionViewManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> TitleSectionViewManager();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">TitleViewHolder</span> <span class="keyword">extends</span> <span class="title">RecyclerView</span>.<span class="title">ViewHolder</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">TitleViewHolder</span><span class="params">(View itemView)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">super</span>(itemView);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">TitleSectionViewManager</span> <span class="keyword">extends</span> <span class="title">SectionViewManager</span>&lt;<span class="title">TitleViewHolder</span>, <span class="title">Title</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> TitleViewHolder <span class="title">onCreateViewHolder</span><span class="params">(View itemView)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> TitleViewHolder(itemView);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onBindItemViewHolder</span><span class="params">(TitleViewHolder holder, Title itemData, <span class="keyword">int</span> position)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getLayoutResourceId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> R.layout.item_title;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>必须要实现 initSectionViewManager 方法。</p>
+<p>bean 代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Title</span> <span class="keyword">extends</span> <span class="title">Item</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String mTitle;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getTitle</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mTitle;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTitle</span><span class="params">(String title)</span> </span>&#123;</span><br><span class="line">        mTitle = title;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Section 管理着 item 布局的加载，初始化。</p>
+<p>项目地址：<a href="https://github.com/aprz512/MultiSections" target="_blank" rel="noopener">https://github.com/aprz512/MultiSections</a></p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>多类型布局通用适配器思考</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

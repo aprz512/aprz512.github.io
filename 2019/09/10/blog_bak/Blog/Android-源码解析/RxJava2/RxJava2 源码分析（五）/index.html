@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="目的分析Flowable的相关源码，了解一下背压的知识。从例子开始 demo 123456789Flowable        .create&amp;lt;Int&amp;gt;(&amp;#123;            it.onNext(1)            it.onNext(2)            it.onComplete()        &amp;#125;, BackpressureStrategy">
+<meta name="keywords" content="Android-源码解析-RxJava2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RxJava2 源码分析（六）">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（五）/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="目的分析Flowable的相关源码，了解一下背压的知识。从例子开始 demo 123456789Flowable        .create&amp;lt;Int&amp;gt;(&amp;#123;            it.onNext(1)            it.onNext(2)            it.onComplete()        &amp;#125;, BackpressureStrategy">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-18T10:59:59.608Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RxJava2 源码分析（六）">
+<meta name="twitter:description" content="目的分析Flowable的相关源码，了解一下背压的知识。从例子开始 demo 123456789Flowable        .create&amp;lt;Int&amp;gt;(&amp;#123;            it.onNext(1)            it.onNext(2)            it.onComplete()        &amp;#125;, BackpressureStrategy">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（五）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>RxJava2 源码分析（六） | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（五）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">RxJava2 源码分析（六）
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 18:59:59" itemprop="dateModified" datetime="2019-08-18T18:59:59+08:00">2019-08-18</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/RxJava2/" itemprop="url" rel="index"><span itemprop="name">RxJava2</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（五）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（五）/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>分析Flowable的相关源码，了解一下背压的知识。</p><h3 id="从例子开始"><a href="#从例子开始" class="headerlink" title="从例子开始"></a>从例子开始</h3><blockquote>
+<p>demo</p>
+</blockquote><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Flowable</span><br><span class="line">        .create&lt;<span class="built_in">Int</span>&gt;(&#123;</span><br><span class="line">            it.onNext(<span class="number">1</span>)</span><br><span class="line">            it.onNext(<span class="number">2</span>)</span><br><span class="line">            it.onComplete()</span><br><span class="line">        &#125;, BackpressureStrategy.BUFFER)</span><br><span class="line">        .subscribe &#123;</span><br><span class="line">            System.<span class="keyword">out</span>.println(it)</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<p>看看 create 方法创建了一个什么对象：</p>
+<h4 id="Flowable"><a href="#Flowable" class="headerlink" title="Flowable"></a>Flowable</h4><blockquote>
+<p>io.reactivex.Flowable#create</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Flowable&lt;T&gt; <span class="title">create</span><span class="params">(FlowableOnSubscribe&lt;T&gt; source, BackpressureStrategy mode)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(source, <span class="string">"source is null"</span>);</span><br><span class="line">    ObjectHelper.requireNonNull(mode, <span class="string">"mode is null"</span>);</span><br><span class="line">    <span class="keyword">return</span> RxJavaPlugins.onAssembly(<span class="keyword">new</span> FlowableCreate&lt;T&gt;(source, mode));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建了一个 FlowableCreate 对象，由于 Flowable 与 Observerable 差不多，所以下面我们按照分析 Observerable 的思路来分析 Flowable。</p>
+<p>####FlowableCreate</p>
+<blockquote>
+<p>类结构</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public final class FlowableCreate&lt;T&gt; extends Flowable&lt;T&gt; &#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个没啥说的，与 Observerable 一样。</p>
+<blockquote>
+<p>构造函数</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">FlowableCreate</span><span class="params">(FlowableOnSubscribe&lt;T&gt; source, BackpressureStrategy backpressure)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.source = source;</span><br><span class="line">    <span class="keyword">this</span>.backpressure = backpressure;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也与 Observerable 差不多，就是两套代码吧。一个以 Observerable  开头，一个以 Flowable 开头，嗯，现在我对源码的探究就只到了这个程度，可能还有别的不同，暂时还未发现。</p>
+<blockquote>
+<p>subscribeActual 方法</p>
+<p>demo 中 backpressure 我们传递的是 BackpressureStrategy.BUFFER，所以 emitter 的值是 BufferAsyncEmitter。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribeActual</span><span class="params">(Subscriber&lt;? <span class="keyword">super</span> T&gt; t)</span> </span>&#123;</span><br><span class="line">    BaseEmitter&lt;T&gt; emitter;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (backpressure) &#123;</span><br><span class="line">    <span class="keyword">case</span> MISSING: &#123;</span><br><span class="line">        emitter = <span class="keyword">new</span> MissingEmitter&lt;T&gt;(t);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> ERROR: &#123;</span><br><span class="line">        emitter = <span class="keyword">new</span> ErrorAsyncEmitter&lt;T&gt;(t);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> DROP: &#123;</span><br><span class="line">        emitter = <span class="keyword">new</span> DropAsyncEmitter&lt;T&gt;(t);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> LATEST: &#123;</span><br><span class="line">        emitter = <span class="keyword">new</span> LatestAsyncEmitter&lt;T&gt;(t);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">default</span>: &#123;</span><br><span class="line">        <span class="comment">// 走这里</span></span><br><span class="line">        emitter = <span class="keyword">new</span> BufferAsyncEmitter&lt;T&gt;(t, bufferSize());</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 下面的就不分析了，参考前面的文章</span></span><br><span class="line">    t.onSubscribe(emitter);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        source.subscribe(emitter);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">        Exceptions.throwIfFatal(ex);</span><br><span class="line">        emitter.onError(ex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以，我们只需要分析 BufferAsyncEmitter 这个类就好了。</p>
+<p>####FlowableCreate.BufferAsyncEmitter</p>
+<blockquote>
+<p>类结构</p>
+<p>这个类是 FlowableCreate 的内部类，可以想到其他的 Emitter 应该也是内部类</p>
+<p>继承了 BaseEmitter</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">BufferAsyncEmitter</span>&lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">BaseEmitter</span>&lt;<span class="title">T</span>&gt; </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>####FlowableCreate.BaseEmitter</p>
+<blockquote>
+<p>类结构</p>
+<p>注意这个类继承至 AtomicLong</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseEmitter</span>&lt;<span class="title">T</span>&gt;</span></span><br><span class="line"><span class="class"><span class="keyword">extends</span> <span class="title">AtomicLong</span></span></span><br><span class="line"><span class="class"><span class="keyword">implements</span> <span class="title">FlowableEmitter</span>&lt;<span class="title">T</span>&gt;, <span class="title">Subscription</span> </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个类实现了一些通用的方法，比如 onError，onComplete，cancel等等。</p>
+<p>其中只有一个方法需要看看：</p>
+<blockquote>
+<p>BaseEmitter#request</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">request</span><span class="params">(<span class="keyword">long</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 判断 n 是不是正数</span></span><br><span class="line">    <span class="keyword">if</span> (SubscriptionHelper.validate(n)) &#123;</span><br><span class="line">        <span class="comment">// 是正数，将 n 设置给自己</span></span><br><span class="line">        <span class="comment">// 上面有说，这个类继承了 AtomicLong，所以它可以持有一个 Long 型的引用</span></span><br><span class="line">        BackpressureHelper.add(<span class="keyword">this</span>, n);</span><br><span class="line">        <span class="comment">// 钩子方法</span></span><br><span class="line">        onRequested();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好了，到这里 BaseEmitter 的方法就分析的差不多了，这个类只是提供了一些默认的实现方法，没有别的逻辑，把它当成一个普通的父类就好了。</p>
+<p>####FlowableCreate.BufferAsyncEmitter</p>
+<p>再回到 BufferAsyncEmitter 里面，看构造函数</p>
+<blockquote>
+<p>构造函数</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">BufferAsyncEmitter(Subscriber&lt;? <span class="keyword">super</span> T&gt; actual, <span class="keyword">int</span> capacityHint) &#123;</span><br><span class="line">    <span class="keyword">super</span>(actual);</span><br><span class="line">    <span class="comment">// 这里有一个新类</span></span><br><span class="line">    <span class="keyword">this</span>.queue = <span class="keyword">new</span> SpscLinkedArrayQueue&lt;T&gt;(capacityHint);</span><br><span class="line">    <span class="keyword">this</span>.wip = <span class="keyword">new</span> AtomicInteger();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>SpscLinkedArrayQueue 这个类不展开介绍了，贴一段注释就明白了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">A single-producer single-consumer array-backed queue which can allocate new arrays in case the consumer is slowerthan the producer.</span><br><span class="line"></span><br><span class="line">一个单生产者单消费者数组支持的队列，它可以在消费者比生产者慢的情况下分配新的数组（自动增长）。</span><br></pre></td></tr></table></figure>
+
+<p>机翻都能看的懂吧，源码就是实现了这样功能的队列，有兴趣的可以看看。</p>
+<p>我们把 SpscLinkedArrayQueue 当成一个队列就好。注意这里的初始容量是 128，但是会自动增长。</p>
+<p>看完构造方法，再看 onNext 方法。</p>
+<blockquote>
+<p>onNext</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// isCancelled 是父类的方法</span></span><br><span class="line">    <span class="comment">// 当我们调用 setDisposable 方法的时候，父类就会保存这个 Disposable 的引用到 serial 字段</span></span><br><span class="line">    <span class="comment">// 如果该 Disposable 调用了 dispose 方法，那么 isCancelled 会返回 true</span></span><br><span class="line">    <span class="comment">// 调用父类的 cancel 方法，isCancelled 也会返回 true（内部调用了 serial.dispose()）</span></span><br><span class="line">    <span class="comment">// 数据发送完毕或者发生错误，isCancelled 也会返回 true（内部调用了 serial.dispose()）</span></span><br><span class="line">    <span class="comment">// done 只有数据发生完毕或者发生错误才会为true</span></span><br><span class="line">    <span class="keyword">if</span> (done || isCancelled()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 不允许发送的数据为null</span></span><br><span class="line">    <span class="keyword">if</span> (t == <span class="keyword">null</span>) &#123;</span><br><span class="line">        onError(<span class="keyword">new</span> NullPointerException(<span class="string">"onNext called with null. Null values are generally not allowed in 2.x operators and sources."</span>));</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 先将数据添加到队列里面</span></span><br><span class="line">    queue.offer(t);</span><br><span class="line">    <span class="comment">// 调用 drain 方法</span></span><br><span class="line">    drain();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看来，onNext 的主要目的，就是先将数据加入到队列里面，然后调用 drain 方法。继续看 drain 方法。</p>
+<blockquote>
+<p>drain </p>
+<p>这个方法有点长，变量名也有点蛋疼，但是慢慢分析，不难</p>
+<p>在阅读源码的时候，一定要有耐心。阅读源码的过程其实是一个提升自己理解力的过程。</p>
+<p>既然你需要阅读别人的源代码，那么你的理解力肯定是处于弱势的，不然的话，你一看就懂，那就说明源码的东西在作者写出来之前你都已经掌握了，那么阅读源码对自己没有任何好处。</p>
+<p>所以，阅读源码的过程，就是需要慢慢提升自己的理解力，来达到与作者的理解力一样的程度。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">drain</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// wip 这个变量到后面分析，因为涉及到别的方法，单看这一个方法看不出什么东西来</span></span><br><span class="line">    <span class="keyword">if</span> (wip.getAndIncrement() != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> missed = <span class="number">1</span>;</span><br><span class="line">    <span class="comment">// 这两个变量名有点吊</span></span><br><span class="line">    <span class="keyword">final</span> Subscriber&lt;? <span class="keyword">super</span> T&gt; a = actual;</span><br><span class="line">    <span class="keyword">final</span> SpscLinkedArrayQueue&lt;T&gt; q = queue;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="comment">// 这里，获取设置的引用值，因为这个类是继承的 AtomicLong</span></span><br><span class="line">        <span class="comment">// 前面我们分析过，只有 request 方法才会设置引用值</span></span><br><span class="line">        <span class="comment">// 至于哪里调用了 request 方法，我们后面分析</span></span><br><span class="line">        <span class="comment">// 这里将这个值当作 Long.MAX_VALUE</span></span><br><span class="line">        <span class="keyword">long</span> r = get();</span><br><span class="line">        <span class="keyword">long</span> e = <span class="number">0L</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 进入循环</span></span><br><span class="line">        <span class="keyword">while</span> (e != r) &#123;</span><br><span class="line">            <span class="comment">// 判断是否取消了</span></span><br><span class="line">            <span class="keyword">if</span> (isCancelled()) &#123;</span><br><span class="line">                <span class="comment">// 取消了就清空队列</span></span><br><span class="line">                q.clear();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 时候发送完毕了，或者出现了错误</span></span><br><span class="line">            <span class="keyword">boolean</span> d = done;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 从队列中取出一个数据</span></span><br><span class="line">            T o = q.poll();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 队列是否为空</span></span><br><span class="line">            <span class="keyword">boolean</span> empty = o == <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 数据发送完毕了，并且队列为空</span></span><br><span class="line">            <span class="keyword">if</span> (d &amp;&amp; empty) &#123;</span><br><span class="line">                Throwable ex = error;</span><br><span class="line">                <span class="keyword">if</span> (ex != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="comment">// 调用父类 error 方法，会调用 onError</span></span><br><span class="line">                    error(ex);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// 调用父类 complete 方法，会调用 onComplete</span></span><br><span class="line">                    complete();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 队列为空，则跳出循环</span></span><br><span class="line">            <span class="keyword">if</span> (empty) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 调用 onNext 方法，o 是从队列取出来的数据</span></span><br><span class="line">            a.onNext(o);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// e 的值累加</span></span><br><span class="line">            e++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 这里要判断一下 e 与 r 是否相等，</span></span><br><span class="line">        <span class="comment">// 因为如果队列为空的话，e 是不等于 r 的</span></span><br><span class="line">        <span class="comment">// 相等的话，说明请求的个数刚好等于发送的个数，做一下收尾工作就好了</span></span><br><span class="line">        <span class="keyword">if</span> (e == r) &#123;</span><br><span class="line">            <span class="comment">// 下面的一段与上面的很相似，不一句一句写了</span></span><br><span class="line">            <span class="keyword">if</span> (isCancelled()) &#123;</span><br><span class="line">                q.clear();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">boolean</span> d = done;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">boolean</span> empty = q.isEmpty();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (d &amp;&amp; empty) &#123;</span><br><span class="line">                Throwable ex = error;</span><br><span class="line">                <span class="keyword">if</span> (ex != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    error(ex);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    complete();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (e != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// 因为发送了 e 个数据，所以将引用值更新</span></span><br><span class="line">            <span class="comment">// 内部就是将引用自减少了 e</span></span><br><span class="line">            BackpressureHelper.produced(<span class="keyword">this</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 这个后面分析</span></span><br><span class="line">        missed = wip.addAndGet(-missed);</span><br><span class="line">        <span class="keyword">if</span> (missed == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>drain 的主要作用，就是当我们调用 request(num) 请求 num 个数据的时候，这个方法会从队列中取出 num 个数据出来给我们。</p>
+<p>可以思考一下，如果我们没有调用，request 方法，会怎么样？</p>
+<blockquote>
+<p>drain</p>
+<p>简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">drain</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">long</span> r = get();</span><br><span class="line">        <span class="keyword">long</span> e = <span class="number">0L</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 没有调用 request，导致 r 为 0，这里进不去</span></span><br><span class="line">        <span class="keyword">while</span> (e != r) &#123;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 相等</span></span><br><span class="line">        <span class="keyword">if</span> (e == r) &#123;</span><br><span class="line">            <span class="comment">// 没有取消</span></span><br><span class="line">            <span class="keyword">if</span> (isCancelled()) &#123;</span><br><span class="line">                ...</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">boolean</span> d = done;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 队列不为空</span></span><br><span class="line">            <span class="keyword">boolean</span> empty = q.isEmpty();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 进不去</span></span><br><span class="line">            <span class="keyword">if</span> (d &amp;&amp; empty) &#123;</span><br><span class="line">                ...</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 进不去</span></span><br><span class="line">        <span class="keyword">if</span> (e != <span class="number">0</span>) &#123;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        missed = wip.addAndGet(-missed);</span><br><span class="line">        <span class="comment">// 满足，跳出循环</span></span><br><span class="line">        <span class="keyword">if</span> (missed == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，如果我们没有调用 request 方法，虽然 onNext 方法被调用了，将数据加入到了队列中，但是却无法从队列中取出数据，即下游的观察者收不到任何数据。</p>
+<p>还有两个遗留的问题：</p>
+<ol>
+<li>wip 变量的作用？</li>
+<li>request 方法在哪里调用的？</li>
+</ol>
+<p>先看第一个问题：</p>
+<blockquote>
+<p>drain</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">drain</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 将值加 1，返回未加 1 之前的值</span></span><br><span class="line">        <span class="comment">// 就是判断 wip 的引用值是否是0，然后加1</span></span><br><span class="line">        <span class="keyword">if</span> (wip.getAndIncrement() != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 到了这里 wip 引用的值理论上为1</span></span><br><span class="line">        <span class="comment">// 但是多线程的情况下， onUnsubscribed 会将 wip 加 1</span></span><br><span class="line">        <span class="keyword">int</span> missed = <span class="number">1</span>;</span><br><span class="line">        ...</span><br><span class="line">	</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            ...</span><br><span class="line">                </span><br><span class="line">            <span class="comment">// 将 wip 的值减 - missed</span></span><br><span class="line">            <span class="comment">// 这里处在一个循环中，最终 wip 的值会变成 0，missed 也会变成0，跳出循环</span></span><br><span class="line">            missed = wip.addAndGet(-missed);</span><br><span class="line">            <span class="keyword">if</span> (missed == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>onUnsubscribed</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">onUnsubscribed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 取消的时候，wip 的值为 0 的话，清空队列</span></span><br><span class="line">    <span class="comment">// 就是说，此时，drain 方法运行到了 for 循环的最后几行</span></span><br><span class="line">    <span class="comment">// 这里应该是为了保证，数据从队列里面取出来，一定要发送出去才行</span></span><br><span class="line">    <span class="keyword">if</span> (wip.getAndIncrement() == <span class="number">0</span>) &#123;</span><br><span class="line">        queue.clear();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 BufferAsyncEmitter 这个类中，使用到 wip 这个变量的，只有上面这几个地方。</p>
+<p>onUnsubscribed 会在父类的 cancel 方法中调用，所以我们调用 cancel 就会改变 wip 的值：</p>
+<h4 id="FlowableCreate-BaseEmitter"><a href="#FlowableCreate-BaseEmitter" class="headerlink" title="FlowableCreate.BaseEmitter"></a>FlowableCreate.BaseEmitter</h4><blockquote>
+<p>cancel</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">cancel</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    serial.dispose();</span><br><span class="line">    onUnsubscribed();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好了，第一个问题说完了，我们来看看第2个问题：</p>
+<p>首先我们回到 demo 中，既然 create 方法中没有调用 request 的地方，那么我们只能从 subscribe 方法入手了。</p>
+<p>####Flowable</p>
+<blockquote>
+<p>io.reactivex.Flowable#subscribe(io.reactivex.functions.Consumer&lt;? super T&gt;)</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public final Disposable subscribe(Consumer&lt;? super T&gt; onNext) &#123;</span><br><span class="line">    return subscribe(onNext, Functions.ON_ERROR_MISSING,</span><br><span class="line">            Functions.EMPTY_ACTION, FlowableInternalHelper.RequestMax.INSTANCE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它调用了名方法：</p>
+<blockquote>
+<p>io.reactivex.Flowable#subscribe(io.reactivex.functions.Consumer&lt;? super T&gt;, io.reactivex.functions.Consumer&lt;? super java.lang.Throwable&gt;, io.reactivex.functions.Action, io.reactivex.functions.Consumer&lt;? super org.reactivestreams.Subscription&gt;)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Disposable <span class="title">subscribe</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; onNext, Consumer&lt;? <span class="keyword">super</span> Throwable&gt; onError,</span></span></span><br><span class="line"><span class="function"><span class="params">        Action onComplete, Consumer&lt;? <span class="keyword">super</span> Subscription&gt; onSubscribe)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(onNext, <span class="string">"onNext is null"</span>);</span><br><span class="line">    ObjectHelper.requireNonNull(onError, <span class="string">"onError is null"</span>);</span><br><span class="line">    ObjectHelper.requireNonNull(onComplete, <span class="string">"onComplete is null"</span>);</span><br><span class="line">    ObjectHelper.requireNonNull(onSubscribe, <span class="string">"onSubscribe is null"</span>);</span><br><span class="line"></span><br><span class="line">    LambdaSubscriber&lt;T&gt; ls = <span class="keyword">new</span> LambdaSubscriber&lt;T&gt;(onNext, onError, onComplete, onSubscribe);</span><br><span class="line"></span><br><span class="line">    subscribe(ls);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ls;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建了一个 LambdaSubscriber 对象，并调用了 subscribe 方法，将 ls 传递了进去。</p>
+<p>所以这个方法其实就是将我们的 consumer 包装成了 LambdaSubscriber，然后调用真正的 subscribe 方法。</p>
+<h4 id="LambdaSubscriber"><a href="#LambdaSubscriber" class="headerlink" title="LambdaSubscriber"></a>LambdaSubscriber</h4><p>看看 LambdaSubscriber 类：</p>
+<blockquote>
+<p>构造方法</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">LambdaSubscriber</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; onNext, Consumer&lt;? <span class="keyword">super</span> Throwable&gt; onError,</span></span></span><br><span class="line"><span class="function"><span class="params">        Action onComplete,</span></span></span><br><span class="line"><span class="function"><span class="params">        Consumer&lt;? <span class="keyword">super</span> Subscription&gt; onSubscribe)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    <span class="keyword">this</span>.onNext = onNext;</span><br><span class="line">    <span class="keyword">this</span>.onError = onError;</span><br><span class="line">    <span class="keyword">this</span>.onComplete = onComplete;</span><br><span class="line">    <span class="keyword">this</span>.onSubscribe = onSubscribe;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>保存了一些变量，onSubscribe 值得注意，因为这个 Consumer 在订阅的时候会回调，是调用 request 的最好时机。</p>
+<p>直接看 onSubscribe 的实现。</p>
+<blockquote>
+<p>onSubscribe</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSubscribe</span><span class="params">(Subscription s)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (SubscriptionHelper.setOnce(<span class="keyword">this</span>, s)) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            onSubscribe.accept(<span class="keyword">this</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">            Exceptions.throwIfFatal(ex);</span><br><span class="line">            s.cancel();</span><br><span class="line">            onError(ex);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里调用了 onSubscribe 对象的 accept 方法。我们看看这个对象的实现吧。</p>
+<h4 id="FlowableInternalHelper-RequestMax-INSTANCE"><a href="#FlowableInternalHelper-RequestMax-INSTANCE" class="headerlink" title="FlowableInternalHelper.RequestMax.INSTANCE"></a>FlowableInternalHelper.RequestMax.INSTANCE</h4><p>从前面的代码中（Flowable.subscribe()方法中），我们知道 onSubscribe 对象是 FlowableInternalHelper.RequestMax.INSTANCE。所以看看这个类的代码吧。</p>
+<blockquote>
+<p>FlowableInternalHelper.RequestMax.INSTANCE</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> RequestMax implements Consumer&lt;Subscription&gt; &#123;</span><br><span class="line">    INSTANCE;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Subscription t)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        t.request(Long.MAX_VALUE);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>嗯，果然是这里调用了 request 方法。</p>
+<p>到这里，Flowable 的分析就告一段落。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（五）/" title="RxJava2 源码分析（六）">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（五）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-源码解析-RxJava2/" rel="tag"># Android-源码解析-RxJava2</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-思考/Android 应用是如何编译与运行的/" rel="next" title="Android 应用是如何编译与运行的">
+                  <i class="fa fa-chevron-left"></i> Android 应用是如何编译与运行的
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（二）/" rel="prev" title="RxJava2 源码分析（二）">
+                  RxJava2 源码分析（二） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#目的"><span class="nav-number">1.</span> <span class="nav-text">目的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从例子开始"><span class="nav-number">2.</span> <span class="nav-text">从例子开始</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Flowable"><span class="nav-number">2.1.</span> <span class="nav-text">Flowable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FlowableCreate-BaseEmitter"><span class="nav-number">2.2.</span> <span class="nav-text">FlowableCreate.BaseEmitter</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LambdaSubscriber"><span class="nav-number">2.3.</span> <span class="nav-text">LambdaSubscriber</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FlowableInternalHelper-RequestMax-INSTANCE"><span class="nav-number">2.4.</span> <span class="nav-text">FlowableInternalHelper.RequestMax.INSTANCE</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

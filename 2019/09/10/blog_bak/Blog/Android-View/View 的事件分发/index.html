@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="事件的传递流Activity -&amp;gt; Window -&amp;gt; ViewGroup - &amp;gt; View Activity.java 12345678910public boolean dispatchTouchEvent(MotionEvent ev) &amp;#123;    if (ev.getAction() == MotionEvent.ACTION_DOWN) &amp;#123;">
+<meta name="keywords" content="Android-View">
+<meta property="og:type" content="article">
+<meta property="og:title" content="View 的事件分发">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="事件的传递流Activity -&amp;gt; Window -&amp;gt; ViewGroup - &amp;gt; View Activity.java 12345678910public boolean dispatchTouchEvent(MotionEvent ev) &amp;#123;    if (ev.getAction() == MotionEvent.ACTION_DOWN) &amp;#123;">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-18T04:16:05.752Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="View 的事件分发">
+<meta name="twitter:description" content="事件的传递流Activity -&amp;gt; Window -&amp;gt; ViewGroup - &amp;gt; View Activity.java 12345678910public boolean dispatchTouchEvent(MotionEvent ev) &amp;#123;    if (ev.getAction() == MotionEvent.ACTION_DOWN) &amp;#123;">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>View 的事件分发 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">View 的事件分发
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:16:05" itemprop="dateModified" datetime="2019-08-18T12:16:05+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="事件的传递流"><a href="#事件的传递流" class="headerlink" title="事件的传递流"></a>事件的传递流</h3><p>Activity -&gt; Window -&gt; ViewGroup - &gt; View</p><blockquote>
+<p>Activity.java</p>
+</blockquote><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">dispatchTouchEvent</span><span class="params">(MotionEvent ev)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (ev.getAction() == MotionEvent.ACTION_DOWN) &#123;</span><br><span class="line">        onUserInteraction();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 交给 window</span></span><br><span class="line">    <span class="keyword">if</span> (getWindow().superDispatchTouchEvent(ev)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> onTouchEvent(ev);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<blockquote>
+<p>PhoneWindow.java</p>
+</blockquote>
+<p>因为 PhoneWindow 暂时是 Window 类的唯一实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">superDispatchTouchEvent</span><span class="params">(MotionEvent event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> mDecor.superDispatchTouchEvent(event);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的 mDecor 就是 DecorView 了，它继承至 FrameLayout，所以它是一个 ViewGroup。</p>
+<p>然后 ViewGroup <strong>可能会</strong>将事件就传递给它的子 View。</p>
+<h3 id="onTouch-amp-onTouchEvent-amp-onClick"><a href="#onTouch-amp-onTouchEvent-amp-onClick" class="headerlink" title="onTouch &amp; onTouchEvent &amp; onClick"></a>onTouch &amp; onTouchEvent &amp; onClick</h3><p>在 View 的 dispatchTouchEvent 方法中，在调用 onTouchEvent 之前，会先调用 mListenerInfo.mOnTouchListener.onTouch  方法，这个就是我们在外部设置的监听了。如果这个方法返回了 true，那么 onTouchEvent 方法就不会调用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">         ListenerInfo li = mListenerInfo;</span><br><span class="line">         <span class="keyword">if</span> (li != <span class="keyword">null</span> &amp;&amp; li.mOnTouchListener != <span class="keyword">null</span></span><br><span class="line">                 &amp;&amp; (mViewFlags &amp; ENABLED_MASK) == ENABLED</span><br><span class="line">                 &amp;&amp; li.mOnTouchListener.onTouch(<span class="keyword">this</span>, event)) &#123;</span><br><span class="line">             result = <span class="keyword">true</span>;</span><br><span class="line">         &#125;</span><br><span class="line"><span class="comment">// result 为 true 是无法进入这个条件的</span></span><br><span class="line">         <span class="keyword">if</span> (!result &amp;&amp; onTouchEvent(event)) &#123;</span><br><span class="line">             result = <span class="keyword">true</span>;</span><br><span class="line">         &#125;</span><br></pre></td></tr></table></figure>
+
+<p>onClick 是在 onTouchEvent 中调用的，现在的 Android studio 在我们复写 View 的 onTouchEvent 的时候，都会给这么一个警告：</p>
+<blockquote>
+<p>Custom view MotionView overrides onTouchEvent but not performClick less… (Ctrl+F1)<br>Inspection info:If a View that overrides onTouchEvent or uses an OnTouchListener does not also implement performClick and call it when clicks are detected, the View may not handle accessibility actions properly. Logic handling the click actions should ideally be placed in View#performClick as some accessibility services invoke performClick when a click action should occur.</p>
+</blockquote>
+<p>简单来说就是，复写这个方法可能会导致 performClick 方法不会触发。从而影响 accessibility  的动作行为。</p>
+<h3 id="onClick-amp-onLongClick"><a href="#onClick-amp-onLongClick" class="headerlink" title="onClick &amp; onLongClick"></a>onClick &amp; onLongClick</h3><p>一般的，手指点击然后抬起，就会触发一个 onClick 时间，但是不知道你有没有想过，onLongClick 是如何触发的呢？系统是如何判断我们是长按，而不是点击？</p>
+<p>话说，肯定是一句时间来判断，但是具体的思路是怎么样的呢？</p>
+<blockquote>
+<p>使用 Handler post 一个延时 xxx ms消息，如果收到这个延时消息就会触发一个事件。 然而某些情况下，会提前将该消息 remove 掉，这样就收不到这个消息，无法触发事件。</p>
+<p>拿长按事件举例：比如长按1s算一个长按事件，那么我们就可以post一个延时1000ms的消息，收到这个消息就触发长按回调，如果没到1s用户就放开了手指，那么就移除这个消息，这样就不会触发长按回调了。</p>
+</blockquote>
+<p>onLongClick 方法有返回值，返回 true 表示消耗这个事件，那么 onClick 就无法触发了。</p>
+<h3 id="clickable-amp-enable"><a href="#clickable-amp-enable" class="headerlink" title="clickable &amp; enable"></a>clickable &amp; enable</h3><p>一个 View 只有是 clickable 才会消耗事件，与 enable 没有关系。</p>
+<h3 id="onInterceptTouchEvent-的调用"><a href="#onInterceptTouchEvent-的调用" class="headerlink" title="onInterceptTouchEvent 的调用"></a>onInterceptTouchEvent 的调用</h3><p>onInterceptTouchEvent  这个方法只有 ViewGroup 才有。</p>
+<p>这个方法的调用条件有两个：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (actionMasked == MotionEvent.ACTION_DOWN || mFirstTouchTarget != <span class="keyword">null</span>)</span><br></pre></td></tr></table></figure>
+
+<p>第一个是按下事件才会触发，第二个是<strong>有可以消耗这次事件的子 View</strong>。</p>
+<p>根据这个我们可以推理出如下结论：</p>
+<p>当一个 ViewGroup 拦截事件的时候，它会将事件交给自己处理，那么它不会把事件传递给子 View，也就是说，<strong>它没有可以消耗这次事件的子View</strong>。即在接下来的 MOVE、UP等事件，都不会调用这个方法。</p>
+<h3 id="requestDisallowInterceptTouchEvent"><a href="#requestDisallowInterceptTouchEvent" class="headerlink" title="requestDisallowInterceptTouchEvent"></a>requestDisallowInterceptTouchEvent</h3><p>当子View调用这个方法之后，ViewGroup <strong>无法拦截除了 ACTION_DOWN 以外的事件</strong>。</p>
+<p>这是因为，ACTION_DOWN 事件会重置和清除一些状态，其中就包括 FLAG_DISALLOW_INTERCEPT。</p>
+<h3 id="ViewGroup-拦截事件"><a href="#ViewGroup-拦截事件" class="headerlink" title="ViewGroup 拦截事件"></a>ViewGroup 拦截事件</h3><p>当 ViewGroup 决定拦截事件，那么 mFirstTouchTarget == null，那么 ViewGroup 的 dispatchTouchEvent 方法会调用 super.dispatchTouchEvent(event); 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (mFirstTouchTarget == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">// No touch targets so treat this as an ordinary view.</span></span><br><span class="line">    handled = dispatchTransformedTouchEvent(ev, canceled, <span class="keyword">null</span>,</span><br><span class="line">            TouchTarget.ALL_POINTER_IDS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (child == <span class="keyword">null</span>) &#123;</span><br><span class="line">    handled = <span class="keyword">super</span>.dispatchTouchEvent(event);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的 super 就是 View，因为 ViewGroup 也是继承至 View 的。</p>
+<p>所以就调用到了 View 的 dispatchTouchEvent 方法，我们都知道，View 的 dispatchTouchEvent 方法会直接调用自己的 onTouchEvent 方法，而<strong>这里自己表示ViewGroup</strong>。所以，当 ViewGroup 决定拦截事件，会将事件交给自己处理。</p>
+<h3 id="ACTION-DOWN"><a href="#ACTION-DOWN" class="headerlink" title="ACTION_DOWN"></a>ACTION_DOWN</h3><p>当某个 View 可以消耗事件的时候，这个 View 的父布局的 mFirstTouchTarget 变量就指向了这个 View，然后接下来的事件都会交给这个 View 来处理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (child == <span class="keyword">null</span>) &#123;</span><br><span class="line">    handled = <span class="keyword">super</span>.dispatchTouchEvent(event);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    handled = child.dispatchTouchEvent(event);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，直接调用 child （mFirstTouchTarget  指向的值） 的 dispatchTouchEvent。</p>
+<p>当 View 不消耗 ACTION_DOWN 事件的时候，它的父布局的 mFirstTouchTarget 就为null，后面的事件该View 的 父布局就不会再往下传递了。它也就接受不到后续事件了。</p>
+<h3 id="ACTION-CANCEL"><a href="#ACTION-CANCEL" class="headerlink" title="ACTION_CANCEL"></a>ACTION_CANCEL</h3><p>当一个 ViewGroup 不拦截 ACTION_DOWN 事件，并且有可以消耗 ACTION_DOWN 的子 View 时，接下来的事件都会交给这个子 View 来处理，但是每次都会询问父布局是否拦截：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (actionMasked == MotionEvent.ACTION_DOWN</span><br><span class="line">        || mFirstTouchTarget != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> disallowIntercept = (mGroupFlags &amp; FLAG_DISALLOW_INTERCEPT) != <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (!disallowIntercept) &#123;</span><br><span class="line">    	<span class="comment">// 因为 mFirstTouchTarget 不会空，所以会走这里</span></span><br><span class="line">        intercepted = onInterceptTouchEvent(ev);</span><br><span class="line">        ev.setAction(action); <span class="comment">// restore action in case it was changed</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        intercepted = <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而如果在后续的事件中，父布局突然拦截了事件，即 intercepted 为 true，那么先前可以处理该事件的子View会收到一个 ACTION_CANCEL 事件。后面的事件就都会传递给父布局，而不往下传递。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// intercepted 为 true，则 cancelChild 也为 true</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">boolean</span> cancelChild = resetCancelNextUpFlag(target.child) || intercepted;</span><br><span class="line"><span class="keyword">if</span> (dispatchTransformedTouchEvent(ev, cancelChild, target.child, target.pointerIdBits)) &#123;</span><br><span class="line">    handled = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> oldAction = event.getAction();</span><br><span class="line"><span class="keyword">if</span> (cancel || oldAction == MotionEvent.ACTION_CANCEL) &#123;</span><br><span class="line">    <span class="comment">// 强制将 action 改成 cancel</span></span><br><span class="line">    event.setAction(MotionEvent.ACTION_CANCEL);</span><br><span class="line">    <span class="keyword">if</span> (child == <span class="keyword">null</span>) &#123;</span><br><span class="line">        handled = <span class="keyword">super</span>.dispatchTouchEvent(event);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        handled = child.dispatchTouchEvent(event);</span><br><span class="line">    &#125;</span><br><span class="line">    event.setAction(oldAction);</span><br><span class="line">    <span class="keyword">return</span> handled;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，这里它将 ACTION_CANCEL  传递给了子 View。</p>
+<p>传递 cancel 成功之后，会重置一些状态，包括 mFirstTouchTarget，将它的值清空。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/" title="View 的事件分发">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-View/" rel="tag"># Android-View</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-View/View 的 onMeasure 方法/" rel="next" title="View 的 onMeasure 方法">
+                  <i class="fa fa-chevron-left"></i> View 的 onMeasure 方法
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-View/View 的工作原理/" rel="prev" title="View 的工作原理">
+                  View 的工作原理 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#事件的传递流"><span class="nav-number">1.</span> <span class="nav-text">事件的传递流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onTouch-amp-onTouchEvent-amp-onClick"><span class="nav-number">2.</span> <span class="nav-text">onTouch &amp; onTouchEvent &amp; onClick</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onClick-amp-onLongClick"><span class="nav-number">3.</span> <span class="nav-text">onClick &amp; onLongClick</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#clickable-amp-enable"><span class="nav-number">4.</span> <span class="nav-text">clickable &amp; enable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onInterceptTouchEvent-的调用"><span class="nav-number">5.</span> <span class="nav-text">onInterceptTouchEvent 的调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#requestDisallowInterceptTouchEvent"><span class="nav-number">6.</span> <span class="nav-text">requestDisallowInterceptTouchEvent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ViewGroup-拦截事件"><span class="nav-number">7.</span> <span class="nav-text">ViewGroup 拦截事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ACTION-DOWN"><span class="nav-number">8.</span> <span class="nav-text">ACTION_DOWN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ACTION-CANCEL"><span class="nav-number">9.</span> <span class="nav-text">ACTION_CANCEL</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

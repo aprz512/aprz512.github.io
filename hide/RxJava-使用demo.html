@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="这里所使用的例子是基于 https://github.com/kaushikgopal/RxJava-Android-Samples请务必配合阅读。操作符官方文档：http://reactivex.io/documentation/operators.html文中的 Observable 代表数据源，不是指 RxJava 中的 Observable 类。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="RxJava 使用demo">
+<meta property="og:url" content="http://aprz512.github.io/hide/RxJava-使用demo.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="这里所使用的例子是基于 https://github.com/kaushikgopal/RxJava-Android-Samples请务必配合阅读。操作符官方文档：http://reactivex.io/documentation/operators.html文中的 Observable 代表数据源，不是指 RxJava 中的 Observable 类。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-01-12T06:35:03.827Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RxJava 使用demo">
+<meta name="twitter:description" content="这里所使用的例子是基于 https://github.com/kaushikgopal/RxJava-Android-Samples请务必配合阅读。操作符官方文档：http://reactivex.io/documentation/operators.html文中的 Observable 代表数据源，不是指 RxJava 中的 Observable 类。">
+  <link rel="canonical" href="http://aprz512.github.io/hide/RxJava-使用demo">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>RxJava 使用demo | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">RxJava 使用demo
+
+</h1>
+
+<div class="post-meta">
+  
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>这里所使用的例子是基于 <a href="https://github.com/kaushikgopal/RxJava-Android-Samples" target="_blank" rel="noopener">https://github.com/kaushikgopal/RxJava-Android-Samples</a></p><p>请务必配合阅读。</p><p>操作符官方文档：<a href="http://reactivex.io/documentation/operators.html" target="_blank" rel="noopener">http://reactivex.io/documentation/operators.html</a></p><p>文中的 Observable 代表数据源，不是指 RxJava 中的 Observable 类。</p><a id="more"></a>
+
+
+
+<h3 id="例子一"><a href="#例子一" class="headerlink" title="例子一"></a>例子一</h3><p>演示在工作线程处理完长时间的耗时任务后，如何通知主线程处理结果。同样的 Observer 代表观察者，不是 RxJava 中的 Observer 类。</p>
+<p>首先创建被观察者，就是我们的耗时任务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Observable&lt;Boolean&gt; <span class="title">_getObservable</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> Observable.just(<span class="keyword">true</span>)</span><br><span class="line">      .map(<span class="keyword">new</span> Function&lt;Boolean, Boolean&gt;() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="function"><span class="keyword">public</span> Boolean <span class="title">apply</span><span class="params">(Boolean aBoolean)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                  ConcurrencyWithSchedulersDemoFragment.<span class="keyword">this</span>._log(<span class="string">"Within Observable"</span>);</span><br><span class="line">                  ConcurrencyWithSchedulersDemoFragment.<span class="keyword">this</span>._doSomeLongOperation_thatBlocksCurrentThread();</span><br><span class="line">                  <span class="keyword">return</span> aBoolean;</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>忽略上面的 log 方法，重点看下面的一行代码，这行代码模拟了一个耗时任务。</p>
+<p>顺便介绍一下 map 方法，先看图：</p>
+
+
+<p>就是将要发送的数据进行变换，图上演示的是倍数，你也可以将它转换为字符串等等。</p>
+<p>例子中的 map 方法基本上啥都没做，你可以根据自己的业务需求进行转换。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">_doSomeLongOperation_thatBlocksCurrentThread</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  _log(<span class="string">"performing long operation"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    Thread.sleep(<span class="number">3000</span>);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">    Timber.d(<span class="string">"Operation was interrupted"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这两个方法结合起来就是创建了耗时任务以及将这个耗时任务作为被观察者。</p>
+<p>接下来指定耗时任务的线程以及创建观察者对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建观察者   </span></span><br><span class="line">DisposableObserver&lt;Boolean&gt; d = _getDisposableObserver();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Observer that handles the result through the 3 important actions:</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;1. onCompleted 2. onError 3. onNext</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> DisposableObserver&lt;Boolean&gt; <span class="title">_getDisposableObserver</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> DisposableObserver&lt;Boolean&gt;() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComplete</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      _log(<span class="string">"On complete"</span>);</span><br><span class="line">      _progress.setVisibility(View.INVISIBLE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onError</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line">      Timber.e(e, <span class="string">"Error in RxJava Demo concurrency"</span>);</span><br><span class="line">      _log(String.format(<span class="string">"Boo! Error %s"</span>, e.getMessage()));</span><br><span class="line">      _progress.setVisibility(View.INVISIBLE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(Boolean bool)</span> </span>&#123;</span><br><span class="line">      _log(String.format(<span class="string">"onNext with return value \"%b\""</span>, bool));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个观察者的三个方法里面做了进度条的处理等等，你也需要根据自己的业务逻辑来处理。说一下这个 DisposableObserver，它与普通的 Observer 不一样的地方就是提供了解注册的方法，就是说在满足某种条件的情况下，以后都不想接受被观察者发送过来的数据了，你可以使用 dispose 方法。</p>
+<p>接下来指定线程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">_getObservable()</span><br><span class="line">    .subscribeOn(Schedulers.io())</span><br><span class="line">    .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">    .subscribe(d);</span><br></pre></td></tr></table></figure>
+
+<p>subscribeOn 是指定被观察者发送数据时所在的线程。observeOn 是指定观察者接受数据时所在的线程。这种说话并不一定准确，但是比较好理解。这样一个异步通信的例子就完成了，不需要手动使用 AsyncTask 和 Handler + Thread 等。</p>
+<h3 id="例子二"><a href="#例子二" class="headerlink" title="例子二"></a>例子二</h3><p>这个例子演示如何将产生的事件缓存起来，然后一次性的取出。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">RxView.clicks(_tapBtn)</span><br><span class="line">        .map(</span><br><span class="line">            onClickEvent -&gt; &#123;</span><br><span class="line">              Timber.d(<span class="string">"--------- GOT A TAP"</span>);</span><br><span class="line">              _log(<span class="string">"GOT A TAP"</span>);</span><br><span class="line">              <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">            &#125;)</span><br><span class="line">        .buffer(<span class="number">2</span>, TimeUnit.SECONDS)</span><br><span class="line">        .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">        .subscribeWith(</span><br><span class="line">            <span class="keyword">new</span> DisposableObserver&lt;List&lt;Integer&gt;&gt;() &#123;</span><br><span class="line"></span><br><span class="line">              <span class="meta">@Override</span></span><br><span class="line">              <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComplete</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="comment">// fyi: you'll never reach here</span></span><br><span class="line">                Timber.d(<span class="string">"----- onCompleted"</span>);</span><br><span class="line">              &#125;</span><br><span class="line"></span><br><span class="line">              <span class="meta">@Override</span></span><br><span class="line">              <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onError</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line">                Timber.e(e, <span class="string">"--------- Woops on error!"</span>);</span><br><span class="line">                _log(<span class="string">"Dang error! check your logs"</span>);</span><br><span class="line">              &#125;</span><br><span class="line"></span><br><span class="line">              <span class="meta">@Override</span></span><br><span class="line">              <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(List&lt;Integer&gt; integers)</span> </span>&#123;</span><br><span class="line">                Timber.d(<span class="string">"--------- onNext"</span>);</span><br><span class="line">                <span class="keyword">if</span> (integers.size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                  _log(String.format(<span class="string">"%d taps"</span>, integers.size()));</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                  Timber.d(<span class="string">"--------- No taps received "</span>);</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>RxView.clicks(id) 表示给定 id 的控件产生的点击事件。</p>
+<p>map 是将 object 类型转换为 integer 类型。</p>
+<p>buffer() 将 2s 内的事件缓存起来。看图：</p>
+
+
+<p>这样当我们多次点击这个控件的时候，只有经过 2s 后才会触发 onNext 事件，参数 integers 是缓存里面这 2s 缓存的所有事件。</p>
+<h3 id="例子三"><a href="#例子三" class="headerlink" title="例子三"></a>例子三</h3><p>这里将演示事件的“去抖动”效果，可用于防重复点击。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">RxTextView.textChangeEvents(_inputSearchText)</span><br><span class="line">    .debounce(<span class="number">400</span>, TimeUnit.MILLISECONDS) <span class="comment">// default Scheduler is Computation</span></span><br><span class="line">    .filter(<span class="keyword">new</span> Predicate&lt;TextViewTextChangeEvent&gt;() &#123;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">test</span><span class="params">(TextViewTextChangeEvent changes)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> isNotNullOrEmpty(changes.text().toString());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">    .subscribeWith(_getSearchObserver());</span><br></pre></td></tr></table></figure>
+
+<p>主要介绍一下 debouce 函数。debouce 函数表示从收到一个新的事件开始计时，如果达到了规定的时间没有新的事件产生的话，则返回这个事件。如果在规定的时间内有新事件产生了，那么重置计时器，将收到这个时间的事件作为计时器的起点重新开始计时，将原先的事件丢弃，重复之前的逻辑。看图：</p>
+
+
+<p>也就是说如果我们每次点击的间隔小于指定的 400ms，那么就一直不会收到点击事件，直到点击间隔大于 400ms，那么我们才会收到最后的一次点击事件。</p>
+<p>运行这个例子的时候，我这里还爆出了内存泄露问题，更伤心的是，我还找不出是哪里的问题，日。泄露的引用链如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: In com.morihacky.android.rxjava:<span class="number">1.2</span>:<span class="number">2</span>.</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * com.morihacky.android.rxjava.fragments.DebounceSearchEmitterFragment has leaked:</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * GC ROOT thread java.lang.Thread. (named <span class="string">'Thread-10'</span>)</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * references com.android.tools.profiler.support.event.InputConnectionWrapper.mTarget</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * references com.android.internal.widget.EditableInputConnection.mTextView</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * references android.support.v7.widget.AppCompatEditText.mParent</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * references android.widget.LinearLayout.mParent</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * references android.widget.LinearLayout.mChildren</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * references array android.view.View[].[<span class="number">2</span>]</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * references android.widget.ListView.mAdapter</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * references com.morihacky.android.rxjava.fragments.DebounceSearchEmitterFragment$LogAdapter.<span class="keyword">this</span>$<span class="number">0</span></span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * leaks com.morihacky.android.rxjava.fragments.DebounceSearchEmitterFragment instance</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * Retaining: <span class="number">1.2</span> kB.</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * Reference Key: <span class="number">7</span>ba3dadc-f535-<span class="number">4747</span>-b4ec-ee266c90ebe6</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * Device: Google google Pixel sailfish</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * Android Version: <span class="number">8.0</span>.0 API: <span class="number">26</span> LeakCanary: <span class="number">1.5</span>.1 <span class="number">1</span>be44b3</span><br><span class="line"><span class="number">01</span>-<span class="number">08</span> <span class="number">11</span>:<span class="number">55</span>:<span class="number">57.399</span> <span class="number">544</span>-<span class="number">3247</span>/com.morihacky.android.rxjava D/LeakCanary: * Durations: watch=<span class="number">5445</span>ms, gc=<span class="number">194</span>ms, heap dump=<span class="number">2190</span>ms, analysis=<span class="number">96209</span>ms</span><br></pre></td></tr></table></figure>
+
+<p>我注释了很多代码，但是找不到问题所在，有时候运行的结果还不一样，日了。</p>
+<h3 id="例子四"><a href="#例子四" class="headerlink" title="例子四"></a>例子四</h3><p>展示 Processor 的使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ①</span></span><br><span class="line">PublishProcessor&lt;Float&gt; _resultEmitterSubject = PublishProcessor.create();</span><br><span class="line"></span><br><span class="line"><span class="comment">// ②</span></span><br><span class="line">Disposable _disposable =</span><br><span class="line">        _resultEmitterSubject.subscribe(</span><br><span class="line">            aFloat -&gt; &#123;</span><br><span class="line">              _result.setText(String.valueOf(aFloat));</span><br><span class="line">            &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ③</span></span><br><span class="line">_resultEmitterSubject.onNext(num1 + num2);</span><br></pre></td></tr></table></figure>
+
+<p>首先创建主题对象，然后关联订阅者，最后主题对象发送数据。</p>
+<p>这个例子的主要作用就是展示将这些逻辑代码分开使用。它们可以用在不同的位置。</p>
+<p>PublishProcessor 在订阅的时候不会立即触发订阅事件，需要我们手动触发。需要注意与 Observable 的使用区别。</p>
+<h3 id="例子五"><a href="#例子五" class="headerlink" title="例子五"></a>例子五</h3><p>展示如何执行重复任务。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Flowable.interval(INITIAL_DELAY, POLLING_INTERVAL, TimeUnit.MILLISECONDS)</span><br><span class="line">    .map(<span class="keyword">this</span>::_doNetworkCallAndGetStringResult)</span><br><span class="line">    .take(pollCount)</span><br><span class="line">    .doOnSubscribe(</span><br><span class="line">            <span class="keyword">new</span> Consumer&lt;Subscription&gt;() &#123;</span><br><span class="line">              <span class="meta">@Override</span></span><br><span class="line">              <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Subscription subscription)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                PollingFragment.<span class="keyword">this</span>._log(String.format(<span class="string">"Start simple polling - %s"</span>, _counter));</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;)</span><br><span class="line">    .subscribe(</span><br><span class="line">            <span class="keyword">new</span> Consumer&lt;String&gt;() &#123;</span><br><span class="line">              <span class="meta">@Override</span></span><br><span class="line">              <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(String taskName)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                PollingFragment.<span class="keyword">this</span>._log(</span><br><span class="line">                        String.format(</span><br><span class="line">                                Locale.US,</span><br><span class="line">                                <span class="string">"Executing polled task [%s] now time : [xx:%02d]"</span>,</span><br><span class="line">                                taskName,</span><br><span class="line">                                PollingFragment.<span class="keyword">this</span>._getSecondHand()));</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>Flowable.interval() 就是类似一个定时器一样的东西，每间隔固定的时间就会发送一个自增长的数字。</p>
+<p>map 类型转换。</p>
+<p>take 表示只取前指定个数的事件。看图：</p>
+
+
+<p>doOnSubscribe 在订阅的时候会执行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Flowable.just(<span class="number">1L</span>)</span><br><span class="line">    .repeatWhen(<span class="keyword">new</span> RepeatWithDelay(pollCount, pollingInterval))</span><br><span class="line">    .subscribe(</span><br><span class="line">        o -&gt;</span><br><span class="line">            _log(</span><br><span class="line">                String.format(</span><br><span class="line">                    Locale.US,</span><br><span class="line">                    <span class="string">"Executing polled task now time : [xx:%02d]"</span>,</span><br><span class="line">                    _getSecondHand())),</span><br><span class="line">        e -&gt; Timber.d(e, <span class="string">"arrrr. Error"</span>)));</span><br></pre></td></tr></table></figure>
+
+<p>Flowable.just() 创建主题对象，发送一个数字 1。</p>
+<p>repetWhen 是设置重复发送的条件，一般是根据自己的业务实现，每当满足条件时，数据会重新再次发送一遍。</p>
+<p>另外说一个，Flowable.timer 也是一个定时器样的东西，但是它与定时器不同的是，它只会执行一次。</p>
+<h3 id="例子六"><a href="#例子六" class="headerlink" title="例子六"></a>例子六</h3><p>RxBus 的使用。代码就补贴出来了。</p>
+<p>注意，代码里设置了背压策略。关于被压这里简单说一下，RxJava 2 中 Observable 是不支持背压的，Flowable 支持。当上游产生事件的速度和下游消费事件的速度不一样的时候，势必会产生问题，所以需要有对应的策略，或者是另外事件消费方式。</p>
+<p>更多请查看：</p>
+<p><a href="https://juejin.im/entry/5a4ae51e6fb9a0452b4996f0" target="_blank" rel="noopener">https://juejin.im/entry/5a4ae51e6fb9a0452b4996f0</a></p>
+<p><a href="http://flyou.ren/2017/04/05/%E5%85%B3%E4%BA%8ERxJava%E8%83%8C%E5%8E%8B/?utm_source=tuicool&amp;utm_medium=referral" target="_blank" rel="noopener">http://flyou.ren/2017/04/05/%E5%85%B3%E4%BA%8ERxJava%E8%83%8C%E5%8E%8B/?utm_source=tuicool&amp;utm_medium=referral</a></p>
+<h3 id="例子七"><a href="#例子七" class="headerlink" title="例子七"></a>例子七</h3><p>表单的验证功能：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">Flowable.combineLatest(</span><br><span class="line">        _emailChangeObservable,</span><br><span class="line">        _passwordChangeObservable,</span><br><span class="line">        _numberChangeObservable,</span><br><span class="line">        (newEmail, newPassword, newNumber) -&gt; &#123;</span><br><span class="line">          <span class="keyword">boolean</span> emailValid = !isEmpty(newEmail) &amp;&amp; EMAIL_ADDRESS.matcher(newEmail).matches();</span><br><span class="line">          <span class="keyword">if</span> (!emailValid) &#123;</span><br><span class="line">            _email.setError(<span class="string">"Invalid Email!"</span>);</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">boolean</span> passValid = !isEmpty(newPassword) &amp;&amp; newPassword.length() &gt; <span class="number">8</span>;</span><br><span class="line">          <span class="keyword">if</span> (!passValid) &#123;</span><br><span class="line">            _password.setError(<span class="string">"Invalid Password!"</span>);</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">boolean</span> numValid = !isEmpty(newNumber);</span><br><span class="line">          <span class="keyword">if</span> (numValid) &#123;</span><br><span class="line">            <span class="keyword">int</span> num = Integer.parseInt(newNumber.toString());</span><br><span class="line">            numValid = num &gt; <span class="number">0</span> &amp;&amp; num &lt;= <span class="number">100</span>;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">if</span> (!numValid) &#123;</span><br><span class="line">            _number.setError(<span class="string">"Invalid Number!"</span>);</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">return</span> emailValid &amp;&amp; passValid &amp;&amp; numValid;</span><br><span class="line">        &#125;)</span><br><span class="line">    .subscribe(_disposableObserver);</span><br></pre></td></tr></table></figure>
+
+<p>主要介绍一下 combineLatest 这个函数的用法。先看官方图：</p>
+
+
+<p>这个函数接受多个 Observable 以及一个函数类作为参数，并且函数的签名为这些 Observable 发射的数据类型。当以上的任意一个 Observable 发射数据之后，会去取其它 Observable 最近一次发射的数据，回调到函数当中，但是该函数回调的前提是<strong>所有的</strong> Observable 都至少发射过一个数据项。</p>
+<p>所以上面给出的例子是有点瑕疵的，只有当用户将3个全部输入完成之后，才会触发第一次检验，那么你能改一下吗？</p>
+<h3 id="例子八"><a href="#例子八" class="headerlink" title="例子八"></a>例子八</h3><p>这次我就不 copy demo 中的代码了，直接说操作符的作用吧。先看 concat 操作符：</p>
+
+
+<p>concat 是将多个 Observable 连接在一起，按照书写顺序一个一个的发送，等前一个 Observable 的 item 全部发送完了之后，才会发送下一个的 Observable 的 item。官方的文档上特别写出了要注意 hot 与 cold Observable 使用的区别。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Concat waits to subscribe to each additional Observable that you pass to it until the previous Observable completes. Note that because of <span class="keyword">this</span>, <span class="keyword">if</span> you <span class="keyword">try</span> to concatenate a “hot” Observable, that is, one that begins emitting items immediately and before it is subscribed to, Concat will not see, and therefore will not emit, any items that Observable emits before all previous Observables complete and Concat subscribes to the “hot” Observable.</span><br></pre></td></tr></table></figure>
+
+<p>这段有点绕，我的理解是 hot Observable 是在创建的时候就发送 item 了，一般我们只需要订阅之后就能收到数据。但是使用 concat 的时候，你需要等到之前的 Observable 发送完 item 之后，才能收到 hot Observable 发送的 item。</p>
+<p>再看 flatMap：</p>
+
+
+<p>flatMap 可以实现和 map 一样的功能，但是它最重要的是将一个 item 变换为多个 item。举个栗子：</p>
+<p>给定一个 fileUrl，返回这个 file 的大小，使用 map 很简单。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.map(<span class="keyword">new</span> Function&lt;String, Long&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Long <span class="title">apply</span><span class="params">(String s)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> File(s).length();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>但是同样给定一个 dirUrl，需要你遍历这个 dirUrl 下所有 file，并返回每个 file 的大小，这种情况你就要使用 flatMap 了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">.flatMap(<span class="keyword">new</span> Function&lt;String, ObservableSource&lt;Long&gt;&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ObservableSource&lt;Long&gt; <span class="title">apply</span><span class="params">(String s)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> Observable.create(<span class="keyword">new</span> ObservableOnSubscribe&lt;Long&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribe</span><span class="params">(ObservableEmitter&lt;Long&gt; e)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                File file = <span class="keyword">new</span> File(s);</span><br><span class="line">                File[] listFiles = file.listFiles();</span><br><span class="line">                <span class="keyword">for</span> (File temp : listFiles) &#123;</span><br><span class="line">                    e.onNext(temp.length());</span><br><span class="line">                &#125;</span><br><span class="line">                e.onComplete();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>以上代码未经过测试，只是演示用。</p>
+<p>再说一个与 concat 相似的操作符 concatEager，它与 concat 基本是一样的，区别在于订阅之后，所有的 Observable 都会开始发送数据到一个缓存里面，当所有 Observable 都发送完毕之后，再从缓存池里面一次性将所有 Observable 发送的数据全部放出来。仔细观察 demo 的效果，可以察觉的不同。</p>
+<p>继续，merger 操作符：</p>
+
+
+<p>从图上看，这货是将多个 Observable 合并成了一个 Observable。它与 concat 的区别还是比较明显的，但是它与 concat 操作符还有一个重要的区别：</p>
+
+
+<p>也就是说在合并的过程中，有可能产生 item 顺序错乱的问题，会触发 onError 方法。但是 concat 不会产生交错。</p>
+<p>继续，takeUtil 操作符：</p>
+
+
+<p>takeUtil 返回的 Observable 对象相当于原来 Observable 的一个复制，只不过它还监视着第二个 Observable 对象，一旦被监视的这个 Observable 对象发送了 item 或者终止通知，那么 takeUtil 返回的 Observable 也就停止发送数据。</p>
+<p>最后来说一下这个例子的内容：</p>
+<p>第一个按钮是演示按顺序从 磁盘缓存 和 网络 中取数据。</p>
+<p>第二个按钮是演示同时开始从 磁盘缓存 和 网络 中取数据。</p>
+<p>第三个按钮演示的也是同时从 缓存 和 网络 中取数据，但是与上面不同的是，上面的需要等待网络和缓存都取到数据了，才能开始发送数据，因为有个缓存现将数据给缓存起来了。</p>
+<p>第四个按钮演示的和第三个按钮差不多，只不过是模拟了慢磁盘缓存。</p>
+<p>第五个按钮演示的是在取到网络数据后，如果磁盘的数据还没取到，就不用继续取磁盘的缓存了。</p>
+<p>第六个同上，只不过是模拟了慢磁盘缓存。</p>
+<h3 id="例子九"><a href="#例子九" class="headerlink" title="例子九"></a>例子九</h3><p>演示定时器相关的操作符的使用。</p>
+<p>先看 timer：</p>
+
+
+<p>非常简单，在给定的时间过后，发送一个特殊的 item，这个 item 就是 0L。</p>
+<p>再看 interval：</p>
+
+
+<p>这个比较像传统意义上的定时器，间隔一段事件就发送数据。数据从 0L 开始递增。当然也有重载方法可以指定延时时间。比如，你延迟 0s，那么就会直接触发 onNext 方法。不指定延时时间，效果相当于延时时间为间隔事件，就是图中的效果， subscribe 的时候不会立即发送。</p>
+<p>再看 delay：</p>
+
+
+<p>就是将 Observable 发送 item 的时间一起延后指定的时间。</p>
+<h3 id="例子十"><a href="#例子十" class="headerlink" title="例子十"></a>例子十</h3><p>演示 timeout 操作符的使用，看图：</p>
+
+
+<p>Observable 每个 item 发送的间隔不能超过指定的超时时间，否则就会触发 onError 方法，并终止发送 item。</p>
+<h3 id="例子十一"><a href="#例子十一" class="headerlink" title="例子十一"></a>例子十一</h3><p>演示重试策略，这个货和 volley 的重试策略差不多。</p>
+<p>看 retry 操作符：</p>
+
+
+<p>如果 Observable 在发送 item 的时候出现了错误，那么就重来一次。一般我们使用 retryWhen 可以设定重试策略。</p>
+<p>下面解释下面这段烦人的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Flowable.range(<span class="number">1</span>, <span class="number">4</span>)</span><br><span class="line">    .delay(<span class="keyword">new</span> Function&lt;Integer, Publisher&lt;Integer&gt;&gt;() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="function"><span class="keyword">public</span> Publisher&lt;Integer&gt; <span class="title">apply</span><span class="params">(Integer integer)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                    <span class="comment">// Rx-y way of doing the Fibonnaci :P</span></span><br><span class="line">                    Flowable&lt;Integer&gt; integerFlowable = MathFlowable.sumInt(</span><br><span class="line">                            Flowable.range(<span class="number">1</span>, integer))</span><br><span class="line">                            .flatMap(<span class="keyword">new</span> Function&lt;Integer, Publisher&lt;? extends Integer&gt;&gt;() &#123;</span><br><span class="line">                                <span class="meta">@Override</span></span><br><span class="line">                                <span class="keyword">public</span> Publisher&lt;? extends Integer&gt; apply(Integer targetSecondDelay) <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">                                    <span class="keyword">return</span> Flowable.just(integer).delay(targetSecondDelay, TimeUnit.SECONDS);</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;);</span><br><span class="line">                    <span class="keyword">return</span> integerFlowable;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>RxJava 如果不使用 lambda 的话，真的是不好阅读。但是 lambda 又对萌新不友好。</p>
+<p>delay 之前介绍过了，但是这里不是操作符，而是接受一个函数，对发射的每一个 item 做个性化的延迟，可以在这个函数里面进行。</p>
+<p>函数里面的一段可能会看的比较懵逼，比如说我，看到 Flowable.range() 后面跟着一个 flatMap 的时候，怎么都想不通，害我想了几个小时，后来在脑子里仔细一转，发现这不可能啊，除非 flatMap 不是跟着 range 的。想通了这一点，再来看代码，果然如此，这特么不知道是怎么断的句，真想打死他。好好的写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Rx-y way of doing the Fibonnaci :P</span></span><br><span class="line">Flowable&lt;Integer&gt; integerFlowable =</span><br><span class="line">        MathFlowable.sumInt(Flowable.range(<span class="number">1</span>, integer))</span><br><span class="line">                .flatMap(<span class="keyword">new</span> Function&lt;Integer, Publisher&lt;? extends Integer&gt;&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="keyword">public</span> Publisher&lt;? extends Integer&gt; apply(Integer targetSecondDelay) <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">                        <span class="keyword">return</span> Flowable.just(integer).delay(targetSecondDelay, TimeUnit.SECONDS);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"><span class="keyword">return</span> integerFlowable;</span><br></pre></td></tr></table></figure>
+
+<p>这样不是好理解很多吗，真是日了狗了。</p>
+<h3 id="例子十二"><a href="#例子十二" class="headerlink" title="例子十二"></a>例子十二</h3><p>这个例子使用 kotlin 写的，大概能够看懂。演示的是 Observable 调用了 dispose 之后，能够再次重新订阅（想达到这个效果必须要使用 hot Observable）。这个例子使用到了两个操作符。</p>
+<p>先看 replay：</p>
+
+
+<p>replay 会缓存 Observable 发送的 item，每当一个新的 Observer 订阅的时候，它都会将所有的数据重新给这个 observer 重新发送一遍，当然也有重载方法可以指定重新发送 item 的个数（重最近发送的 item 往前推）。查阅这个方法的时候，我翻翻了网上的资料，发现这货应该只对 hot Observable 起作用，上面的操作符可能有漏掉没注意的。关于 hot cold Observable 另外再开一篇。</p>
+<p>再看 autoConnect，这里涉及到 RxJava 中数据源的一种类型 ConnectableObservable，这种数据源你调用 subscribe 之后是不会触发上游数据的发送的，你还得调用 connect 方法才行。</p>
+<p>说说 autoConnect 和 connect 的区别：使用了 autoConnect 之后，就表示只要调用了 subscribe 方法，就会自动触发 connect 方法。</p>
+<h3 id="例子十三"><a href="#例子十三" class="headerlink" title="例子十三"></a>例子十三</h3><p>实现了一个分页的功能，上拉的时候模仿网络请求并将数据显示到页面。整个例子只出现了一个新的操作符，其余的都是之前出现过的。不过这个例子还是有点问题，因为在 onStart 的时候手动调用了 onNext，所以导致每次 home 键之后再回来，都会出现问题。</p>
+<p>concatMap 操作符，它和 flatMap 操作符基本是一样的作用，但是区别是 concatMap 转换之后，发送的 item 还是原来的顺序。好好比较两个图：</p>
+
+
+<h3 id="例子十四"><a href="#例子十四" class="headerlink" title="例子十四"></a>例子十四</h3><p>没啥好说的，代码很简单，使用 PublishProcessor，触发 onNext 就好了，前面有个例子也是这样啊。</p>
+<h3 id="例子十五"><a href="#例子十五" class="headerlink" title="例子十五"></a>例子十五</h3><p>演示使用 using 函数来实现资源的使用与清理。</p>
+<p>比如我们要使用一种资源，比如：socket。先将资源的管理抽象出三个接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建资源</span></span><br><span class="line"><span class="function">Socket <span class="title">init</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用资源</span></span><br><span class="line"><span class="function">Socket <span class="title">doSomeWork</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 清理资源</span></span><br><span class="line"><span class="function">Socket <span class="title">clear</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>然后我们实现这个接口。等到我们正真需要使用的时候可以这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Flowable.using(</span><br><span class="line">        <span class="keyword">new</span> Callable&lt;Socket&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Socket <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> resource.init();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="keyword">new</span> Function&lt;Socket, Publisher&lt;?&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> Publisher&lt;?&gt; apply(Socket s) <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">                s.doSomeWork();</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="keyword">new</span> Consumer&lt;Socket&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Socket s)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                s.clear();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>上面是伪代码，能够看懂意思就行。</p>
+<h3 id="例子十六"><a href="#例子十六" class="headerlink" title="例子十六"></a>例子十六</h3><p>介绍 refCount 操作符，先看图：</p>
+
+
+<p>官方给出的解释是：让 hot Observable 的行为和普通 Observable 一样。具体的表现形式如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">subscribe 的时候会自动触发 connect 开始发送数据。</span><br><span class="line">所有的 subscriber dispose 之后，再有新的 Observer 来到时，Observerable 的数据会重新发送。</span><br></pre></td></tr></table></figure>
+
+<p>运行一下 demo，自己点几下就知道了。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#例子一"><span class="nav-number">1.</span> <span class="nav-text">例子一</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子二"><span class="nav-number">2.</span> <span class="nav-text">例子二</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子三"><span class="nav-number">3.</span> <span class="nav-text">例子三</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子四"><span class="nav-number">4.</span> <span class="nav-text">例子四</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子五"><span class="nav-number">5.</span> <span class="nav-text">例子五</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子六"><span class="nav-number">6.</span> <span class="nav-text">例子六</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子七"><span class="nav-number">7.</span> <span class="nav-text">例子七</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子八"><span class="nav-number">8.</span> <span class="nav-text">例子八</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子九"><span class="nav-number">9.</span> <span class="nav-text">例子九</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子十"><span class="nav-number">10.</span> <span class="nav-text">例子十</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子十一"><span class="nav-number">11.</span> <span class="nav-text">例子十一</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子十二"><span class="nav-number">12.</span> <span class="nav-text">例子十二</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子十三"><span class="nav-number">13.</span> <span class="nav-text">例子十三</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子十四"><span class="nav-number">14.</span> <span class="nav-text">例子十四</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子十五"><span class="nav-number">15.</span> <span class="nav-text">例子十五</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子十六"><span class="nav-number">16.</span> <span class="nav-text">例子十六</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

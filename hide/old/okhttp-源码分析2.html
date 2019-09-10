@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="这份笔记主要分析 RetryAndFollowUpInterceptor 这个拦截器。RetryAndFollowUpInterceptor 这个拦截器主要是来处理请求的重试和重定向。之前我们看过源码，知道如果 Client 里面没有设置过拦截器，那么 RetryAndFollowUpInterceptor 就是第一个拦截器。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="okhttp 源码分析2">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/okhttp-源码分析2.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="这份笔记主要分析 RetryAndFollowUpInterceptor 这个拦截器。RetryAndFollowUpInterceptor 这个拦截器主要是来处理请求的重试和重定向。之前我们看过源码，知道如果 Client 里面没有设置过拦截器，那么 RetryAndFollowUpInterceptor 就是第一个拦截器。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-12-31T14:43:22.521Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="okhttp 源码分析2">
+<meta name="twitter:description" content="这份笔记主要分析 RetryAndFollowUpInterceptor 这个拦截器。RetryAndFollowUpInterceptor 这个拦截器主要是来处理请求的重试和重定向。之前我们看过源码，知道如果 Client 里面没有设置过拦截器，那么 RetryAndFollowUpInterceptor 就是第一个拦截器。">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/okhttp-源码分析2">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>okhttp 源码分析2 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">okhttp 源码分析2
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>OKHTTP-源码分析2</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>这份笔记主要分析 RetryAndFollowUpInterceptor 这个拦截器。RetryAndFollowUpInterceptor 这个拦截器主要是来处理请求的重试和重定向。</p><p>之前我们看过源码，知道如果 Client 里面没有设置过拦截器，那么 RetryAndFollowUpInterceptor 就是第一个拦截器。</p><a id="more"></a>
+
+<p>看看 Intercepter 接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Interceptor</span> </span>&#123;</span><br><span class="line">  <span class="function">Response <span class="title">intercept</span><span class="params">(Chain chain)</span> <span class="keyword">throws</span> IOException</span>;</span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">interface</span> <span class="title">Chain</span> </span>&#123;</span><br><span class="line">    <span class="function">Request <span class="title">request</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">Response <span class="title">proceed</span><span class="params">(Request request)</span> <span class="keyword">throws</span> IOException</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns the connection the request will be executed on. This is only available in the chains</span></span><br><span class="line"><span class="comment">     * of network interceptors; for application interceptors this is always null.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Nullable</span> <span class="function">Connection <span class="title">connection</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">Call <span class="title">call</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">connectTimeoutMillis</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">Chain <span class="title">withConnectTimeout</span><span class="params">(<span class="keyword">int</span> timeout, TimeUnit unit)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">readTimeoutMillis</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">Chain <span class="title">withReadTimeout</span><span class="params">(<span class="keyword">int</span> timeout, TimeUnit unit)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">writeTimeoutMillis</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">Chain <span class="title">withWriteTimeout</span><span class="params">(<span class="keyword">int</span> timeout, TimeUnit unit)</span></span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>里面就一个方法 intercept，但是里面又定义了一个 Chain 接口。这个 Chain 的实现类就是 RealInterceptorChain。</p>
+<p>下面分析 RetryAndFollowUpInterceptor 类，看拦截器的类，首先从它实现接口的方法开始：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> Response <span class="title">intercept</span><span class="params">(Chain chain)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  Request request = chain.request();</span><br><span class="line">  RealInterceptorChain realChain = (RealInterceptorChain) chain;</span><br><span class="line">  Call call = realChain.call();</span><br><span class="line">  EventListener eventListener = realChain.eventListener();</span><br><span class="line"></span><br><span class="line">  streamAllocation = <span class="keyword">new</span> StreamAllocation(client.connectionPool(), createAddress(request.url()),</span><br><span class="line">      call, eventListener, callStackTrace);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">int</span> followUpCount = <span class="number">0</span>;</span><br><span class="line">  Response priorResponse = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (canceled) &#123;</span><br><span class="line">      streamAllocation.release();</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Canceled"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Response response;</span><br><span class="line">    <span class="keyword">boolean</span> releaseConnection = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      response = realChain.proceed(request, streamAllocation, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">      releaseConnection = <span class="keyword">false</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RouteException e) &#123;</span><br><span class="line">      <span class="comment">// The attempt to connect via a route failed. The request will not have been sent.</span></span><br><span class="line">      <span class="keyword">if</span> (!recover(e.getLastConnectException(), <span class="keyword">false</span>, request)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> e.getLastConnectException();</span><br><span class="line">      &#125;</span><br><span class="line">      releaseConnection = <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">      <span class="comment">// An attempt to communicate with a server failed. The request may have been sent.</span></span><br><span class="line">      <span class="keyword">boolean</span> requestSendStarted = !(e <span class="keyword">instanceof</span> ConnectionShutdownException);</span><br><span class="line">      <span class="keyword">if</span> (!recover(e, requestSendStarted, request)) <span class="keyword">throw</span> e;</span><br><span class="line">      releaseConnection = <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="comment">// We're throwing an unchecked exception. Release any resources.</span></span><br><span class="line">      <span class="keyword">if</span> (releaseConnection) &#123;</span><br><span class="line">        streamAllocation.streamFailed(<span class="keyword">null</span>);</span><br><span class="line">        streamAllocation.release();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Attach the prior response if it exists. Such responses never have a body.</span></span><br><span class="line">    <span class="keyword">if</span> (priorResponse != <span class="keyword">null</span>) &#123;</span><br><span class="line">      response = response.newBuilder()</span><br><span class="line">          .priorResponse(priorResponse.newBuilder()</span><br><span class="line">                  .body(<span class="keyword">null</span>)</span><br><span class="line">                  .build())</span><br><span class="line">          .build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Request followUp = followUpRequest(response);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (followUp == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!forWebSocket) &#123;</span><br><span class="line">        streamAllocation.release();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> response;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    closeQuietly(response.body());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (++followUpCount &gt; MAX_FOLLOW_UPS) &#123;</span><br><span class="line">      streamAllocation.release();</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> ProtocolException(<span class="string">"Too many follow-up requests: "</span> + followUpCount);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (followUp.body() <span class="keyword">instanceof</span> UnrepeatableRequestBody) &#123;</span><br><span class="line">      streamAllocation.release();</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> HttpRetryException(<span class="string">"Cannot retry streamed HTTP body"</span>, response.code());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!sameConnection(response, followUp.url())) &#123;</span><br><span class="line">      streamAllocation.release();</span><br><span class="line">      streamAllocation = <span class="keyword">new</span> StreamAllocation(client.connectionPool(),</span><br><span class="line">          createAddress(followUp.url()), call, eventListener, callStackTrace);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (streamAllocation.codec() != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Closing the body of "</span> + response</span><br><span class="line">          + <span class="string">" didn't close its backing stream. Bad interceptor?"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    request = followUp;</span><br><span class="line">    priorResponse = response;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法看起来很长，我们一句一句的分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Request request = chain.request();</span><br><span class="line">RealInterceptorChain realChain = (RealInterceptorChain) chain;</span><br><span class="line">Call call = realChain.call();</span><br><span class="line">EventListener eventListener = realChain.eventListener();</span><br></pre></td></tr></table></figure>
+
+<p>这些没什么好说的，利用 chain 获取到各个对象，为下面的逻辑做准备</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">streamAllocation = <span class="keyword">new</span> StreamAllocation(client.connectionPool(), createAddress(request.url()),</span><br><span class="line">    call, eventListener, callStackTrace);</span><br></pre></td></tr></table></figure>
+
+<p>创建一个 StreamAllocation 对象，这里只是调用了一下构造方法，没什么其它的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> followUpCount = <span class="number">0</span>;</span><br><span class="line">   Response priorResponse = <span class="keyword">null</span>;</span><br><span class="line">   <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">     <span class="keyword">if</span> (canceled) &#123;</span><br><span class="line">       streamAllocation.release();</span><br><span class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Canceled"</span>);</span><br><span class="line">     &#125;</span><br><span class="line">     ...</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>从这里开始，进入了一个循环。先判断请求是否取消了，这个 canceled 值在拦截器调用 cancel 方法的时候，会置为 true。而我们调用 RealCall 的 cancel 方法的时候，实际上是调用 retryAndFollowUpInterceptor 方法的 cancel 方法。所以这里是取消请求的逻辑。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Response response;</span><br><span class="line"><span class="keyword">boolean</span> releaseConnection = <span class="keyword">true</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  response = realChain.proceed(request, streamAllocation, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">  releaseConnection = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用 realChain 的 proceed 方法，之前已经分析过了，这里类似一个递归，获取的是后面所有拦截器处理之后的响应，然后将 releaseConnection 这个标志置为 false。releaseConnection 这个标志表示的是需要释放的链接。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#125; <span class="keyword">catch</span> (RouteException e) &#123;</span><br><span class="line">  <span class="comment">// The attempt to connect via a route failed. The request will not have been sent.</span></span><br><span class="line">  <span class="keyword">if</span> (!recover(e.getLastConnectException(), <span class="keyword">false</span>, request)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> e.getLastConnectException();</span><br><span class="line">  &#125;</span><br><span class="line">  releaseConnection = <span class="keyword">false</span>;</span><br><span class="line">  <span class="keyword">continue</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果遇到了路由异常，首先判断这个异常能否恢复，如果不能，则抛出异常，将变量 releaseConnection 置为false：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">recover</span><span class="params">(IOException e, <span class="keyword">boolean</span> requestSendStarted, Request userRequest)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 看懂这个方法需要了解 HTTP/2 的知识，暂时不深入，后面会具体看这个 StreamAllocation 类</span></span><br><span class="line">  streamAllocation.streamFailed(e);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// The application layer has forbidden retries.</span></span><br><span class="line">  <span class="keyword">if</span> (!client.retryOnConnectionFailure()) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// We can't send the request body again.</span></span><br><span class="line">  <span class="keyword">if</span> (requestSendStarted &amp;&amp; userRequest.body() <span class="keyword">instanceof</span> UnrepeatableRequestBody) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// This exception is fatal.</span></span><br><span class="line">  <span class="keyword">if</span> (!isRecoverable(e, requestSendStarted)) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// No more routes to attempt.</span></span><br><span class="line">  <span class="keyword">if</span> (!streamAllocation.hasMoreRoutes()) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// For failure recovery, use the same route selector with a new connection.</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>如果 client 设置了不失败重试则返回 false。</li>
+<li>如果请求体是 UnrepeatableRequestBody 类型，并且请求体已经发送过了，那么返回 false。</li>
+<li>致命异常，返回 false。isRecoverable 主要是对异常类型做了判断。</li>
+<li>无法尝试别的路由，返回 false。</li>
+<li>其它的，返回 true。</li>
+</ol>
+<p>回到 intercept 方法的分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">  <span class="comment">// An attempt to communicate with a server failed. The request may have been sent.</span></span><br><span class="line">  <span class="keyword">boolean</span> requestSendStarted = !(e <span class="keyword">instanceof</span> ConnectionShutdownException);</span><br><span class="line">  <span class="keyword">if</span> (!recover(e, requestSendStarted, request)) <span class="keyword">throw</span> e;</span><br><span class="line">  releaseConnection = <span class="keyword">false</span>;</span><br><span class="line">  <span class="keyword">continue</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>遇到 IO 异常，同样是判断异常能够恢复，将 releaseConnection 置为 false。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  <span class="comment">// We're throwing an unchecked exception. Release any resources.</span></span><br><span class="line">  <span class="keyword">if</span> (releaseConnection) &#123;</span><br><span class="line">    streamAllocation.streamFailed(<span class="keyword">null</span>);</span><br><span class="line">    streamAllocation.release();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果 releaseConnection 为 true，释放资源，StreamAllocation 类后面会分析。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Attach the prior response if it exists. Such responses never have a body.</span></span><br><span class="line"><span class="keyword">if</span> (priorResponse != <span class="keyword">null</span>) &#123;</span><br><span class="line">  response = response.newBuilder()</span><br><span class="line">      .priorResponse(priorResponse.newBuilder()</span><br><span class="line">              .body(<span class="keyword">null</span>)</span><br><span class="line">              .build())</span><br><span class="line">      .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>priorResponse 表示上一个响应对象，只有在请求需要重定向的时候，priorResponse 才不会为空，而 priorResponse 的 body 必定为空，因为重定向的时候，响应体是没啥东西的。这里是给 response 设置了 priorResponse 值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Request followUp = followUpRequest(response);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Request <span class="title">followUpRequest</span><span class="params">(Response userResponse)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (userResponse == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException();</span><br><span class="line">  Connection connection = streamAllocation.connection();</span><br><span class="line">  Route route = connection != <span class="keyword">null</span></span><br><span class="line">      ? connection.route()</span><br><span class="line">      : <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">int</span> responseCode = userResponse.code();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> String method = userResponse.request().method();</span><br><span class="line">  <span class="keyword">switch</span> (responseCode) &#123;</span><br><span class="line">    <span class="keyword">case</span> HTTP_PROXY_AUTH:</span><br><span class="line">      Proxy selectedProxy = route != <span class="keyword">null</span></span><br><span class="line">          ? route.proxy()</span><br><span class="line">          : client.proxy();</span><br><span class="line">      <span class="keyword">if</span> (selectedProxy.type() != Proxy.Type.HTTP) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ProtocolException(<span class="string">"Received HTTP_PROXY_AUTH (407) code while not using proxy"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> client.proxyAuthenticator().authenticate(route, userResponse);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> HTTP_UNAUTHORIZED:</span><br><span class="line">      <span class="keyword">return</span> client.authenticator().authenticate(route, userResponse);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> HTTP_PERM_REDIRECT:</span><br><span class="line">    <span class="keyword">case</span> HTTP_TEMP_REDIRECT:</span><br><span class="line">      <span class="comment">// "If the 307 or 308 status code is received in response to a request other than GET</span></span><br><span class="line">      <span class="comment">// or HEAD, the user agent MUST NOT automatically redirect the request"</span></span><br><span class="line">      <span class="keyword">if</span> (!method.equals(<span class="string">"GET"</span>) &amp;&amp; !method.equals(<span class="string">"HEAD"</span>)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// fall-through</span></span><br><span class="line">    <span class="keyword">case</span> HTTP_MULT_CHOICE:</span><br><span class="line">    <span class="keyword">case</span> HTTP_MOVED_PERM:</span><br><span class="line">    <span class="keyword">case</span> HTTP_MOVED_TEMP:</span><br><span class="line">    <span class="keyword">case</span> HTTP_SEE_OTHER:</span><br><span class="line">      <span class="comment">// Does the client allow redirects?</span></span><br><span class="line">      <span class="keyword">if</span> (!client.followRedirects()) <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">      String location = userResponse.header(<span class="string">"Location"</span>);</span><br><span class="line">      <span class="keyword">if</span> (location == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">      HttpUrl url = userResponse.request().url().resolve(location);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Don't follow redirects to unsupported protocols.</span></span><br><span class="line">      <span class="keyword">if</span> (url == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// If configured, don't follow redirects between SSL and non-SSL.</span></span><br><span class="line">      <span class="keyword">boolean</span> sameScheme = url.scheme().equals(userResponse.request().url().scheme());</span><br><span class="line">      <span class="keyword">if</span> (!sameScheme &amp;&amp; !client.followSslRedirects()) <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Most redirects don't include a request body.</span></span><br><span class="line">      Request.Builder requestBuilder = userResponse.request().newBuilder();</span><br><span class="line">      <span class="keyword">if</span> (HttpMethod.permitsRequestBody(method)) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">boolean</span> maintainBody = HttpMethod.redirectsWithBody(method);</span><br><span class="line">        <span class="keyword">if</span> (HttpMethod.redirectsToGet(method)) &#123;</span><br><span class="line">          requestBuilder.method(<span class="string">"GET"</span>, <span class="keyword">null</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          RequestBody requestBody = maintainBody ? userResponse.request().body() : <span class="keyword">null</span>;</span><br><span class="line">          requestBuilder.method(method, requestBody);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!maintainBody) &#123;</span><br><span class="line">          requestBuilder.removeHeader(<span class="string">"Transfer-Encoding"</span>);</span><br><span class="line">          requestBuilder.removeHeader(<span class="string">"Content-Length"</span>);</span><br><span class="line">          requestBuilder.removeHeader(<span class="string">"Content-Type"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// When redirecting across hosts, drop all authentication headers. This</span></span><br><span class="line">      <span class="comment">// is potentially annoying to the application layer since they have no</span></span><br><span class="line">      <span class="comment">// way to retain them.</span></span><br><span class="line">      <span class="keyword">if</span> (!sameConnection(userResponse, url)) &#123;</span><br><span class="line">        requestBuilder.removeHeader(<span class="string">"Authorization"</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> requestBuilder.url(url).build();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> HTTP_CLIENT_TIMEOUT:</span><br><span class="line">      <span class="comment">// 408's are rare in practice, but some servers like HAProxy use this response code. The</span></span><br><span class="line">      <span class="comment">// spec says that we may repeat the request without modifications. Modern browsers also</span></span><br><span class="line">      <span class="comment">// repeat the request (even non-idempotent ones.)</span></span><br><span class="line">      <span class="keyword">if</span> (!client.retryOnConnectionFailure()) &#123;</span><br><span class="line">        <span class="comment">// The application layer has directed us not to retry the request.</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (userResponse.request().body() <span class="keyword">instanceof</span> UnrepeatableRequestBody) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (userResponse.priorResponse() != <span class="keyword">null</span></span><br><span class="line">          &amp;&amp; userResponse.priorResponse().code() == HTTP_CLIENT_TIMEOUT) &#123;</span><br><span class="line">        <span class="comment">// We attempted to retry and got another timeout. Give up.</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> userResponse.request();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法，是根据传递过来的 Response 对象，构建新的 Request 对象。比如，服务器返回 HTTP_PROXY_AUTH，表示你需要进行代理认证。服务器返回 HTTP_PERM_REDIRECT，表示你需要进行重定向，就是先取出响应头部 location 字段里面的 url，然后再创建一个 Request。还有超时处理等等。这些都需要 HTTP 的知识。</p>
+<p>返回 intercept 的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (followUp == <span class="keyword">null</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (!forWebSocket) &#123;</span><br><span class="line">    streamAllocation.release();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果，followUp 为空，表示不需要重定向，认证，重试之类的，则直接返回 response 就好了。我们调用 client 的 newCall 方法的时候，forWebSocket 传递的是 false，所以这里不考虑里面 if 的代码。往下看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">closeQuietly(response.body());</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (++followUpCount &gt; MAX_FOLLOW_UPS) &#123;</span><br><span class="line">  streamAllocation.release();</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> ProtocolException(<span class="string">"Too many follow-up requests: "</span> + followUpCount);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (followUp.body() <span class="keyword">instanceof</span> UnrepeatableRequestBody) &#123;</span><br><span class="line">  streamAllocation.release();</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> HttpRetryException(<span class="string">"Cannot retry streamed HTTP body"</span>, response.code());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!sameConnection(response, followUp.url())) &#123;</span><br><span class="line">  streamAllocation.release();</span><br><span class="line">  streamAllocation = <span class="keyword">new</span> StreamAllocation(client.connectionPool(),</span><br><span class="line">      createAddress(followUp.url()), call, eventListener, callStackTrace);</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (streamAllocation.codec() != <span class="keyword">null</span>) &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Closing the body of "</span> + response</span><br><span class="line">      + <span class="string">" didn't close its backing stream. Bad interceptor?"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">request = followUp;</span><br><span class="line">priorResponse = response;</span><br></pre></td></tr></table></figure>
+
+<p>关闭 responseBody，responseBody 是实现了 closeable 接口的。</p>
+<p>重定向、认证等等操作的次数不能超过 MAX_FOLLOW_UPS，否则释放资源。</p>
+<p>重定向，认证等等创建的新的 request 的 body 不能是 UnrepeatableRequestBody，否则释放资源。</p>
+<p>然后判断，新创建的 request 的 url 与 response 的 url 不一样，释放资源，并重新创建一个 StreamAllocation 对象。</p>
+<p>最后更新变量的值，继续循环。</p>
+<p>因为上面的代码都是在一个循环中执行，所以  RetryAndFollowUpInterceptor 这个类，完成了认证，重定向，超时重试的操作。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>OKHTTP-源码分析2</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

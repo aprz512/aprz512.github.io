@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="PorterDuffXfermodejava.lang.Object   ↳    android.graphics.Xfermode        ↳    android.graphics.PorterDuffXfermode​原文地址">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Android canvas（1）">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/Android-canvas_01.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="PorterDuffXfermodejava.lang.Object   ↳    android.graphics.Xfermode        ↳    android.graphics.PorterDuffXfermode​原文地址">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-11-21T01:58:52.153Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android canvas（1）">
+<meta name="twitter:description" content="PorterDuffXfermodejava.lang.Object   ↳    android.graphics.Xfermode        ↳    android.graphics.PorterDuffXfermode​原文地址">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/Android-canvas_01">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>Android canvas（1） | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">Android canvas（1）
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>ANDROID-CANVAS_01</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <h1 id="PorterDuffXfermode"><a href="#PorterDuffXfermode" class="headerlink" title="PorterDuffXfermode"></a>PorterDuffXfermode</h1><p>java.lang.Object<br>   ↳    android.graphics.Xfermode<br>        ↳    android.graphics.PorterDuffXfermode<br>​<br><a href="http://blog.csdn.net/iispring/article/details/50472485" target="_blank" rel="noopener">原文地址</a></p>
+<a id="more"></a>
+
+<p>在使用Android中的Canvas进行绘图时，可以通过使用PorterDuffXfermode将所绘制的图形的像素与Canvas中对应位置的像素按照一定规则进行混合，形成新的像素值，从而更新Canvas中最终的像素颜色值，这样会创建很多有趣的效果。</p>
+<p>当使用PorterDuffXfermode时，需要将将其作为参数传给Paint.setXfermode(Xfermode xfermode)方法，这样在用该画笔paint进行绘图时，Android就会使用传入的PorterDuffXfermode，如果不想再使用Xfermode，那么可以执行Paint.setXfermode(null)。</p>
+<p>PorterDuffXfermode这个类中的Porter和Duff是两个人名，这两个人在1984年一起写了一篇名为《Compositing Digital Images》的论文。</p>
+<p>PorterDuffXfermode支持以下十几种像素颜色的混合模式，分别为：CLEAR、SRC、DST、SRC_OVER、DST_OVER、SRC_IN、DST_IN、SRC_OUT、DST_OUT、SRC_ATOP、DST_ATOP、XOR、DARKEN、LIGHTEN、MULTIPLY、SCREEN。</p>
+<p>接下来用几个例子来进行讲解。</p>
+<h2 id="示例一"><a href="#示例一" class="headerlink" title="示例一"></a>示例一</h2><p>在使用 PorterDuffXfermode 之前，我们先来弄清楚 Canvas 是如何绘图的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> com.aprz.porterduffxfermode.xfermode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> android.content.Context;</span><br><span class="line"><span class="keyword">import</span> android.graphics.Canvas;</span><br><span class="line"><span class="keyword">import</span> android.graphics.Color;</span><br><span class="line"><span class="keyword">import</span> android.graphics.Paint;</span><br><span class="line"><span class="keyword">import</span> android.util.AttributeSet;</span><br><span class="line"><span class="keyword">import</span> android.view.View;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by aprz on 17-2-26.</span></span><br><span class="line"><span class="comment"> * -- hh --</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">XfermodeView</span> <span class="keyword">extends</span> <span class="title">View</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> mWidth;</span><br><span class="line">    <span class="keyword">private</span> Paint mPaint;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">XfermodeView</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(context, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">XfermodeView</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(context, attrs, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">XfermodeView</span><span class="params">(Context context, AttributeSet attrs, <span class="keyword">int</span> defStyleAttr)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(context, attrs, defStyleAttr);</span><br><span class="line">        initPaint();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onSizeChanged</span><span class="params">(<span class="keyword">int</span> w, <span class="keyword">int</span> h, <span class="keyword">int</span> oldw, <span class="keyword">int</span> oldh)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onSizeChanged(w, h, oldw, oldh);</span><br><span class="line">        mWidth = w;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDraw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onDraw(canvas);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将整块画布填充为指定的颜色（argb）</span></span><br><span class="line">        canvas.drawARGB(<span class="number">0xFF</span>, <span class="number">0x8B</span>, <span class="number">0xC5</span>, <span class="number">0xBA</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 在画布上画一个圆</span></span><br><span class="line">        <span class="keyword">int</span> r = mWidth / <span class="number">3</span>;</span><br><span class="line">        mPaint.setColor(Color.parseColor(<span class="string">"#FFFFCC44"</span>));</span><br><span class="line">        canvas.drawCircle(r, r, r, mPaint);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 再画布上画一个矩形</span></span><br><span class="line">        mPaint.setColor(Color.parseColor(<span class="string">"#FF66AAFF"</span>));</span><br><span class="line">        canvas.drawRect(r, r, <span class="number">3</span> * r, <span class="number">3</span> * r, mPaint);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initPaint</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mPaint = <span class="keyword">new</span> Paint();</span><br><span class="line">        mPaint.setAntiAlias(<span class="keyword">true</span>);</span><br><span class="line">        mPaint.setDither(<span class="keyword">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看一下运行之后的结果：</p>
+
+
+<p>上面的代码很简单，让我们一起来分析一下：</p>
+<ol>
+<li>首先，我们调用了canvas.drawARGB(255, 139, 197, 186)方法将整个Canvas都绘制成一个颜色，在执行完这句代码后，canvas上所有像素的颜色值的ARGB颜色都是(255,139,197,186)，由于像素的alpha分量是255而不是0，所以此时所有像素都不透明。</li>
+<li>当我们执行了canvas.drawCircle(r, r, r, mPaint)之后，Android会在所画圆的位置用黄颜色的画笔绘制一个黄色的圆形，此时整个圆形内部所有的像素颜色值的ARGB颜色都是0xFFFFCC44，然后用这些黄色的像素替换掉Canvas中对应的同一位置中颜色值ARGB为(255,139,197,186)的像素，这样就将黄色圆形绘制到Canvas上了。</li>
+<li>当我们执行了canvas.drawRect(r, r, r * 3, r * 3, mPaint)之后，Android会在所画矩形的位置用蓝色的画笔绘制一个蓝色的矩形，此时整个矩形内部所有的像素颜色值的ARGB颜色都是0xFF66AAFF，然后用这些蓝色的像素替换掉Canvas中对应的同一位置中的像素，这样黄色的圆中的右下角部分的像素与其他一些背景色像素就被蓝色像素替换了，这样就将蓝色矩形绘制到Canvas上了。</li>
+</ol>
+<p>上面分析的很完整了，但是我有一个问题，就是如果绘制的时候，传递的色值是半透明的话，会是什么效果呢？肯定不会出现上面的效果：之前画的像素点，被完全替换掉。这也是我想验证的一个问题：如果后绘制的像素点是半透明的话，是将后绘制的像素点色值与之前绘制的像素点色值叠加起来了吗？如果后绘制的像素点是不透明的，后绘制的像素点会替换掉之前绘制的像素点？</p>
+<p>为了测试，我将圆形的色值改为半透明：1FFFCC44。再次运行，效果如下：</p>
+
+
+<p>可以很清楚的看出来，圆形下面的绿色底了。所以我的猜想可能是正确的，但是为了科学，我将两个颜色的色值相加，画在画布上比较一下，看看颜色是否一样。</p>
+<h3 id="ARGB的颜色混合公式："><a href="#ARGB的颜色混合公式：" class="headerlink" title="ARGB的颜色混合公式："></a>ARGB的颜色混合公式：</h3><p>Alpha混合算法:</p>
+<p>DstR=(SrcR1<em>Alpha)+(SrcR2</em>(1-Alpha))<br>DstG=(SrcG1<em>Alpha)+(SrcG2</em>(1-Alpha))<br>DstB=(SrcB1<em>Alpha)+(SrcB2</em>(1-Alpha))</p>
+<p>DstR,DstG,DstB分别为结果的RGB值</p>
+<p>SrcR1,SrcG1,SrcB1分别为要混合的颜色1的RGB值</p>
+<p>SrcR2,SrcG2,SrcB2分别为要混合的颜色2的RGB值</p>
+<p>Alpha是颜色1的不透明度。</p>
+<p>测试代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 测试颜色混合代码</span></span><br><span class="line"><span class="keyword">double</span> a = <span class="number">1.0</span> * <span class="number">0x1f</span> / <span class="number">0xff</span>;</span><br><span class="line"><span class="keyword">double</span> b = <span class="number">1</span> - a;</span><br><span class="line">mPaint.setColor(Color.argb(</span><br><span class="line">        <span class="number">0XFF</span>,</span><br><span class="line">        (<span class="keyword">int</span>) (<span class="number">0X8B</span> * b + <span class="number">0xff</span> * a),</span><br><span class="line">        (<span class="keyword">int</span>) (<span class="number">0XC5</span> * b + <span class="number">0XCC</span> * a),</span><br><span class="line">        (<span class="keyword">int</span>) (<span class="number">0XBA</span> * b + <span class="number">0X44</span> * a)));</span><br><span class="line">canvas.drawCircle(<span class="number">2</span> * r, r, r, mPaint);</span><br></pre></td></tr></table></figure>
+
+<p>效果图如下：</p>
+
+
+<p>可以看出，颜色确实是一样的。我的疑问也有了解释。<br>无论有没有透明度，都是按照 Alpha 混合算法计算得出的色值。<br>只不过没有透明度的时候，完全显示的是后绘制的颜色，效果与替换是一样的，上面的分析可以说没错。<br>所以只需要记住，后绘制的颜色会与之前的颜色进行 Alpha 混合算法。无论绘制多少层，都是这样。</p>
+<p>现在我们了解了 Canvas 绘图时具体的像素更新过程，接下来开始理解 PorterDuffXfermode 的原理。</p>
+<h2 id="示例二"><a href="#示例二" class="headerlink" title="示例二"></a>示例二</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aprz.porterduffxfermode.xfermode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> android.content.Context;</span><br><span class="line"><span class="keyword">import</span> android.graphics.Canvas;</span><br><span class="line"><span class="keyword">import</span> android.graphics.Color;</span><br><span class="line"><span class="keyword">import</span> android.graphics.Paint;</span><br><span class="line"><span class="keyword">import</span> android.graphics.PorterDuff;</span><br><span class="line"><span class="keyword">import</span> android.graphics.PorterDuffXfermode;</span><br><span class="line"><span class="keyword">import</span> android.util.AttributeSet;</span><br><span class="line"><span class="keyword">import</span> android.view.View;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by aprz on 17-2-26.</span></span><br><span class="line"><span class="comment"> * -- hh --</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">XfermodeView3</span> <span class="keyword">extends</span> <span class="title">View</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> mWidth;</span><br><span class="line">    <span class="keyword">private</span> Paint mPaint;</span><br><span class="line">    <span class="keyword">private</span> PorterDuffXfermode mXfermode;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">XfermodeView3</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(context, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">XfermodeView3</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(context, attrs, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">XfermodeView3</span><span class="params">(Context context, AttributeSet attrs, <span class="keyword">int</span> defStyleAttr)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(context, attrs, defStyleAttr);</span><br><span class="line">        initPaint();</span><br><span class="line">        initXfermode();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onSizeChanged</span><span class="params">(<span class="keyword">int</span> w, <span class="keyword">int</span> h, <span class="keyword">int</span> oldw, <span class="keyword">int</span> oldh)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onSizeChanged(w, h, oldw, oldh);</span><br><span class="line">        mWidth = w;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDraw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onDraw(canvas);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将整块画布填充为指定的颜色（argb）</span></span><br><span class="line">        canvas.drawARGB(<span class="number">0xFF</span>, <span class="number">0x8B</span>, <span class="number">0xC5</span>, <span class="number">0xBA</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 在画布上画一个圆</span></span><br><span class="line">        <span class="keyword">int</span> r = mWidth / <span class="number">3</span>;</span><br><span class="line">        mPaint.setColor(Color.parseColor(<span class="string">"#FFFFCC44"</span>));</span><br><span class="line">        canvas.drawCircle(r, r, r, mPaint);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//使用CLEAR作为PorterDuffXfermode绘制蓝色的矩形</span></span><br><span class="line">        mPaint.setXfermode(mXfermode);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 再画布上画一个矩形</span></span><br><span class="line">        mPaint.setColor(Color.parseColor(<span class="string">"#FF66AAFF"</span>));</span><br><span class="line">        canvas.drawRect(r, r, <span class="number">3</span> * r, <span class="number">3</span> * r, mPaint);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将 mode 去除</span></span><br><span class="line">        mPaint.setXfermode(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initPaint</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mPaint = <span class="keyword">new</span> Paint();</span><br><span class="line">        mPaint.setAntiAlias(<span class="keyword">true</span>);</span><br><span class="line">        mPaint.setDither(<span class="keyword">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initXfermode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mXfermode = <span class="keyword">new</span> PorterDuffXfermode(PorterDuff.Mode.CLEAR);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>效果图：</p>
+
+
+<p>出现的效果与原文中说的不同，<strong>原文说的是白色，我运行出来的是黑色</strong>。不知道是为什么！<br>查看文档只有 [0, 0] 这样的解释，日了。<br>暂时先按黑色来理解，文中说是与Activity的背景色有关，然而我试了很多，并没有卵用，<br>我特喵的还试了各种版本的模拟器，都是黑色。</p>
+<p>给出文中的解释：</p>
+<p>我们具体分析一下白色矩形出现的原因。<br>一般我们在调用canvas.drawXXX()方法时都会传入一个画笔Paint对象，Android在绘图时会先检查该画笔Paint对象有没有设置Xfermode。</p>
+<p>如果没有设置Xfermode，那么直接将绘制的图形覆盖Canvas对应位置原有的像素；</p>
+<p>如果设置了Xfermode，那么会按照Xfermode具体的规则来更新Canvas中对应位置的像素颜色。</p>
+<p>就本例来说，在执行canvas.drawCirlce()方法时，画笔Paint没有设置Xfermode对象，所以绘制的黄色圆形直接覆盖了Canvas上的像素。当我们调用canvas.drawRect()绘制矩形时，画笔Paint已经设置Xfermode的值为PorterDuff.Mode.CLEAR，此时Android首先是在内存中绘制了这么一个矩形，所绘制的图形中的像素称作源像素（source，简称src），所绘制的矩形在Canvas中对应位置的矩形内的像素称作目标像素（destination，简称dst）。源像素的ARGB四个分量会和Canvas上同一位置处的目标像素的ARGB四个分量按照Xfermode定义的规则进行计算，形成最终的ARGB值，然后用该最终的ARGB值更新目标像素的ARGB值。<strong>本例中的Xfermode是PorterDuff.Mode.CLEAR，该规则比较简单粗暴，直接要求目标像素的ARGB四个分量全置为0，即(0，0，0，0)，即透明色</strong>，所以我们通过canvas.drawRect()在Canvas上绘制了一个透明的矩形，由于Activity本身屏幕的背景时白色的，所以此处就显示了一个白色的矩形。</p>
+<p>我想，既然模式设置的是 CLEAR，因该是清除的意思，怎么会是透明色，清除了应该是什么都没有了，是黑色才对。于是我又找到了 Google 提供的 Api demo，运行之后的结果如下：</p>
+
+
+<p>图上那些像 ps 透明背景一样的是一张图，黄色的圆和蓝色的正方形也是一张图。看第一个显示效果，真的是透明的效果，难道是我哪里搞错了。于是我首先将自己写的 demo 换成 bitmap 来测试，发现与 bitmap 无关。<br>后来我注意到 api demo 的一段代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">int</span> sc = canvas.saveLayer(x, y, x + W, y + H, <span class="keyword">null</span>,</span><br><span class="line">                        Canvas.MATRIX_SAVE_FLAG |</span><br><span class="line">                                Canvas.CLIP_SAVE_FLAG |</span><br><span class="line">                                Canvas.HAS_ALPHA_LAYER_SAVE_FLAG |</span><br><span class="line">                                Canvas.FULL_COLOR_LAYER_SAVE_FLAG |</span><br><span class="line">                                Canvas.CLIP_TO_LAYER_SAVE_FLAG);</span><br></pre></td></tr></table></figure>
+
+<p>根据我多年看柯南的经验，这可能与重新创建了一个 layer 有关，于是我修改自己的 demo 如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDraw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onDraw(canvas);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将整块画布填充为指定的颜色（argb）</span></span><br><span class="line">        canvas.drawARGB(<span class="number">0xFF</span>, <span class="number">0x8B</span>, <span class="number">0xC5</span>, <span class="number">0xBA</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> saveLayer = canvas.saveLayer(<span class="number">0</span>, <span class="number">0</span>, getWidth(), getHeight(), <span class="keyword">null</span>, Canvas.CLIP_SAVE_FLAG);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 在画布上画一个圆</span></span><br><span class="line">        <span class="keyword">int</span> r = mWidth / <span class="number">6</span>;</span><br><span class="line">        mPaint.setColor(Color.parseColor(<span class="string">"#FFFFCC44"</span>));</span><br><span class="line">        canvas.drawCircle(r, r, r, mPaint);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//使用CLEAR作为PorterDuffXfermode绘制蓝色的矩形</span></span><br><span class="line">        mPaint.setXfermode(mXfermode);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 再画布上画一个矩形</span></span><br><span class="line">        mPaint.setColor(Color.parseColor(<span class="string">"#FF66AAFF"</span>));</span><br><span class="line">        canvas.drawRect(r, r, <span class="number">3</span> * r, <span class="number">3</span> * r, mPaint);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将 mode 去除</span></span><br><span class="line">        mPaint.setXfermode(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">        canvas.restoreToCount(saveLayer);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行效果如下：</p>
+
+
+<p>果然变成了透明。这与原博客的实例三效果一样。原博客给出的解释如下：</p>
+<p>关于canvas绘图中的layer有以下几点需要说明：</p>
+<ol>
+<li>canvas是支持图层layer渲染这种技术的，canvas默认就有一个layer，当我们平时调用canvas的各种drawXXX()方法时，其实是把所有的东西都绘制到canvas这个默认的layer上面。</li>
+<li>我们还可以通过canvas.saveLayer()新建一个layer，新建的layer放置在canvas默认layer的上部，当我们执行了canvas.saveLayer()之后，我们所有的绘制操作都绘制到了我们新建的layer上，而不是canvas默认的layer。</li>
+<li>用canvas.saveLayer()方法产生的layer所有像素的ARGB值都是(0，0，0，0)，即canvas.saveLayer()方法产生的layer初始时时完全透明的。</li>
+<li>canvas.saveLayer()方法会返回一个int值，用于表示layer的ID，在我们对这个新layer绘制完成后可以通过调用canvas.restoreToCount(layer)或者canvas.restore()把这个layer绘制到canvas默认的layer上去，这样就完成了一个layer的绘制工作。</li>
+</ol>
+<p>那你可能感觉到很奇怪，我们只是将绘制圆形与矩形的代码放到了canvas.saveLayer()和canvas.restoreToCount()之间，为什么不再像示例二那样显示白色的矩形了？</p>
+<p>我们在分析示例二代码时知道了最终矩形区域的目标颜色都被重置为透明色(0,0,0,0)了，最后只是由于Activity背景色为白色，所以才最终显示成白色矩形。在本例中，我们在新建的layer上面绘制完成后，其实矩形区域的目标颜色也还是被重置为透明色(0,0,0,0)了，这样整个新建layer只有圆的3/4不是透明的，其余像素全是透明的，然后我们调用canvas.restoreToCount()将该layer又绘制到了Canvas上面去了。在将一个新建的layer绘制到Canvas上去时，Android会用整个layer上面的像素颜色去更新Canvas对应位置上像素的颜色，并不是简单的替换，而是Canvas和新layer进行Alpha混合，可参见此处链接。由于我们的layer中只有两种像素：完全透明的和完全不透明的，不存在部分透明的像素，并且完全透明的像素的颜色值的四个分量都为0，所以本例就将Canvas和新layer进行Alpha混合的规则简化了，具体来说：</p>
+<p>如果新建layer上面某个像素的Alpha分量为255，即该像素完全不透明，那么Android会直接用该像素的ARGB值作为Canvas对应位置上像素的颜色值。<br>如果新建layer上面某个像素的Alpha分量为0，即该像素完全透明，在本例中Alpha分量为0的像素，其RGB分量也都为0，那么Android会保留Canvas对应位置上像素的颜色值。</p>
+<p>这样当将新layer绘制到Canvas上时，完全不透明的3/4黄色圆中的像素会完全覆盖Canvas对应位置的像素，而由于在新layer上面绘制的矩形区域的像素ARGB都为(0,0,0,0)，所以最终Canvas上对应矩形区域还是保持之前的背景色，这样就不会出现白色的矩形了。</p>
+<p>大部分情况下，我们想要本例中实现的效果，而不是想要示例二中形成的白色矩形，所以大部分情况下在使用PorterDuffXfermode时都是结合canvas.saveLayer()、canvas.restoreToCount()的，将关键代码写在这两个方法之间。</p>
+<p>这个解释，是能够说得通的，<strong>但是关于 activity 的背景那一部分应该是有问题的。即 Canvas 默认的 layer 肯定不是透明的（根据我运行的效果，是黑色的），新创建的 layer 是透明的。</strong></p>
+<p>如果有明白人愿意指教的，给我发个邮件（<a href="mailto:lyldalek@gmail.com" target="_blank" rel="noopener">lyldalek@gmail.com</a>），感激不尽！！！</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>ANDROID-CANVAS_01</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PorterDuffXfermode"><span class="nav-number">1.</span> <span class="nav-text">PorterDuffXfermode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#示例一"><span class="nav-number">1.1.</span> <span class="nav-text">示例一</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ARGB的颜色混合公式："><span class="nav-number">1.1.1.</span> <span class="nav-text">ARGB的颜色混合公式：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#示例二"><span class="nav-number">1.2.</span> <span class="nav-text">示例二</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

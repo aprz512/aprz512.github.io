@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="在一些早期的语言中，是没有指针这个东西的，那么就没办法实现链表了。但是我们的前辈们想出了一个办法：用数组来实现链表，是真的牛逼。我们来看看是如何实现的吧。首先，同样是定义一个Node类，然后创建一个Node数组，为了方便插入数据，会把这个数组定义的大一些，以免溢出（这里就不考虑扩容了）。注意这里我们储存的是下一个节点的位置，而不是下一个节点的引用，因为早期的语言没有引用。">
+<meta name="keywords" content="算法-大话数据结构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="0018-静态链表">
+<meta property="og:url" content="http://aprz512.github.io/2019/08/19/blog_bak/Blog/算法/大话数据结构/0018-静态链表/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="在一些早期的语言中，是没有指针这个东西的，那么就没办法实现链表了。但是我们的前辈们想出了一个办法：用数组来实现链表，是真的牛逼。我们来看看是如何实现的吧。首先，同样是定义一个Node类，然后创建一个Node数组，为了方便插入数据，会把这个数组定义的大一些，以免溢出（这里就不考虑扩容了）。注意这里我们储存的是下一个节点的位置，而不是下一个节点的引用，因为早期的语言没有引用。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/3-12-1.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/3-12-2.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/3-12-3.png?raw=true">
+<meta property="og:updated_time" content="2019-08-29T02:53:02.219Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="0018-静态链表">
+<meta name="twitter:description" content="在一些早期的语言中，是没有指针这个东西的，那么就没办法实现链表了。但是我们的前辈们想出了一个办法：用数组来实现链表，是真的牛逼。我们来看看是如何实现的吧。首先，同样是定义一个Node类，然后创建一个Node数组，为了方便插入数据，会把这个数组定义的大一些，以免溢出（这里就不考虑扩容了）。注意这里我们储存的是下一个节点的位置，而不是下一个节点的引用，因为早期的语言没有引用。">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/3-12-1.png?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2019/08/19/blog_bak/Blog/算法/大话数据结构/0018-静态链表/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>0018-静态链表 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/08/19/blog_bak/Blog/算法/大话数据结构/0018-静态链表/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">0018-静态链表
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-08-19 00:00:00" itemprop="dateCreated datePublished" datetime="2019-08-19T00:00:00+08:00">2019-08-19</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-29 10:53:02" itemprop="dateModified" datetime="2019-08-29T10:53:02+08:00">2019-08-29</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/大话数据结构/" itemprop="url" rel="index"><span itemprop="name">大话数据结构</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/08/19/blog_bak/Blog/算法/大话数据结构/0018-静态链表/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/08/19/blog_bak/Blog/算法/大话数据结构/0018-静态链表/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在一些早期的语言中，是没有指针这个东西的，那么就没办法实现链表了。但是我们的前辈们想出了一个办法：用数组来实现链表，是真的牛逼。我们来看看是如何实现的吧。</p><p>首先，同样是定义一个Node类，然后创建一个Node数组，为了方便插入数据，会把这个数组定义的大一些，以免溢出（这里就不考虑扩容了）。注意这里我们储存的是下一个节点的位置，而不是下一个节点的引用，因为早期的语言没有引用。</p><a id="more"></a>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Node</span> </span>&#123;</span><br><span class="line">    Object value;</span><br><span class="line">    <span class="keyword">int</span> nextPos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后我们再来思考，用数组怎么链式储存数据。</p>
+<p>首先头指针怎么存？</p>
+<p>新插入一个节点的时候，怎么插入？肯定不能一个个往后移动</p>
+<p>删除节点的时候，怎么标记这个位置是空的？</p>
+<p>直接给出答案吧，看下图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/3-12-1.png?raw=true" alt></p>
+<p>这样储存的就解决了上面的3个问题。</p>
+<p>头节点放在最后一个位置。</p>
+<p>第一个位置用来放备用链表，啥叫备用链表呢，就是把数组里面所有为空的位置串起来的链表。有了备用链表，想要插入的话，从备用链表里面拿第一个节点就好了。想要删除的话，将删除的节点放入备用链表就好了。</p>
+<h2 id="静态链表的初始化"><a href="#静态链表的初始化" class="headerlink" title="静态链表的初始化"></a>静态链表的初始化</h2><p>其实静态链表的初始化就是要做3件事：</p>
+<ul>
+<li>头节点</li>
+<li>备用链表头节点</li>
+<li>备用链表</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;SIZE; i++) &#123;</span><br><span class="line">        <span class="comment">// 这里初始化了备用链表的头节点与备用链表</span></span><br><span class="line">        <span class="comment">// 原本我想的是将静态链表的头节点放在第一个位置，后来想了一下</span></span><br><span class="line">        <span class="comment">// 放在最后一个位置会更简单一些，虽然放在第一个位置也能实现，但是就显得麻烦了</span></span><br><span class="line">        nodes[i].nextPos = i+<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 这里初始化了静态链表的头节点</span></span><br><span class="line">    nodes[SIZE - <span class="number">1</span>].nextPos = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实就是将整个数组串起来，最后将头尾连起来，形成一个闭环。</p>
+<p>这个闭环里面其实是有两条链表，一个备用链表，一个存放数据的链表。</p>
+<p>上面的代码中，将数据链表一开始指向了 0 位置，其实一开始指不指向 0 无所谓，只要它后来指向第一个存放数据的位置就好了。</p>
+<h2 id="插入一个元素"><a href="#插入一个元素" class="headerlink" title="插入一个元素"></a>插入一个元素</h2><p>第一个插入的元素，肯定是存放在1位置的（因为备用链表初始化的时候，第一个节点是1位置），接下来插入的数据依次往后摆。</p>
+<p>假设静态链表已经存放进去了一些数据，如下图所示：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/3-12-2.png?raw=true" alt></p>
+<p>要想插入一个数据，需要分为这几步：</p>
+<ul>
+<li>拿出备用链表的头节点 H</li>
+<li>更新备用链表的头节点</li>
+<li>将 H 节点插入到数据链表中</li>
+</ul>
+<p>我们先从备用链表里面拿到其头节点，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getStandByHeadNode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 获取备用链表头节点的位置</span></span><br><span class="line">    <span class="keyword">int</span> pos = table[<span class="number">0</span>].nextPos;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 我们指定，备用链表的头节点为0，表示链表已经满了</span></span><br><span class="line">    <span class="keyword">if</span> (pos != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// 更新备用链表的头节点</span></span><br><span class="line">        table[<span class="number">0</span>].nextPos = table[pos].nextPos;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> pos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后再插入数据，这里的插入数据与之前的不一样，因为我们储存了下一个节点的位置，所以我们只需要更新一下下一个节点的位置就好了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">insertNode</span><span class="params">(<span class="keyword">int</span> index, Object value)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 保证 index 在 0 与 数据链表的长度之间</span></span><br><span class="line">    checkIndex(index);</span><br><span class="line">    <span class="keyword">int</span> pos = getStandByHeadNode();</span><br><span class="line">    <span class="keyword">if</span> (pos == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    table[pos].value = value;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 寻找插入位置</span></span><br><span class="line">    <span class="keyword">int</span> dataNextPos = SIZE - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; index; i++) &#123;</span><br><span class="line">        dataNextPos = table[dataNextPos].nextPos;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 在第i个节点后面添加一个节点</span></span><br><span class="line">    table[pos].nextPos = table[dataNextPos].nextPos;</span><br><span class="line">    table[dataNextPos].nextPos = pos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>插入后数据如下图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/3-12-3.png?raw=true" alt></p>
+<h2 id="删除一个元素"><a href="#删除一个元素" class="headerlink" title="删除一个元素"></a>删除一个元素</h2><p>同样的，先来理思路：</p>
+<ul>
+<li>找到需要删除的元素 D 的前一个元素H（因为需要更改 H 元素的cur值）</li>
+<li>将 H 的cur 值改为 D 的 cur 值</li>
+<li>将 D 元素放入备用链表</li>
+</ul>
+<p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteNode</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 保证链表长度大于1</span></span><br><span class="line">    checkLength();</span><br><span class="line">    <span class="comment">// 保证 index 在 0 与 数据链表的长度之间</span></span><br><span class="line">    checkIndex(index);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 找到需要删除的节点的前一个节点</span></span><br><span class="line">    <span class="keyword">int</span> dataNextPos = SIZE - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; index; i++) &#123;</span><br><span class="line">        dataNextPos = table[dataNextPos].nextPos;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 前一个节点</span></span><br><span class="line">    Node p = table[dataNextPos];</span><br><span class="line">    <span class="comment">// 需要删除的节点</span></span><br><span class="line">    Node d = table[p.nextPos];</span><br><span class="line">    <span class="comment">// 删除节点</span></span><br><span class="line">    p.nextPos = d.nextPos;</span><br><span class="line">    <span class="comment">// 将 d 放入备用链表</span></span><br><span class="line">    d.nextPos = table[<span class="number">0</span>].nextPos;</span><br><span class="line">    table[<span class="number">0</span>].nextPos = p.nextPos;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 释放节点空间</span></span><br><span class="line">    d.nextPos = <span class="number">0</span>;</span><br><span class="line">    d.value = <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="静态链表的优缺点"><a href="#静态链表的优缺点" class="headerlink" title="静态链表的优缺点"></a>静态链表的优缺点</h2><p>优点：</p>
+<p>增删时只需要修改游标，不需要移动元素</p>
+<p>缺点：</p>
+<p>没有解决长度问题（长度无法确定，只能取一个估计值），失去了随机存储的特性</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/08/19/blog_bak/Blog/算法/大话数据结构/0018-静态链表/" title="0018-静态链表">http://aprz512.github.io/2019/08/19/blog_bak/Blog/算法/大话数据结构/0018-静态链表/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法-大话数据结构/" rel="tag"># 算法-大话数据结构</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/08/19/blog_bak/Blog/Java/并发/0009-线程安全及不可变性/" rel="next" title="0009-线程安全及不可变性">
+                  <i class="fa fa-chevron-left"></i> 0009-线程安全及不可变性
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/08/19/blog_bak/Blog/Java/并发/0012-线程间通信/" rel="prev" title="0012-线程间通信">
+                  0012-线程间通信 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#静态链表的初始化"><span class="nav-number">1.</span> <span class="nav-text">静态链表的初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插入一个元素"><span class="nav-number">2.</span> <span class="nav-text">插入一个元素</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#删除一个元素"><span class="nav-number">3.</span> <span class="nav-text">删除一个元素</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态链表的优缺点"><span class="nav-number">4.</span> <span class="nav-text">静态链表的优缺点</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

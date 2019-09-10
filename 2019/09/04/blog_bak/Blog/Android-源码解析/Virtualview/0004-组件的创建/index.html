@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="前面我们说了，想要加载一个模板文件，需要调用如下代码：1sViewManager.loadBinBufferSync(TEST.BIN);那么，模板加载进来了之后，该怎么使用呢？用法还算是简单，如下：1234567891011121314151617protected void preview(String templateName, com.alibaba.fastjson.JSONObject">
+<meta name="keywords" content="Android-源码解析-Virtualview">
+<meta property="og:type" content="article">
+<meta property="og:title" content="0004-组件的创建">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="前面我们说了，想要加载一个模板文件，需要调用如下代码：1sViewManager.loadBinBufferSync(TEST.BIN);那么，模板加载进来了之后，该怎么使用呢？用法还算是简单，如下：1234567891011121314151617protected void preview(String templateName, com.alibaba.fastjson.JSONObject">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-07T03:42:50.530Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="0004-组件的创建">
+<meta name="twitter:description" content="前面我们说了，想要加载一个模板文件，需要调用如下代码：1sViewManager.loadBinBufferSync(TEST.BIN);那么，模板加载进来了之后，该怎么使用呢？用法还算是简单，如下：1234567891011121314151617protected void preview(String templateName, com.alibaba.fastjson.JSONObject">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>0004-组件的创建 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">0004-组件的创建
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-04T00:00:00+08:00">2019-09-04</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>前面我们说了，想要加载一个模板文件，需要调用如下代码：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sViewManager.loadBinBufferSync(TEST.BIN);</span><br></pre></td></tr></table></figure><p>那么，模板加载进来了之后，该怎么使用呢？用法还算是简单，如下：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">preview</span><span class="params">(String templateName, com.alibaba.fastjson.JSONObject jsonData)</span> </span>&#123;</span><br><span class="line">    mContainer = sVafContext.getContainerService().getContainer(templateName, <span class="keyword">true</span>);</span><br><span class="line">    IContainer iContainer = (IContainer) mContainer;</span><br><span class="line">    <span class="keyword">if</span> (jsonData != <span class="keyword">null</span>) &#123;</span><br><span class="line">        iContainer.getVirtualView().setVData(jsonData);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Layout.Params p = iContainer.getVirtualView().getComLayoutParams();</span><br><span class="line">    LinearLayout.LayoutParams marginLayoutParams = <span class="keyword">new</span> LinearLayout.LayoutParams(p.mLayoutWidth, p.mLayoutHeight);</span><br><span class="line">    marginLayoutParams.leftMargin = p.mLayoutMarginLeft;</span><br><span class="line">    marginLayoutParams.topMargin = p.mLayoutMarginTop;</span><br><span class="line">    marginLayoutParams.rightMargin = p.mLayoutMarginRight;</span><br><span class="line">    marginLayoutParams.bottomMargin = p.mLayoutMarginBottom;</span><br><span class="line"></span><br><span class="line">    mLinearLayout.removeAllViews();</span><br><span class="line">    mLinearLayout.addView(mContainer, marginLayoutParams);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+
+
+<p>templateName 就是我们模板的名字，不是模板文件的名字，是模板的名字，以我们的例子来说，就是“TEST”。</p>
+<p>jsonData 就是模板需要展示的数据，一个例子如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"style"</span>: &#123;</span><br><span class="line">        <span class="attr">"text-style"</span> : <span class="string">"bold|italic"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"height"</span>: <span class="number">200</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的 style 可以看作是一个对象，它里面有一个 text-style 属性，我们可以这样使用它：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">textStyle=<span class="string">"$&#123;style.text-style&#125;"</span></span><br></pre></td></tr></table></figure>
+
+<p>我们的例子中没有用到 style 这个东西。</p>
+<h2 id="ContainerService"><a href="#ContainerService" class="headerlink" title="ContainerService"></a>ContainerService</h2><p>参数介绍完之后，我们来看看里面的逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mContainer = sVafContext.getContainerService().getContainer(templateName, <span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这行代码就是核心内容了，里面就有实例化模板文件中的 view 的所有逻辑。我们点进去看一下：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.framework.cm.ContainerService#getContainer(java.lang.String, boolean)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">getContainer</span><span class="params">(String viewType, <span class="keyword">boolean</span> createParam)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> type = mComContainerTypeMap.getContainerMap(viewType);</span><br><span class="line">    <span class="keyword">if</span> (type &lt;= -<span class="number">1</span>) &#123;</span><br><span class="line">        type = CONTAINER_TYPE_NORMAL;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> getContainer(viewType, type, createParam);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>因为 Tangram 是支持自定义组件与组件容器的，所以如果你有自定义的组件容器的话，需要注册进去，注册的时候需要传递一个 type 值。由于我们没有自定义的 type 所以这里会返回 -1（也就是说对于自带的容器都是返回 -1），所以我们的 type 值会默认是 CONTAINER_TYPE_NORMAL。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.framework.cm.ContainerService#getContainer(java.lang.String, int, boolean)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">getContainer</span><span class="params">(String viewType, <span class="keyword">int</span> containerType, <span class="keyword">boolean</span> createParam)</span> </span>&#123;</span><br><span class="line">    IContainer container = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 实例化组件是这行代码做的</span></span><br><span class="line">    ViewBase vb = mVM.getView(viewType);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == vb) &#123;</span><br><span class="line">        vb = mVM.getDefaultImage();</span><br><span class="line">        vb.setViewType(viewType);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果模板的根布局是 container，不用做什么额外的操作</span></span><br><span class="line">    <span class="comment">// 如果模板的根布局不是 container，需要添加一层 container 在外面，container 为 com.tmall.wireless.vaf.virtualview.container.Container 对象</span></span><br><span class="line">    <span class="keyword">if</span> (vb.isContainer()) &#123;</span><br><span class="line">        container = (IContainer) vb.getNativeView();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        ContainerMrg cm = mContainerMrg.get(containerType);</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != cm) &#123;</span><br><span class="line">            container = cm.getContainer(mAppContext);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Log.e(TAG, <span class="string">"getContainer type invalidate:"</span> + containerType);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 有了容器之后，设置 layoutParams 就完事了</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != container) &#123;</span><br><span class="line">        container.setVirtualView(vb);</span><br><span class="line">        <span class="keyword">if</span> (createParam) &#123;</span><br><span class="line">            Layout.Params p = vb.getComLayoutParams();</span><br><span class="line">            MarginLayoutParams marginLayoutParams = <span class="keyword">new</span> MarginLayoutParams(p.mLayoutWidth, p.mLayoutHeight);</span><br><span class="line">            marginLayoutParams.leftMargin = p.mLayoutMarginLeft;</span><br><span class="line">            marginLayoutParams.topMargin = p.mLayoutMarginTop;</span><br><span class="line">            marginLayoutParams.rightMargin = p.mLayoutMarginRight;</span><br><span class="line">            marginLayoutParams.bottomMargin = p.mLayoutMarginBottom;</span><br><span class="line">            ((View)container).setLayoutParams(marginLayoutParams);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 这里就是将 layout 里面的控件都拿出来，add到容器里里面</span></span><br><span class="line">        container.attachViews();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (View)container;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>文档里面说过，因为虚拟控件只是绘制在 canvas 上，所以它依托一个原生容器控件作为宿主容器，必须要有容器才会显示。</p>
+<p>我们例子中用的 VHLayout，看起来像一个容器，但是它不是，它里面有自己的测量，布局，绘制逻辑，但是它不是 ViewGroup，也不是 View。它也需要依托在一个容器里面，因为容器是继承了 ViewGroup 的，所以容器才能显示出来。</p>
+<p>比如：VHLayout里面竖向排列了3个 NText，我们只拿布局逻辑来说。竖向排列的逻辑放在了 VHLayout 里面，但是容器会将 3个 NText 都拿出来，add 到自己的布局里面，那么这个时候，容器在布局的时候，就需要调用 VHLayout 里面的布局逻辑，来排列 3 个 NText。</p>
+<p>这里先有个大致的了解，后面会单独讲解虚拟控件到底是个什么东西。</p>
+<h2 id="ViewManager"><a href="#ViewManager" class="headerlink" title="ViewManager"></a>ViewManager</h2><p>回到代码逻辑，我们深入下去：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.framework.ViewManager#getView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ViewBase <span class="title">getView</span><span class="params">(String type)</span> </span>&#123;</span><br><span class="line">    ViewBase v;</span><br><span class="line">    List&lt;ViewBase&gt; vList = mViewCache.get(type);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == vList || <span class="number">0</span> == vList.size()) &#123;</span><br><span class="line">        v = mViewFactory.newView(type, mUuidContainers);</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != v) &#123;</span><br><span class="line">            <span class="keyword">if</span> (v.supportDynamic()) &#123;</span><br><span class="line">                mAppContext.getNativeObjectManager().addView(v);</span><br><span class="line">            &#125;</span><br><span class="line">            v.setViewType(type);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Log.e(TAG, <span class="string">"new view failed type:"</span> + type);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        v = vList.remove(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> v;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法就很简单了，只有第5行是核心代码，就是调用了 ViewFactory 的方法。其他的逻辑都是与缓存相关，因为最终都是基于RecyclerView的，有兴趣的可以自己研究。</p>
+<h2 id="ViewFactory"><a href="#ViewFactory" class="headerlink" title="ViewFactory"></a>ViewFactory</h2><blockquote>
+<p>com.tmall.wireless.vaf.virtualview.ViewFactory#newView(java.lang.String, android.util.SparseArray&lt;com.tmall.wireless.vaf.virtualview.core.ViewBase&gt;)</p>
+</blockquote>
+<p>这个方法很长，我们一段一段的分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ViewBase <span class="title">newView</span><span class="params">(String type, SparseArray&lt;ViewBase&gt; uuidContainers)</span> </span>&#123;</span><br><span class="line">    ViewBase ret = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != mLoader) &#123;</span><br><span class="line">        CodeReader cr = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">synchronized</span> (LOCK) &#123;</span><br><span class="line">            cr = mUiCodeLoader.getCode(type);</span><br><span class="line">            <span class="keyword">if</span> (cr == <span class="keyword">null</span>) &#123;</span><br><span class="line">                Log.d(TAG, <span class="string">"load "</span> + type + <span class="string">" start when createView "</span>);</span><br><span class="line">                mTmplWorker.executeTask(type);</span><br><span class="line">                cr = mUiCodeLoader.getCode(type);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>mUiCodeLoader 是老朋友了，我们可以根据 type 获取到对应的 CodeReader，CodeReader 里面储存的是模板的二进制数据。</p>
+<p>mTmplWorker 是用来做异步加载处理的，因为有可能我们启动了异步加载，在实例化模板的时候，模板文件还没有读取完成，所以这里就需要先去加载模板文件。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">null</span> != cr) &#123;</span><br><span class="line">    mComArr.clear();</span><br><span class="line">    ViewBase curView = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> tag = cr.readByte();</span><br><span class="line">    <span class="keyword">int</span> state = STATE_continue;</span><br><span class="line">    ViewCache viewCache = <span class="keyword">new</span> ViewCache();</span><br></pre></td></tr></table></figure>
+
+<p>mComArr 是一个栈，是用来帮助读取模板的结构的，因为栈的特性很适合处理嵌套的控件层次。</p>
+<p>tag 有两个字，一个是表示开始，一个表示结束，其实就是组件的开始与结束标识符，对应着xml 里面的 “&lt;” 与  “/&gt;”。这个没有实际证据，我猜的。</p>
+<p>state 是用来表示是否需要跳出循环的，下面是一个死循环：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">    <span class="keyword">switch</span> (tag) &#123;</span><br><span class="line">        <span class="keyword">case</span> Common.CODE_START_TAG:</span><br><span class="line">            <span class="keyword">short</span> comID = cr.readShort();</span><br><span class="line">            <span class="comment">// 这里就是实例化 viewBase 了，暂时不深入</span></span><br><span class="line">            ViewBase view = createView(mAppContext, comID, viewCache);</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> != view) &#123;</span><br><span class="line">                Layout.Params p;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> != curView) &#123;</span><br><span class="line">                    p = ((Layout) curView).generateParams();</span><br><span class="line">                    mComArr.push(curView);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    p = <span class="keyword">new</span> Layout.Params();</span><br><span class="line">                &#125;</span><br><span class="line">                view.setComLayoutParams(p);</span><br><span class="line">                curView = view;</span><br><span class="line">                </span><br><span class="line">                ...</span><br><span class="line">        <span class="keyword">case</span> Common.CODE_END_TAG:</span><br><span class="line">            <span class="keyword">if</span> (mComArr.size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                ViewBase c = mComArr.pop();</span><br><span class="line">                <span class="keyword">if</span> (c <span class="keyword">instanceof</span> Layout) &#123;</span><br><span class="line">                    ((Layout) c).addView(curView);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    state = STATE_failed;</span><br><span class="line">                    Log.e(TAG, <span class="string">"com can not contain subcomponent"</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                curView = c;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// can break;</span></span><br><span class="line">                state = STATE_successful;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<p>主要说一下 mComArr 的作用：</p>
+<ul>
+<li><p>第一次遇到起始标志，将该 view 赋值给 curView。</p>
+</li>
+<li><p>再遇到起始标志的时候，就说明遇到了 view 嵌套的情况，这个时候将 curView 放入栈内。</p>
+</li>
+<li><p>遇到结束标识的时候，将栈顶元素取出来，add 到 curView 中。</p>
+</li>
+</ul>
+<p>这样就搞定了 view 树的解析，还是比较容易理解的，实在绕不清楚的可以回去看看四则运算的中缀转后缀。</p>
+<p>接下来，我们看看上面代码中省略的部分：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">    <span class="comment">// int</span></span><br><span class="line">    <span class="keyword">byte</span> attrCount = cr.readByte();</span><br><span class="line">    <span class="keyword">while</span> (attrCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> key = cr.readInt();</span><br><span class="line">        <span class="keyword">int</span> value = cr.readInt();</span><br><span class="line">        view.setValue(key, value);</span><br><span class="line">        --attrCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// int RP</span></span><br><span class="line">    attrCount = cr.readByte();</span><br><span class="line">    <span class="keyword">while</span> (attrCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> key = cr.readInt();</span><br><span class="line">        <span class="keyword">int</span> value = cr.readInt();</span><br><span class="line">        view.setRPValue(key, value);</span><br><span class="line">        --attrCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// float</span></span><br><span class="line">    attrCount = cr.readByte();</span><br><span class="line">    <span class="keyword">while</span> (attrCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> key = cr.readInt();</span><br><span class="line">        <span class="keyword">float</span> value = Float.intBitsToFloat(cr.readInt());</span><br><span class="line">        view.setValue(key, value);</span><br><span class="line">        --attrCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// float RP</span></span><br><span class="line">    attrCount = cr.readByte();</span><br><span class="line">    <span class="keyword">while</span> (attrCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> key = cr.readInt();</span><br><span class="line">        <span class="keyword">float</span> value = Float.intBitsToFloat(cr.readInt());</span><br><span class="line">        view.setRPValue(key, value);</span><br><span class="line">        --attrCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// string code</span></span><br><span class="line">    attrCount = cr.readByte();</span><br><span class="line">    <span class="keyword">while</span> (attrCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> key = cr.readInt();</span><br><span class="line">        <span class="keyword">int</span> value = cr.readInt();</span><br><span class="line">        view.setStrValue(key, value);</span><br><span class="line">        --attrCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// expr code</span></span><br><span class="line">    attrCount = cr.readByte();</span><br><span class="line">    <span class="keyword">while</span> (attrCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> key = cr.readInt();</span><br><span class="line">        <span class="keyword">int</span> value = cr.readInt();</span><br><span class="line">        view.setValue(key, mExprCodeLoader.get(value));</span><br><span class="line">        --attrCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// user var</span></span><br><span class="line">    attrCount = cr.readByte();</span><br><span class="line">    <span class="keyword">while</span> (attrCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> varType = cr.readByte();</span><br><span class="line">        <span class="keyword">int</span> nameId = cr.readInt();</span><br><span class="line">        <span class="keyword">int</span> value = cr.readInt();</span><br><span class="line">        view.addUserVar(varType, nameId, value);</span><br><span class="line">        --attrCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> uuid = view.getUuid();</span><br><span class="line">    <span class="keyword">if</span> (uuid &gt; <span class="number">0</span> &amp;&amp; <span class="keyword">null</span> != uuidContainers) &#123;</span><br><span class="line">        uuidContainers.put(uuid, view);</span><br><span class="line">    &#125;</span><br><span class="line">    List&lt;Item&gt; pendingItems = viewCache.getCacheItem(view);</span><br><span class="line">    <span class="keyword">if</span> (pendingItems == <span class="keyword">null</span> || pendingItems.isEmpty()) &#123;</span><br><span class="line">        view.onParseValueFinished();</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    state = STATE_failed;</span><br><span class="line">    Log.e(TAG, <span class="string">"can not find view id:"</span> + comID);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这里的大部分代码都是在读取二进制文件中储存的属性键值对。</p>
+<p>属性的 key 是一个 int 值，在 <code>com.libra.virtualview.common.StringBase</code> 中。</p>
+<p>属性的 value 分为好几类：</p>
+<ul>
+<li>int</li>
+<li>int RP</li>
+<li>float</li>
+<li>flot RP</li>
+<li>string</li>
+<li>expr</li>
+<li>user var</li>
+</ul>
+<p>int 是整数，int RP 是什么呢？RP 表示的是百分比。不是说我们要写 20%w 这样的东西，而是说，如果UI妹妹给我们的切图是 720 * 1080 的，其中有个 button 的宽度为 100px，那么我们不用换算成dp，可以直接使用 100，然后调用 <code>com.libra.Utils#setUedScreenWidth</code> 设置一下就好了，在创建 view 的时候，会自动帮我们按百分比换算的。</p>
+<p>我们拿我们的 xml 来说，有一个属性键值对是 <code>textSize=&quot;12&quot;</code>，那么 key 就是 <code>final public static int STR_ID_textSize = -1003668786;</code>，value 就是 12。这些属性键值对都是在组件区的组件数里面。</p>
+<h2 id="ViewBase"><a href="#ViewBase" class="headerlink" title="ViewBase"></a>ViewBase</h2><p>当我们解析出来了组件的属性键值对之后，就可以设置给实例化出来的 view 了。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setValue(int, int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">setValue</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// set self value</span></span><br><span class="line">    <span class="keyword">boolean</span> ret = <span class="keyword">this</span>.setAttribute(key, value);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// set layout param value</span></span><br><span class="line">    <span class="keyword">if</span> (!ret &amp;&amp; <span class="keyword">null</span> != mParams) &#123;</span><br><span class="line">        ret = mParams.setAttribute(key, value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setAttribute(int, int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">setAttribute</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> ret = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (key) &#123;</span><br><span class="line">        <span class="keyword">case</span> StringBase.STR_ID_paddingLeft:</span><br><span class="line">            mPaddingLeft = Utils.dp2px(value);</span><br><span class="line">            isPaddingLeftSet = <span class="keyword">true</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.Layout.Params#setAttribute(int, int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">setAttribute</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> ret = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (key) &#123;</span><br><span class="line">        <span class="keyword">case</span> StringBase.STR_ID_layoutWidth:</span><br><span class="line">            <span class="keyword">if</span> (value &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                mLayoutWidth = Utils.dp2px(value);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                mLayoutWidth = value;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<p>setValue 的思路还是很清楚的，先看 ViewBase 能不能处理这个属性，不能就给 Params 处理。看里面的逻辑都是<strong>将属性值给储存起来了</strong>，随后在测量，布局，绘制的时候就会用到这些属性值。</p>
+<p>上面是对 int 类型的处理，对 String 类型的处理有点不一样。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setStrValue</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">setStrValue</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> ret = <span class="keyword">this</span>.setStrAttribute(key, value);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!ret &amp;&amp; <span class="keyword">null</span> != mParams) &#123;</span><br><span class="line">        ret = mParams.setStrAttribute(key, value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setStrAttribute</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">setStrAttribute</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">    StringLoader sm = mContext.getStringLoader();</span><br><span class="line">    <span class="comment">// 注意这里</span></span><br><span class="line">    String stringValue = sm.getString(value);</span><br><span class="line">    <span class="keyword">boolean</span> ret = setAttribute(key, stringValue);</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setAttribute(int, java.lang.String)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">setAttribute</span><span class="params">(<span class="keyword">int</span> key, String stringValue)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> ret = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">switch</span> (key) &#123;</span><br><span class="line">        <span class="keyword">case</span> StringBase.STR_ID_layoutWidth:</span><br><span class="line">            mViewCache.put(<span class="keyword">this</span>, StringBase.STR_ID_layoutWidth, stringValue, Item.TYPE_FLOAT);</span><br><span class="line">            <span class="keyword">this</span>.mParams.mLayoutWidth = LayoutCommon.WRAP_CONTENT;</span><br><span class="line">            <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.Layout.Params#setStrAttribute</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">setStrAttribute</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//TODO</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ViewBase 的 setStrAttribute 方法，需要注意的是 value 并不是属性值。还记得我们前面讲 StringLoader 的时候，会给字符串生成一个唯一的 id 么？这里的 value 就是生成的id。根据这个 id， 我们可以获取到对应的字符串值。</p>
+<p>在设置字符串属性值的时候，需要特殊处理，因为如果是按照 <code>layoutHeight=&quot;${height}&quot;</code>这样的使用方式，我们这个时候是拿不到对应的值的，我们只能将 “${height}”给储存起来，等到设置了 json 数据的时候，在从里面取对应的值，然后再设置属性。</p>
+<p>具体的方式就是：将属性键值对封装成一个类。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewCache.Item</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Item</span><span class="params">(ViewBase v, <span class="keyword">int</span> key, String attrEL, <span class="keyword">int</span> valueType)</span> </span>&#123;</span><br><span class="line">    mView = v;</span><br><span class="line">    mKey = key;</span><br><span class="line">    mAttrEL = attrEL;</span><br><span class="line">    mValueType = valueType;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>v 就是属性所属的 view，key 就是属性的 id，attrEl 就是属性字符串值，valueType 是属性值的类型。attrEl 可能还需要进行解析才能使用，比如将 “${height}”解析为 “height”，具体看 <code>com.tmall.wireless.vaf.virtualview.core.ViewCache.Parser</code> 源码。</p>
+<p>然后，等到设置了数据之后，就可以调用 item.bind 方法，给 view 设置属性了，后面细说。</p>
+<p>其他的属性解析都是类似的，就不说了。再回到 view 实例化的代码处，具体说一下实例化过程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ViewBase view = createView(mAppContext, comID, viewCache);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.ViewFactory#createView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ViewBase <span class="title">createView</span><span class="params">(VafContext context, <span class="keyword">int</span> comID, ViewCache viewCache)</span> </span>&#123;</span><br><span class="line">    ViewBase.IBuilder builder = mBuilders.get(comID);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != builder) &#123;</span><br><span class="line">        <span class="keyword">return</span> builder.build(context, viewCache);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际上就是调用了 build 方法。mBuilders 集合是在构造方法里<code>com.tmall.wireless.vaf.virtualview.ViewFactory#ViewFactory</code>初始化的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">mBuilders.put(Common.VIEW_ID_FrameLayout, <span class="keyword">new</span> FrameLayout.Builder());</span><br><span class="line">mBuilders.put(Common.VIEW_ID_GridLayout, <span class="keyword">new</span> GridLayout.Builder());</span><br><span class="line">mBuilders.put(Common.VIEW_ID_VHLayout, <span class="keyword">new</span> VHLayout.Builder());</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>可以看出来，每个控件都需要提供一个 Builder 类，用来实例化该控件。可以看一下 VHLayout 的 Builder 类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> <span class="keyword">implements</span> <span class="title">ViewBase</span>.<span class="title">IBuilder</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ViewBase <span class="title">build</span><span class="params">(VafContext context, ViewCache viewCache)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> VHLayout(context, viewCache);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样的话，整个模板的实例化逻辑就理清楚了。</p>
+<p><strong>总结</strong>：</p>
+<p>从模板里面解析出 view 树。</p>
+<p>解析 view 树的时候，使用 builder 创建 view，然后给 view 设置对应的属性。</p>
+<p>如果是 <code>@{height}</code>这样的属性值的话，不能直接给属性赋值，需要储存起来，等到设置数据的时候在设置值。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/" title="0004-组件的创建">http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-源码解析-Virtualview/" rel="tag"># Android-源码解析-Virtualview</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/" rel="next" title="0003-模板编译与解析">
+                  <i class="fa fa-chevron-left"></i> 0003-模板编译与解析
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/04/blog_bak/Blog/算法/大话数据结构/0027-栈的应用之四则表达式/" rel="prev" title="0027-栈的应用之四则表达式">
+                  0027-栈的应用之四则表达式 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ContainerService"><span class="nav-number">1.</span> <span class="nav-text">ContainerService</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ViewManager"><span class="nav-number">2.</span> <span class="nav-text">ViewManager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ViewFactory"><span class="nav-number">3.</span> <span class="nav-text">ViewFactory</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ViewBase"><span class="nav-number">4.</span> <span class="nav-text">ViewBase</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

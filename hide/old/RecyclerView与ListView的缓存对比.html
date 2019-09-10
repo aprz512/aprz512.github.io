@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="ListView 的缓存有两级：123456789101112/** * Views that were on screen at the start of layout. This array is populated at the start of * layout, and at the end of layout all view in mActiveViews are moved to">
+<meta property="og:type" content="website">
+<meta property="og:title" content="RecyclerView与ListView的缓存对比">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/RecyclerView与ListView的缓存对比.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="ListView 的缓存有两级：123456789101112/** * Views that were on screen at the start of layout. This array is populated at the start of * layout, and at the end of layout all view in mActiveViews are moved to">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-03-07T01:51:54.885Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RecyclerView与ListView的缓存对比">
+<meta name="twitter:description" content="ListView 的缓存有两级：123456789101112/** * Views that were on screen at the start of layout. This array is populated at the start of * layout, and at the end of layout all view in mActiveViews are moved to">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/RecyclerView与ListView的缓存对比">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>RecyclerView与ListView的缓存对比 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">RecyclerView与ListView的缓存对比
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>RECYCLERVIEW与LISTVIEW的缓存对比</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <h2 id="ListView-的缓存有两级："><a href="#ListView-的缓存有两级：" class="headerlink" title="ListView 的缓存有两级："></a>ListView 的缓存有两级：</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Views that were on screen at the start of layout. This array is populated at the start of</span></span><br><span class="line"><span class="comment"> * layout, and at the end of layout all view in mActiveViews are moved to mScrapViews.</span></span><br><span class="line"><span class="comment"> * Views in mActiveViews represent a contiguous range of Views, with position of the first</span></span><br><span class="line"><span class="comment"> * view store in mFirstActivePosition.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> View[] mActiveViews = <span class="keyword">new</span> View[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Unsorted views that can be used by the adapter as a convert view.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> ArrayList&lt;View&gt;[] mScrapViews;</span><br></pre></td></tr></table></figure>
+
+<p>mActiveViews是用来存放屏幕显示的view的，因为ListView可能会被layout很多次，为了在开始layout的的时候，建立一个刚好装下一屏幕item的数组，将每个view放进去，等到layout完成之后，将该数组里面的view，放到mScrapViews中。</p>
+<a id="more"></a>
+
+<p>mScrapViews是用来存放移除屏幕的view，数组对应着itemViewType。</p>
+<p>从setAdapter说起：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Sets the data behind this ListView.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * The adapter passed to this method may be wrapped by a &#123;<span class="doctag">@link</span> WrapperListAdapter&#125;,</span></span><br><span class="line"><span class="comment"> * depending on the ListView features currently in use. For instance, adding</span></span><br><span class="line"><span class="comment"> * headers and/or footers will cause the adapter to be wrapped.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> adapter The ListAdapter which is responsible for maintaining the</span></span><br><span class="line"><span class="comment"> *        data backing this list and for producing a view to represent an</span></span><br><span class="line"><span class="comment"> *        item in that data set.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> #getAdapter() </span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAdapter</span><span class="params">(ListAdapter adapter)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mAdapter != <span class="keyword">null</span> &amp;&amp; mDataSetObserver != <span class="keyword">null</span>) &#123;</span><br><span class="line">        mAdapter.unregisterDataSetObserver(mDataSetObserver);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ......</span><br><span class="line">      </span><br><span class="line">    <span class="comment">// AbsListView#setAdapter will update choice mode states.</span></span><br><span class="line">    <span class="keyword">super</span>.setAdapter(adapter);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mAdapter != <span class="keyword">null</span>) &#123;</span><br><span class="line">      </span><br><span class="line">        ......</span><br><span class="line"></span><br><span class="line">        mDataSetObserver = <span class="keyword">new</span> AdapterDataSetObserver();</span><br><span class="line">        mAdapter.registerDataSetObserver(mDataSetObserver);</span><br><span class="line"></span><br><span class="line">        mRecycler.setViewTypeCount(mAdapter.getViewTypeCount());</span><br><span class="line"></span><br><span class="line">       ......</span><br><span class="line">         </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      </span><br><span class="line">       ......</span><br><span class="line">         </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    requestLayout();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Adapter中的观察者模式。主要是最后一句，requestLayout，会触发onLayout方法，在父类中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Subclasses should NOT override this method but</span></span><br><span class="line"><span class="comment"> *  &#123;<span class="doctag">@link</span> #layoutChildren()&#125; instead.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onLayout</span><span class="params">(<span class="keyword">boolean</span> changed, <span class="keyword">int</span> l, <span class="keyword">int</span> t, <span class="keyword">int</span> r, <span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onLayout(changed, l, t, r, b);</span><br><span class="line"></span><br><span class="line">    mInLayout = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> childCount = getChildCount();</span><br><span class="line">    <span class="keyword">if</span> (changed) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; childCount; i++) &#123;</span><br><span class="line">            getChildAt(i).forceLayout();</span><br><span class="line">        &#125;</span><br><span class="line">        mRecycler.markChildrenDirty();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    layoutChildren();</span><br><span class="line">    mInLayout = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    mOverscrollMax = (b - t) / OVERSCROLL_LIMIT_DIVISOR;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> Move somewhere sane. This doesn't belong in onLayout().</span></span><br><span class="line">    <span class="keyword">if</span> (mFastScroll != <span class="keyword">null</span>) &#123;</span><br><span class="line">        mFastScroll.onItemCountChanged(getChildCount(), mItemCount);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用了子类的layoutChildren方法。其中还有个要注意的地方，就是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mRecycler.markChildrenDirty();</span><br></pre></td></tr></table></figure>
+
+<p>这个只有在changed为true才调用，作用是让child view重新layout。接着看layoutChildren：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">layoutChildren</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> blockLayoutRequests = mBlockLayoutRequests;</span><br><span class="line">    <span class="keyword">if</span> (blockLayoutRequests) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mBlockLayoutRequests = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.layoutChildren();</span><br><span class="line"></span><br><span class="line">        invalidate();</span><br><span class="line"></span><br><span class="line">        ......</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span> dataChanged = mDataChanged;</span><br><span class="line">        <span class="keyword">if</span> (dataChanged) &#123;</span><br><span class="line">            handleDataChanged();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ......</span><br><span class="line">          </span><br><span class="line">        <span class="comment">// Pull all children into the RecycleBin.</span></span><br><span class="line">        <span class="comment">// These views will be reused if possible</span></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> firstPosition = mFirstPosition;</span><br><span class="line">        <span class="keyword">final</span> RecycleBin recycleBin = mRecycler;</span><br><span class="line">        <span class="keyword">if</span> (dataChanged) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; childCount; i++) &#123;</span><br><span class="line">                recycleBin.addScrapView(getChildAt(i), firstPosition+i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            recycleBin.fillActiveViews(childCount, firstPosition);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Clear out old views</span></span><br><span class="line">        detachAllViewsFromParent();</span><br><span class="line">        recycleBin.removeSkippedScrap();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">switch</span> (mLayoutMode) &#123;</span><br><span class="line">        <span class="keyword">case</span> LAYOUT_SET_SELECTION:</span><br><span class="line">            <span class="keyword">if</span> (newSel != <span class="keyword">null</span>) &#123;</span><br><span class="line">                sel = fillFromSelection(newSel.getTop(), childrenTop, childrenBottom);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                sel = fillFromMiddle(childrenTop, childrenBottom);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> LAYOUT_SYNC:</span><br><span class="line">            sel = fillSpecific(mSyncPosition, mSpecificTop);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> LAYOUT_FORCE_BOTTOM:</span><br><span class="line">            sel = fillUp(mItemCount - <span class="number">1</span>, childrenBottom);</span><br><span class="line">            adjustViewsUpOrDown();</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> LAYOUT_FORCE_TOP:</span><br><span class="line">            mFirstPosition = <span class="number">0</span>;</span><br><span class="line">            sel = fillFromTop(childrenTop);</span><br><span class="line">            adjustViewsUpOrDown();</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> LAYOUT_SPECIFIC:</span><br><span class="line">            <span class="keyword">final</span> <span class="keyword">int</span> selectedPosition = reconcileSelectedPosition();</span><br><span class="line">            sel = fillSpecific(selectedPosition, mSpecificTop);</span><br><span class="line">            <span class="comment">/**</span></span><br><span class="line"><span class="comment">             * When ListView is resized, FocusSelector requests an async selection for the</span></span><br><span class="line"><span class="comment">             * previously focused item to make sure it is still visible. If the item is not</span></span><br><span class="line"><span class="comment">             * selectable, it won't regain focus so instead we call FocusSelector</span></span><br><span class="line"><span class="comment">             * to directly request focus on the view after it is visible.</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            <span class="keyword">if</span> (sel == <span class="keyword">null</span> &amp;&amp; mFocusSelector != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">final</span> Runnable focusRunnable = mFocusSelector</span><br><span class="line">                        .setupFocusIfValid(selectedPosition);</span><br><span class="line">                <span class="keyword">if</span> (focusRunnable != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    post(focusRunnable);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> LAYOUT_MOVE_SELECTION:</span><br><span class="line">            sel = moveSelection(oldSel, newSel, delta, childrenTop, childrenBottom);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">if</span> (childCount == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!mStackFromBottom) &#123;</span><br><span class="line">                    <span class="keyword">final</span> <span class="keyword">int</span> position = lookForSelectablePosition(<span class="number">0</span>, <span class="keyword">true</span>);</span><br><span class="line">                    setSelectedPositionInt(position);</span><br><span class="line">                    sel = fillFromTop(childrenTop);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">final</span> <span class="keyword">int</span> position = lookForSelectablePosition(mItemCount - <span class="number">1</span>, <span class="keyword">false</span>);</span><br><span class="line">                    setSelectedPositionInt(position);</span><br><span class="line">                    sel = fillUp(mItemCount - <span class="number">1</span>, childrenBottom);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (mSelectedPosition &gt;= <span class="number">0</span> &amp;&amp; mSelectedPosition &lt; mItemCount) &#123;</span><br><span class="line">                    sel = fillSpecific(mSelectedPosition,</span><br><span class="line">                            oldSel == <span class="keyword">null</span> ? childrenTop : oldSel.getTop());</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mFirstPosition &lt; mItemCount) &#123;</span><br><span class="line">                    sel = fillSpecific(mFirstPosition,</span><br><span class="line">                            oldFirst == <span class="keyword">null</span> ? childrenTop : oldFirst.getTop());</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    sel = fillSpecific(<span class="number">0</span>, childrenTop);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Flush any cached views that did not get reused above</span></span><br><span class="line">        recycleBin.scrapActiveViews();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// remove any header/footer that has been temp detached and not re-attached</span></span><br><span class="line">        removeUnusedFixedViews(mHeaderViewInfos);</span><br><span class="line">        removeUnusedFixedViews(mFooterViewInfos);</span><br><span class="line"></span><br><span class="line">        ......</span><br><span class="line">        </span><br><span class="line">        mLayoutMode = LAYOUT_NORMAL;</span><br><span class="line">        mDataChanged = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (mPositionScrollAfterLayout != <span class="keyword">null</span>) &#123;</span><br><span class="line">            post(mPositionScrollAfterLayout);</span><br><span class="line">            mPositionScrollAfterLayout = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        mNeedSync = <span class="keyword">false</span>;</span><br><span class="line">        setNextSelectedPositionInt(mSelectedPosition);</span><br><span class="line"></span><br><span class="line">        updateScrollIndicators();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mItemCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            checkSelectionChanged();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        invokeOnItemScrollListener();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (mFocusSelector != <span class="keyword">null</span>) &#123;</span><br><span class="line">            mFocusSelector.onLayoutComplete();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!blockLayoutRequests) &#123;</span><br><span class="line">            mBlockLayoutRequests = <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>layoutChildren 第一次执行的时候，childCount 的值为0。继续往下看，detachAllViewsFromParent();将ListView所有的child都移除，至于为什么要先移除，很明显，是为了防止每次layout的时候，item重复。再往下看，判断mLayoutMode，一般都是LAYOUT_NORMAL，所以走default的逻辑。又mStackFromBottom为false，执行sel = fillFromTop(childrenTop);，看方法实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Fills the list from top to bottom, starting with mFirstPosition</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> nextTop The location where the top of the first item should be</span></span><br><span class="line"><span class="comment"> *        drawn</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> The view that is currently selected</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> View <span class="title">fillFromTop</span><span class="params">(<span class="keyword">int</span> nextTop)</span> </span>&#123;</span><br><span class="line">    mFirstPosition = Math.min(mFirstPosition, mSelectedPosition);</span><br><span class="line">    mFirstPosition = Math.min(mFirstPosition, mItemCount - <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (mFirstPosition &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        mFirstPosition = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> fillDown(mFirstPosition, nextTop);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只是做了mFirstPosition的防错处理，然后调用fillDown：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Fills the list from pos down to the end of the list view.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> pos The first position to put in the list</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> nextTop The location where the top of the item associated with pos</span></span><br><span class="line"><span class="comment"> *        should be drawn</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> The view that is currently selected, if it happens to be in the</span></span><br><span class="line"><span class="comment"> *         range that we draw.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> View <span class="title">fillDown</span><span class="params">(<span class="keyword">int</span> pos, <span class="keyword">int</span> nextTop)</span> </span>&#123;</span><br><span class="line">    View selectedView = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> end = (mBottom - mTop);</span><br><span class="line">    <span class="keyword">if</span> ((mGroupFlags &amp; CLIP_TO_PADDING_MASK) == CLIP_TO_PADDING_MASK) &#123;</span><br><span class="line">        end -= mListPadding.bottom;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (nextTop &lt; end &amp;&amp; pos &lt; mItemCount) &#123;</span><br><span class="line">        <span class="comment">// is this the selected item?</span></span><br><span class="line">        <span class="keyword">boolean</span> selected = pos == mSelectedPosition;</span><br><span class="line">        View child = makeAndAddView(pos, nextTop, <span class="keyword">true</span>, mListPadding.left, selected);</span><br><span class="line"></span><br><span class="line">        nextTop = child.getBottom() + mDividerHeight;</span><br><span class="line">        <span class="keyword">if</span> (selected) &#123;</span><br><span class="line">            selectedView = child;</span><br><span class="line">        &#125;</span><br><span class="line">        pos++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    setVisibleRangeHint(mFirstPosition, mFirstPosition + getChildCount() - <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> selectedView;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法的目的是从上往下的一个一个填充item view，直到充满了整个屏幕为止（end 与 nextTop 的比较）。所以，ListView最多也就一屏item个数，不会再多了。重点看看makeAndAddView方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Obtains the view and adds it to our list of children. The view can be</span></span><br><span class="line"><span class="comment"> * made fresh, converted from an unused view, or used as is if it was in</span></span><br><span class="line"><span class="comment"> * the recycle bin.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> position logical position in the list</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> y top or bottom edge of the view to add</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> flow &#123;<span class="doctag">@code</span> true&#125; to align top edge to y, &#123;<span class="doctag">@code</span> false&#125; to align</span></span><br><span class="line"><span class="comment"> *             bottom edge to y</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> childrenLeft left edge where children should be positioned</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> selected &#123;<span class="doctag">@code</span> true&#125; if the position is selected, &#123;<span class="doctag">@code</span> false&#125;</span></span><br><span class="line"><span class="comment"> *                 otherwise</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> the view that was added</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> View <span class="title">makeAndAddView</span><span class="params">(<span class="keyword">int</span> position, <span class="keyword">int</span> y, <span class="keyword">boolean</span> flow, <span class="keyword">int</span> childrenLeft,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">boolean</span> selected)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!mDataChanged) &#123;</span><br><span class="line">        <span class="comment">// Try to use an existing view for this position.</span></span><br><span class="line">        <span class="keyword">final</span> View activeView = mRecycler.getActiveView(position);</span><br><span class="line">        <span class="keyword">if</span> (activeView != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// Found it. We're reusing an existing child, so it just needs</span></span><br><span class="line">            <span class="comment">// to be positioned like a scrap view.</span></span><br><span class="line">            setupChild(activeView, position, y, flow, childrenLeft, selected, <span class="keyword">true</span>);</span><br><span class="line">            <span class="keyword">return</span> activeView;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Make a new view for this position, or convert an unused view if</span></span><br><span class="line">    <span class="comment">// possible.</span></span><br><span class="line">    <span class="keyword">final</span> View child = obtainView(position, mIsScrap);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// This needs to be positioned and measured.</span></span><br><span class="line">    setupChild(child, position, y, flow, childrenLeft, selected, mIsScrap[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> child;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里mDataChanged如果为false，会先从mActiveViews中取，取到了调用setupChild，然后直接返回，如果没有取到，或者mDataChanged为True，会调用obtainView，再执行setupChild方法，这个方法就是二级缓存的逻辑了。先看obtainView：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** </span></span><br><span class="line"><span class="comment"> * Get a view and have it show the data associated with the specified </span></span><br><span class="line"><span class="comment"> * position. This is called when we have already discovered that the view is </span></span><br><span class="line"><span class="comment"> * not available for reuse in the recycle bin. The only choices left are </span></span><br><span class="line"><span class="comment"> * converting an old view or making a new one. </span></span><br><span class="line"><span class="comment"> *  </span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> position </span></span><br><span class="line"><span class="comment"> *            The position to display </span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> isScrap </span></span><br><span class="line"><span class="comment"> *            Array of at least 1 boolean, the first entry will become true </span></span><br><span class="line"><span class="comment"> *            if the returned view was taken from the scrap heap, false if </span></span><br><span class="line"><span class="comment"> *            otherwise. </span></span><br><span class="line"><span class="comment"> *  </span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> A view displaying the data associated with the specified position </span></span><br><span class="line"><span class="comment"> */</span>  </span><br><span class="line"><span class="function">View <span class="title">obtainView</span><span class="params">(<span class="keyword">int</span> position, <span class="keyword">boolean</span>[] isScrap)</span> </span>&#123;  </span><br><span class="line">    isScrap[<span class="number">0</span>] = <span class="keyword">false</span>;  </span><br><span class="line">    View scrapView;  </span><br><span class="line">    scrapView = mRecycler.getScrapView(position);  </span><br><span class="line">    View child;  </span><br><span class="line">    <span class="keyword">if</span> (scrapView != <span class="keyword">null</span>) &#123;  </span><br><span class="line">        child = mAdapter.getView(position, scrapView, <span class="keyword">this</span>);  </span><br><span class="line">        <span class="keyword">if</span> (child != scrapView) &#123;  </span><br><span class="line">            mRecycler.addScrapView(scrapView);  </span><br><span class="line">            <span class="keyword">if</span> (mCacheColorHint != <span class="number">0</span>) &#123;  </span><br><span class="line">                child.setDrawingCacheBackgroundColor(mCacheColorHint);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">            isScrap[<span class="number">0</span>] = <span class="keyword">true</span>;  </span><br><span class="line">            dispatchFinishTemporaryDetach(child);  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">        child = mAdapter.getView(position, <span class="keyword">null</span>, <span class="keyword">this</span>);  </span><br><span class="line">        <span class="keyword">if</span> (mCacheColorHint != <span class="number">0</span>) &#123;  </span><br><span class="line">            child.setDrawingCacheBackgroundColor(mCacheColorHint);  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">return</span> child;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先从mScrapViews中取一个，如果有，就将其作为参数，传递给getView方法，这个看着是不是很眼熟。如果没有，getView就传null。再看setupChild：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Adds a view as a child and make sure it is measured (if necessary) and</span></span><br><span class="line"><span class="comment"> * positioned properly.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> child the view to add</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> position the position of this child</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> y the y position relative to which this view will be positioned</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> flowDown &#123;<span class="doctag">@code</span> true&#125; to align top edge to y, &#123;<span class="doctag">@code</span> false&#125; to</span></span><br><span class="line"><span class="comment"> *                 align bottom edge to y</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> childrenLeft left edge where children should be positioned</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> selected &#123;<span class="doctag">@code</span> true&#125; if the position is selected, &#123;<span class="doctag">@code</span> false&#125;</span></span><br><span class="line"><span class="comment"> *                 otherwise</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> isAttachedToWindow &#123;<span class="doctag">@code</span> true&#125; if the view is already attached</span></span><br><span class="line"><span class="comment"> *                           to the window, e.g. whether it was reused, or</span></span><br><span class="line"><span class="comment"> *                           &#123;<span class="doctag">@code</span> false&#125; otherwise</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setupChild</span><span class="params">(View child, <span class="keyword">int</span> position, <span class="keyword">int</span> y, <span class="keyword">boolean</span> flowDown, <span class="keyword">int</span> childrenLeft,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">boolean</span> selected, <span class="keyword">boolean</span> isAttachedToWindow)</span> </span>&#123;</span><br><span class="line">    Trace.traceBegin(Trace.TRACE_TAG_VIEW, <span class="string">"setupListItem"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> isSelected = selected &amp;&amp; shouldShowSelector();</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> updateChildSelected = isSelected != child.isSelected();</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> mode = mTouchMode;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> isPressed = mode &gt; TOUCH_MODE_DOWN &amp;&amp; mode &lt; TOUCH_MODE_SCROLL</span><br><span class="line">            &amp;&amp; mMotionPosition == position;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> updateChildPressed = isPressed != child.isPressed();</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> needToMeasure = !isAttachedToWindow || updateChildSelected</span><br><span class="line">            || child.isLayoutRequested();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Respect layout params that are already in the view. Otherwise make</span></span><br><span class="line">    <span class="comment">// some up...</span></span><br><span class="line">    AbsListView.LayoutParams p = (AbsListView.LayoutParams) child.getLayoutParams();</span><br><span class="line">    <span class="keyword">if</span> (p == <span class="keyword">null</span>) &#123;</span><br><span class="line">        p = (AbsListView.LayoutParams) generateDefaultLayoutParams();</span><br><span class="line">    &#125;</span><br><span class="line">    p.viewType = mAdapter.getItemViewType(position);</span><br><span class="line">    p.isEnabled = mAdapter.isEnabled(position);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set up view state before attaching the view, since we may need to</span></span><br><span class="line">    <span class="comment">// rely on the jumpDrawablesToCurrentState() call that occurs as part</span></span><br><span class="line">    <span class="comment">// of view attachment.</span></span><br><span class="line">    <span class="keyword">if</span> (updateChildSelected) &#123;</span><br><span class="line">        child.setSelected(isSelected);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (updateChildPressed) &#123;</span><br><span class="line">        child.setPressed(isPressed);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mChoiceMode != CHOICE_MODE_NONE &amp;&amp; mCheckStates != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (child <span class="keyword">instanceof</span> Checkable) &#123;</span><br><span class="line">            ((Checkable) child).setChecked(mCheckStates.get(position));</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (getContext().getApplicationInfo().targetSdkVersion</span><br><span class="line">                &gt;= android.os.Build.VERSION_CODES.HONEYCOMB) &#123;</span><br><span class="line">            child.setActivated(mCheckStates.get(position));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((isAttachedToWindow &amp;&amp; !p.forceAdd) || (p.recycledHeaderFooter</span><br><span class="line">            &amp;&amp; p.viewType == AdapterView.ITEM_VIEW_TYPE_HEADER_OR_FOOTER)) &#123;</span><br><span class="line">        attachViewToParent(child, flowDown ? -<span class="number">1</span> : <span class="number">0</span>, p);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// If the view was previously attached for a different position,</span></span><br><span class="line">        <span class="comment">// then manually jump the drawables.</span></span><br><span class="line">        <span class="keyword">if</span> (isAttachedToWindow</span><br><span class="line">                &amp;&amp; (((AbsListView.LayoutParams) child.getLayoutParams()).scrappedFromPosition)</span><br><span class="line">                        != position) &#123;</span><br><span class="line">            child.jumpDrawablesToCurrentState();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        p.forceAdd = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (p.viewType == AdapterView.ITEM_VIEW_TYPE_HEADER_OR_FOOTER) &#123;</span><br><span class="line">            p.recycledHeaderFooter = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        addViewInLayout(child, flowDown ? -<span class="number">1</span> : <span class="number">0</span>, p, <span class="keyword">true</span>);</span><br><span class="line">        <span class="comment">// add view in layout will reset the RTL properties. We have to re-resolve them</span></span><br><span class="line">        child.resolveRtlPropertiesIfNeeded();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (needToMeasure) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> childWidthSpec = ViewGroup.getChildMeasureSpec(mWidthMeasureSpec,</span><br><span class="line">                mListPadding.left + mListPadding.right, p.width);</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> lpHeight = p.height;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> childHeightSpec;</span><br><span class="line">        <span class="keyword">if</span> (lpHeight &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            childHeightSpec = MeasureSpec.makeMeasureSpec(lpHeight, MeasureSpec.EXACTLY);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            childHeightSpec = MeasureSpec.makeSafeMeasureSpec(getMeasuredHeight(),</span><br><span class="line">                    MeasureSpec.UNSPECIFIED);</span><br><span class="line">        &#125;</span><br><span class="line">        child.measure(childWidthSpec, childHeightSpec);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        cleanupLayoutState(child);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> w = child.getMeasuredWidth();</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> h = child.getMeasuredHeight();</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> childTop = flowDown ? y : y - h;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (needToMeasure) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> childRight = childrenLeft + w;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> childBottom = childTop + h;</span><br><span class="line">        child.layout(childrenLeft, childTop, childRight, childBottom);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        child.offsetLeftAndRight(childrenLeft - child.getLeft());</span><br><span class="line">        child.offsetTopAndBottom(childTop - child.getTop());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mCachingStarted &amp;&amp; !child.isDrawingCacheEnabled()) &#123;</span><br><span class="line">        child.setDrawingCacheEnabled(<span class="keyword">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Trace.traceEnd(Trace.TRACE_TAG_VIEW);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个其实就是measure和layout的child view，并将view添加到ListView中。</p>
+<p>在这里，ListView的一个大致的缓存模型就出来了，首先fillDown来创建一屏幕的item，每个item的创建都会先取mScrapViews中取，没取到就将getView的参数传null，否则传取到的view。需要注意的是，每次layout的时候，会先将child移除，然后再fillDown（或者调用其他fill方法）。</p>
+<p>有了mScrapViews为什么还要有mActiveViews？？？</p>
+<p>根据源码分析，就是如果数据源不发生变化的时候，会先从mActiveViews中取，并且layout的时候，也会将屏幕上的item缓存到mActiveViews中。反过来推理，mActiveViews存着一屏item view，layout的时候，刚好就用完了（如果没有用完的，后面也会添加到mScrapViews中），所以mScrapViews是用来缓存屏幕外的，mActiveViews是用来缓存屏幕内的（layout时期用），似乎并没有什么实质性的区别。</p>
+<p>至于滑动移除的缓存逻辑，就不写了。</p>
+<p>一些参考博客：</p>
+<p><a href="http://blog.csdn.net/guolin_blog/article/details/44996879" target="_blank" rel="noopener">http://blog.csdn.net/guolin_blog/article/details/44996879</a></p>
+<p><a href="https://mp.weixin.qq.com/s/XmhszJs9obCilpiIrEXryA" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/XmhszJs9obCilpiIrEXryA</a></p>
+<h2 id="RecycleView-的缓存与复用"><a href="#RecycleView-的缓存与复用" class="headerlink" title="RecycleView 的缓存与复用"></a>RecycleView 的缓存与复用</h2><p><a href="http://www.jianshu.com/p/9306b365da57" target="_blank" rel="noopener">http://www.jianshu.com/p/9306b365da57</a></p>
+<p>这篇文章是基于固定的情景讲解的，写的很清晰，如果觉得比较难看懂，可以先看结论，再看源码。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>RECYCLERVIEW与LISTVIEW的缓存对比</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ListView-的缓存有两级："><span class="nav-number">1.</span> <span class="nav-text">ListView 的缓存有两级：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RecycleView-的缓存与复用"><span class="nav-number">2.</span> <span class="nav-text">RecycleView 的缓存与复用</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

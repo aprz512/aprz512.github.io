@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="Activity生命周期？一般都是面试的第一个问题，很简单的。但是也有衍生出一些奇葩问题，比如：onStart() 和 onResume() 方法的区别？onStart() 界面处于用户可见状态，比如有个 Dialog 样式的 Activity 浮在当前 Activity 上面，这个 Activity 就处于可见，但是不可交互状态。走到 onResume() 界面处于用户可交互状态。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="面试-四大组件">
+<meta property="og:url" content="http://aprz512.github.io/hide/面试-四大组件.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="Activity生命周期？一般都是面试的第一个问题，很简单的。但是也有衍生出一些奇葩问题，比如：onStart() 和 onResume() 方法的区别？onStart() 界面处于用户可见状态，比如有个 Dialog 样式的 Activity 浮在当前 Activity 上面，这个 Activity 就处于可见，但是不可交互状态。走到 onResume() 界面处于用户可交互状态。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-12-05T03:54:14.057Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="面试-四大组件">
+<meta name="twitter:description" content="Activity生命周期？一般都是面试的第一个问题，很简单的。但是也有衍生出一些奇葩问题，比如：onStart() 和 onResume() 方法的区别？onStart() 界面处于用户可见状态，比如有个 Dialog 样式的 Activity 浮在当前 Activity 上面，这个 Activity 就处于可见，但是不可交互状态。走到 onResume() 界面处于用户可交互状态。">
+  <link rel="canonical" href="http://aprz512.github.io/hide/面试-四大组件">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>面试-四大组件 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">面试-四大组件
+
+</h1>
+
+<div class="post-meta">
+  
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <h3 id="Activity生命周期？"><a href="#Activity生命周期？" class="headerlink" title="Activity生命周期？"></a>Activity生命周期？</h3><p>一般都是面试的第一个问题，很简单的。但是也有衍生出一些奇葩问题，比如：</p><p><strong>onStart() 和 onResume() 方法的区别？</strong></p><p>onStart() 界面处于用户可见状态，比如有个 Dialog 样式的 Activity 浮在当前 Activity 上面，这个 Activity 就处于可见，但是不可交互状态。走到 onResume() 界面处于用户可交互状态。</p><a id="more"></a>
+
+
+
+
+<p><strong>什么情况下 onCreate() 方法执行了，onResume() 方法却没有执行？</strong></p>
+<p>这种简直就是脑筋急转弯，生命周期的方法中 crash 了后面的肯定不执行。</p>
+<h3 id="Fragment-生命周期"><a href="#Fragment-生命周期" class="headerlink" title="Fragment 生命周期"></a>Fragment 生命周期</h3><p><a href="http://blog.csdn.net/forever_crying/article/details/8238863/" target="_blank" rel="noopener">http://blog.csdn.net/forever_crying/article/details/8238863/</a></p>
+<p>onAttach 和 onDetach 在最前和最后。不要忘记 onDestroyView。</p>
+<h3 id="Service生命周期？"><a href="#Service生命周期？" class="headerlink" title="Service生命周期？"></a>Service生命周期？</h3>
+
+<p>启动 Service 的方法有两种，一种是 startService()， 另一种是 bindService()。这两种启动方式有不同的生命周期。</p>
+<p>衍生问题：</p>
+<p><strong>多次调用 startService() 或者 bindService() 方法，生命周期是什么样子的？</strong></p>
+<p>调用多次 startService() 就会执行多次 onStartCommand() 方法，而调用多次 bindService()，只会执行一次 onBind() 方法。</p>
+<p><strong>startService() 启动的 Service 和 bindService() 启动的 Service 有什么区别？</strong></p>
+<p>生命周期不同。startService() 启动的 Service 是会一直运行下去的，除非客户端调用了 stopService 或者 Service 自己终结了自己。bindService() 启动的 Service 是和客户端绑定的，在客户端的 context 不存在之后，Service 会自动调用 onUnbind() 和 onDestory() 方法终结自己。</p>
+<p><strong>什么情况下既要 startService() 又要 bindService()？</strong></p>
+<p>如果我们需要开启一个长期在后台运行的 Service，又要和 Service 通信的话，就需要同时执行这两个方法。因为 bindService() 的 onBind() 方法会返回一个 IBinder 对象，可以用来和 Service 通信。注意结束 Service 的时候，需要同时调用 stopService() 和 unBindService()，并没有先后顺序。</p>
+<h3 id="如何理解Activity，View，Window三者之间的关系？"><a href="#如何理解Activity，View，Window三者之间的关系？" class="headerlink" title="如何理解Activity，View，Window三者之间的关系？"></a>如何理解Activity，View，Window三者之间的关系？</h3><p>首先来看下 Window 和 View 之间的关系。当我们写好一个界面的 XML 的时候，调用 Activity 的 setContentView() 方法就能将界面显示出来。那这个界面是怎么显示出来的呢？追踪源码。Activity 的 setContentView() 方法实际上是调用 Window 的 setContentView() 方法，而 Window 是 PhoneWindow 的一个实例对象，这些在创建 Activity 的源码那里都可以查到。那么 Window 的 setContentView() 方法做了什么呢？当调用 setContentView() 方法的时候，会创建 DecorView，DecorView 是 Window 的顶层 View，然后将我们写的 XML 布局加载成 View，并添加到 mParentContent 里面，mParentContent 一般是 DecorView 的 child。看下图，更容易理解他们之间的关系：</p>
+
+
+<p>分析了这么多，最终就是 View 的显示需要用到 Window，只有有了 Window，我们写的布局才能被显示，当然最终还是要 WindowManager 的帮助，这就需要更深入的分析。</p>
+<p>再来看 Activity，我个人觉得，Activity 的作用更像一个控制器，用来让开发者更简单的操作 View，而不用理会 Window，Dialog 也是一样。</p>
+<h3 id="Activity的几种LaunchMode及使用场景？"><a href="#Activity的几种LaunchMode及使用场景？" class="headerlink" title="Activity的几种LaunchMode及使用场景？"></a>Activity的几种LaunchMode及使用场景？</h3><p><strong>standard 模式</strong><br>     这是默认模式，每次激活Activity时都会创建Activity实例，并放入任务栈中。使用场景：大多数Activity。</p>
+<p><strong>singleTop 模式</strong><br>     如果在任务的栈顶正好存在该Activity的实例，就重用该实例( 会调用实例的 onNewIntent() )，否则就会创建新的实例并放入栈顶，即使栈中已经存在该Activity的实例，只要不在栈顶，都会创建新的实例。使用场景如新闻类或者阅读类App的内容页面。</p>
+<p><strong>singleTask 模式</strong><br>     如果在栈中已经有该Activity的实例，就重用该实例(会调用实例的 onNewIntent() )。重用时，会让该实例回到栈顶，因此在它上面的实例将会被移出栈。如果栈中不存在该实例，将会创建新的实例放入栈中。使用场景如浏览器的主界面。不管从多少个应用启动浏览器，只会启动主界面一次，其余情况都会走onNewIntent，并且会清空主界面上面的其他页面。</p>
+<p><strong>singleInstance 模式</strong><br>     在一个新栈中创建该Activity的实例，并让多个应用共享该栈中的该Activity实例。一旦该模式的Activity实例已经存在于某个栈中，任何应用再激活该Activity时都会重用该栈中的实例( 会调用实例的 onNewIntent() )。其效果相当于多个应用共享一个应用，不管谁激活该 Activity 都会进入同一个应用中。使用场景如闹铃提醒，将闹铃提醒与闹铃设置分离。singleInstance不要用于中间页面，如果用于中间页面，跳转会有问题，比如：A -&gt; B (singleInstance) -&gt; C，退出时是：C -&gt; A -&gt; B。</p>
+<h3 id="Android中跨进程通讯有几种方式？"><a href="#Android中跨进程通讯有几种方式？" class="headerlink" title="Android中跨进程通讯有几种方式？"></a>Android中跨进程通讯有几种方式？</h3><p>4种，刚好分别对应着 Android 的四大组件。</p>
+<p><strong>Activity 之间的跨进程通信</strong></p>
+<p>比如，点击按钮拨打电话的功能。首先需要另一个进程的 Activity 支持跨进程启动，再加上另一个进程 Activity 设置的 Action 就可以实现跨进程通信。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent callIntent = <span class="keyword">new</span> Intent(Intent.ACTION_CALL, Uri.parse(<span class="string">"tel:12345678"</span> );  </span><br><span class="line">startActivity(callIntent);</span><br></pre></td></tr></table></figure>
+
+<p>Intent 的 action 是与清单文件中的对应，而 data 与 extra 都是传递的附加信息。</p>
+<p><strong>ContentProvider 的跨进程通信</strong></p>
+<p>我们获取短信，联系人等信息，就是通过 ContentProvider 方式实现的。一般 ContentProvider 是用来跨进程通信的，但是也可以用来进程内通信。可以将 ContentProvider 理解为数据访问层，要实现自己的 ContentProvider 必须要继承 ContentProvider，所以必须要实现其中访问数据的方法，这些方法对外暴露，看起来像是对数据库的操作，但是其实只是隐藏了底层的细节，因为你可以私底下在那些方法中对一个文件来进行操作（利用MatrixCursor）。一般我们的应用储存数据都是使用数据库，而为了向业务层提供数据，我们自己也会写一个访问数据的层，ContentProvider 的作用和这个类似，只不过它还支持跨进程通信而已。另外，在进行大数据量的跨进程传输的时候，ContentProvider 是最好的选择，因为其它形式的跨进程通信都是基于 IPC，而这些形式的跨进程通信效率都不高，并且还可能有数据量限制。</p>
+<p><strong>Broadcast 的跨进程通信</strong></p>
+<p>比如监听短信的到来。实现广播的方式都两种，但是都需要继承 BroadcastReceiver。注册方式分为两种，一种是静态注册，一种是动态注册，动态注册的一定需要解注册。安装应用的时候，广播接收者都是向 AMS 注册了的，广播发送的时候，也是向 AMS 发送，这样就形成了生产者消费者模式。</p>
+<p><strong>Service 的跨进程通信</strong></p>
+<p>ADIL的使用。使用 bindService() 方法，即可以绑定一个远程服务，与其进行通信。AIDL是通过 Binder 来实现跨进程通信的。</p>
+<h3 id="AIDL理解"><a href="#AIDL理解" class="headerlink" title="AIDL理解"></a>AIDL理解</h3><p>当我们想要绑定一个 Service 的时候，该 Service 必须是要在 ServiceManager 里面注册过了的，我们调用了 bindService() 之后，ServiceManager 就会寻找目标 Service，然后向 Client 端返回一个 proxy 对象，这个 proxy 对象用来代理一切 Client 和 Service 的通信工作，同事也简化了 Client 端的调用操作（比如对数据封装成一定的格式满足跨进程通信的协议），这里是一个代理模式。还有一个需要注意的就是，如果是在同一个进程中使用 AIDL 那么，ServiceManager 返回的就不是 proxy 代理对象，而是一个本地对象，这里是策略模式。上面是文字描述过程，可能有一定了解的人才能看得懂，下面解释代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.test.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ICompute</span> <span class="keyword">extends</span> <span class="title">android</span>.<span class="title">os</span>.<span class="title">IInterface</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Local-side IPC implementation stub class.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Stub</span> <span class="keyword">extends</span> <span class="title">android</span>.<span class="title">os</span>.<span class="title">Binder</span> <span class="keyword">implements</span> <span class="title">com</span>.<span class="title">example</span>.<span class="title">test</span>.<span class="title">app</span>.<span class="title">ICompute</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">      	...</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Proxy</span> <span class="keyword">implements</span> <span class="title">com</span>.<span class="title">example</span>.<span class="title">test</span>.<span class="title">app</span>.<span class="title">ICompute</span> </span>&#123;</span><br><span class="line">			...</span><br><span class="line">        &#125;</span><br><span class="line">		</span><br><span class="line">      	...</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一个静态内部类 Stub， Stub 类里面还有一个静态内部类 Proxy。Stub 继承了 Binder，表示这个 Stub 具有跨进程传输的能力，但是它里面又采用了策略模式，只有需要进行进程之前通信的时候才会实例化一个 Proxy 类，否则就直接返回本地接口对象了。那么，接口类，Stub 类，Proxy 类的关系就很清楚了。我们研究 Framework 的时候，经常看见的 IActivityManager， ActivityManagerServer，ActivityManagerNative，ActivityManagerProxy 这些类之间的关系就很好理解了。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Activity生命周期？"><span class="nav-number">1.</span> <span class="nav-text">Activity生命周期？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fragment-生命周期"><span class="nav-number">2.</span> <span class="nav-text">Fragment 生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Service生命周期？"><span class="nav-number">3.</span> <span class="nav-text">Service生命周期？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何理解Activity，View，Window三者之间的关系？"><span class="nav-number">4.</span> <span class="nav-text">如何理解Activity，View，Window三者之间的关系？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Activity的几种LaunchMode及使用场景？"><span class="nav-number">5.</span> <span class="nav-text">Activity的几种LaunchMode及使用场景？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Android中跨进程通讯有几种方式？"><span class="nav-number">6.</span> <span class="nav-text">Android中跨进程通讯有几种方式？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AIDL理解"><span class="nav-number">7.</span> <span class="nav-text">AIDL理解</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

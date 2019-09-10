@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="基于 RxJava 2.1.2给定下面的一段代码，从源码的角度分析 RxJava 的实现原理：12345678910111213141516171819202122232425262728293031323334353637ObservableOnSubscribe&amp;lt;Integer&amp;gt; oos = new ObservableOnSubscribe&amp;lt;Integer&amp;gt;() &amp;#">
+<meta property="og:type" content="website">
+<meta property="og:title" content="RxJava 源码分析1">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/RxJava-源码分析1.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="基于 RxJava 2.1.2给定下面的一段代码，从源码的角度分析 RxJava 的实现原理：12345678910111213141516171819202122232425262728293031323334353637ObservableOnSubscribe&amp;lt;Integer&amp;gt; oos = new ObservableOnSubscribe&amp;lt;Integer&amp;gt;() &amp;#">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-04-15T10:06:36.260Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RxJava 源码分析1">
+<meta name="twitter:description" content="基于 RxJava 2.1.2给定下面的一段代码，从源码的角度分析 RxJava 的实现原理：12345678910111213141516171819202122232425262728293031323334353637ObservableOnSubscribe&amp;lt;Integer&amp;gt; oos = new ObservableOnSubscribe&amp;lt;Integer&amp;gt;() &amp;#">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/RxJava-源码分析1">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>RxJava 源码分析1 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">RxJava 源码分析1
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>RXJAVA-源码分析1</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>基于 RxJava 2.1.2</p><p>给定下面的一段代码，从源码的角度分析 RxJava 的实现原理：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">ObservableOnSubscribe&lt;Integer&gt; oos = <span class="keyword">new</span> ObservableOnSubscribe&lt;Integer&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribe</span><span class="params">(ObservableEmitter&lt;Integer&gt; e)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> max = <span class="number">100</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;</span><br><span class="line">            e.onNext(max);</span><br><span class="line">        &#125;</span><br><span class="line">        e.onComplete();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Observer&lt;Integer&gt; o = <span class="keyword">new</span> Observer&lt;Integer&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSubscribe</span><span class="params">(Disposable d)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(Integer integer)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onError</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComplete</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Observable.create(oos)</span><br><span class="line">        .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">        .subscribeOn(Schedulers.computation())</span><br><span class="line">        .subscribe(o);</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<p>分析源码之前，我们先定义一下名词，RxJava 是基于观察者模式的，这里将被观察者叫做主题（Source），观察者叫做观察者（Observer）。</p>
+<p>上面的代码首先创建了一个主题对象，然后又创建了一个观察者对象，最后将两者关联起来，并且最重要的一点，指定了主题对象和观察者对象执行的线程。</p>
+<h3 id="Observable-create-oos"><a href="#Observable-create-oos" class="headerlink" title="Observable.create(oos)"></a>Observable.create(oos)</h3><p>首先分析这行代码做了什么事情：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Observable&lt;T&gt; <span class="title">create</span><span class="params">(ObservableOnSubscribe&lt;T&gt; source)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(source, <span class="string">"source is null"</span>);</span><br><span class="line">    <span class="keyword">return</span> RxJavaPlugins.onAssembly(<span class="keyword">new</span> ObservableCreate&lt;T&gt;(source));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ObjectHelper 只是用来做非空判断，这里就不用管它了。看看 RxJavaPlugins 做了什么：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Calls the associated hook function.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &lt;T&gt; the value type</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> source the hook's input value</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> the value returned by the hook</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@SuppressWarnings</span>(&#123; <span class="string">"rawtypes"</span>, <span class="string">"unchecked"</span> &#125;)</span><br><span class="line"><span class="meta">@NonNull</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Observable&lt;T&gt; <span class="title">onAssembly</span><span class="params">(@NonNull Observable&lt;T&gt; source)</span> </span>&#123;</span><br><span class="line">    Function&lt;? <span class="keyword">super</span> Observable, ? extends Observable&gt; f = onObservableAssembly;</span><br><span class="line">    <span class="keyword">if</span> (f != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> apply(f, source);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> source;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注释上都说了，这是一个钩子函数，也就是说如果 onObservableAssembly 的值不为空，那么就调用这个钩子函数，onObservableAssembly 是一个静态变量，需要我们主动的去设置才会赋值，这里当做空来考虑，如果 onObservableAssembly  为空的话，也就是说这个方法啥都没做，直接返回 source 参数，也就是上面的 ObservableCreate 对象。</p>
+<p>总结一下，Observable.create(oos) 只是创建了一个 ObservableCreate 对象。这个方法就暂时先分析到这里，至于这个对象内部有什么东西，我们后面会说到。</p>
+<h3 id="observeOn-AndroidSchedulers-mainThread"><a href="#observeOn-AndroidSchedulers-mainThread" class="headerlink" title="observeOn(AndroidSchedulers.mainThread())"></a>observeOn(AndroidSchedulers.mainThread())</h3><p>既然之前的 create 方法创建了一个 ObservableCreate 对象并返回，也就是说 observeOn(Schedulers.computation())  这个方法是调用的 ObservableCreate 这个对象上的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ObservableCreate</span>&lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">Observable</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br></pre></td></tr></table></figure>
+
+<p>ObservableCreate 是继承至 Observable 的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Observable&lt;T&gt; <span class="title">observeOn</span><span class="params">(Scheduler scheduler)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> observeOn(scheduler, <span class="keyword">false</span>, bufferSize());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Observable 的 observeOn 是 final 的，所以走的父类的方法。继续跟踪 observeOn 调用的同名方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Observable&lt;T&gt; <span class="title">observeOn</span><span class="params">(Scheduler scheduler, <span class="keyword">boolean</span> delayError, <span class="keyword">int</span> bufferSize)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(scheduler, <span class="string">"scheduler is null"</span>);</span><br><span class="line">    ObjectHelper.verifyPositive(bufferSize, <span class="string">"bufferSize"</span>);</span><br><span class="line">    <span class="keyword">return</span> RxJavaPlugins.onAssembly(<span class="keyword">new</span> ObservableObserveOn&lt;T&gt;(<span class="keyword">this</span>, scheduler, delayError, bufferSize));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ObjectHelper 跳过。这里又是一个 onAssembly 方法的调用，我很好奇这个单词是什么意思。点进去看一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Observable&lt;T&gt; <span class="title">onAssembly</span><span class="params">(@NonNull Observable&lt;T&gt; source)</span> </span>&#123;</span><br><span class="line">    Function&lt;? <span class="keyword">super</span> Observable, ? extends Observable&gt; f = onObservableAssembly;</span><br><span class="line">    <span class="keyword">if</span> (f != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> apply(f, source);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> source;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样是一个钩子方法，现在也是有经验的人呢，再看到这个方法，就直接跳过，只关心它传递的参数和返回值就行了。它的返回值默认就是传递进来的参数。</p>
+<p>所以，observeOn 方法就是创建并返回了一个 ObservableObserveOn 对象（大神教你起类名系列二），这里预警一下，之后像这样类似的类名差不多还有3个。</p>
+<h3 id="subscribeOn-Schedulers-computation"><a href="#subscribeOn-Schedulers-computation" class="headerlink" title="subscribeOn(Schedulers.computation())"></a>subscribeOn(Schedulers.computation())</h3><p>由于 observeOn 创建并返回了一个 ObservableObserveOn 对象，所以这里调用的是 ObservableObserveOn 对象上的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ObservableObserveOn</span>&lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractObservableWithUpstream</span>&lt;<span class="title">T</span>, <span class="title">T</span>&gt; </span>&#123;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractObservableWithUpstream</span>&lt;<span class="title">T</span>, <span class="title">U</span>&gt; <span class="keyword">extends</span> <span class="title">Observable</span>&lt;<span class="title">U</span>&gt; <span class="keyword">implements</span> <span class="title">HasUpstreamObservableSource</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br></pre></td></tr></table></figure>
+
+<p>也是继承至 Observable 。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Observable&lt;T&gt; <span class="title">subscribeOn</span><span class="params">(Scheduler scheduler)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(scheduler, <span class="string">"scheduler is null"</span>);</span><br><span class="line">    <span class="keyword">return</span> RxJavaPlugins.onAssembly(<span class="keyword">new</span> ObservableSubscribeOn&lt;T&gt;(<span class="keyword">this</span>, scheduler));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不出意料，也是 final 的，创建了一个 ObservableSubscribeOn 对象（大神教你起类名系列三）并返回。</p>
+<h3 id="subscribe-o"><a href="#subscribe-o" class="headerlink" title="subscribe(o)"></a>subscribe(o)</h3><p>前面 subscribeOn 创建了一个 ObservableSubscribeOn 对象并返回，所以这里调用的是 ObservableSubscribeOn 这个对象上面的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ObservableSubscribeOn</span>&lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractObservableWithUpstream</span>&lt;<span class="title">T</span>, <span class="title">T</span>&gt; </span>&#123;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractObservableWithUpstream</span>&lt;<span class="title">T</span>, <span class="title">U</span>&gt; <span class="keyword">extends</span> <span class="title">Observable</span>&lt;<span class="title">U</span>&gt; <span class="keyword">implements</span> <span class="title">HasUpstreamObservableSource</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br></pre></td></tr></table></figure>
+
+<p>继承至 Observable 类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">subscribe</span><span class="params">(Observer&lt;? <span class="keyword">super</span> T&gt; observer)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(observer, <span class="string">"observer is null"</span>);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        observer = RxJavaPlugins.onSubscribe(<span class="keyword">this</span>, observer);</span><br><span class="line"></span><br><span class="line">        ObjectHelper.requireNonNull(observer, <span class="string">"Plugin returned null Observer"</span>);</span><br><span class="line"></span><br><span class="line">        subscribeActual(observer);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (NullPointerException e) &#123; <span class="comment">// NOPMD</span></span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        Exceptions.throwIfFatal(e);</span><br><span class="line">        <span class="comment">// can't call onError because no way to know if a Disposable has been set or not</span></span><br><span class="line">        <span class="comment">// can't call onSubscribe because the call might have set a Subscription already</span></span><br><span class="line">        RxJavaPlugins.onError(e);</span><br><span class="line"></span><br><span class="line">        NullPointerException npe = <span class="keyword">new</span> NullPointerException(<span class="string">"Actually not, but can't throw other exceptions due to RS"</span>);</span><br><span class="line">        npe.initCause(e);</span><br><span class="line">        <span class="keyword">throw</span> npe;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法也是 final 的，所以是调用的这个方法。</p>
+<h3 id="public-final-void-subscribe-Observer-lt-super-T-gt-observer-…"><a href="#public-final-void-subscribe-Observer-lt-super-T-gt-observer-…" class="headerlink" title="public final void subscribe(Observer&lt;? super T&gt; observer) { … }"></a>public final void subscribe(Observer&lt;? super T&gt; observer) { … }</h3><p>这个方法是我们需要分析的重点，看看内部具体的代码吧先：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">subscribe</span><span class="params">(Observer&lt;? <span class="keyword">super</span> T&gt; observer)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(observer, <span class="string">"observer is null"</span>);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        observer = RxJavaPlugins.onSubscribe(<span class="keyword">this</span>, observer);</span><br><span class="line"></span><br><span class="line">        ObjectHelper.requireNonNull(observer, <span class="string">"Plugin returned null Observer"</span>);</span><br><span class="line"></span><br><span class="line">        subscribeActual(observer);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (NullPointerException e) &#123; <span class="comment">// NOPMD</span></span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        Exceptions.throwIfFatal(e);</span><br><span class="line">        <span class="comment">// can't call onError because no way to know if a Disposable has been set or not</span></span><br><span class="line">        <span class="comment">// can't call onSubscribe because the call might have set a Subscription already</span></span><br><span class="line">        RxJavaPlugins.onError(e);</span><br><span class="line"></span><br><span class="line">        NullPointerException npe = <span class="keyword">new</span> NullPointerException(<span class="string">"Actually not, but can't throw other exceptions due to RS"</span>);</span><br><span class="line">        npe.initCause(e);</span><br><span class="line">        <span class="keyword">throw</span> npe;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里忽略 ObjectHelper 和异常处理的代码只有两行代码是关键。</p>
+<p>先看 observer = RxJavaPlugins.onSubscribe(this, observer);</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Observer&lt;? <span class="keyword">super</span> T&gt; onSubscribe(<span class="meta">@NonNull</span> Observable&lt;T&gt; source, <span class="meta">@NonNull</span> Observer&lt;? <span class="keyword">super</span> T&gt; observer) &#123;</span><br><span class="line">    BiFunction&lt;? <span class="keyword">super</span> Observable, ? <span class="keyword">super</span> Observer, ? extends Observer&gt; f = onObservableSubscribe;</span><br><span class="line">    <span class="keyword">if</span> (f != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> apply(f, source, observer);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> observer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没想到啊没想到，你这浓眉大眼的家伙也是一个钩子方法。所以这行代码相当于 obsever = observer;</p>
+<p>接着看，subscribeActual(observer);</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">subscribeActual</span><span class="params">(Observer&lt;? <span class="keyword">super</span> T&gt; observer)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这是一个抽象方法，没啥好分析的。</p>
+<h3 id="接下来我们要进入正题了，"><a href="#接下来我们要进入正题了，" class="headerlink" title="接下来我们要进入正题了，"></a>接下来我们要进入正题了，</h3><p>根据我们编写的代码，是 ObservableSubscribeOn 这个对象调用了 subscribe 方法，所以我们看看这个类的 subscribeActual 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribeActual</span><span class="params">(<span class="keyword">final</span> Observer&lt;? <span class="keyword">super</span> T&gt; s)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> SubscribeOnObserver&lt;T&gt; parent = <span class="keyword">new</span> SubscribeOnObserver&lt;T&gt;(s);</span><br><span class="line"></span><br><span class="line">    s.onSubscribe(parent);</span><br><span class="line"></span><br><span class="line">    parent.setDisposable(scheduler.scheduleDirect(<span class="keyword">new</span> SubscribeTask(parent)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里需要注意的是 s 这个参数，后面会有很多地方看到这个参数，一定要搞清楚这个参数是谁传递过来的。比如说：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A.subscribe(B)</span><br><span class="line">那么，参数 s 就是 B。</span><br></pre></td></tr></table></figure>
+
+<p>在我们的代码中是 ObservableSubscribeOn.subscribe(o); 理解了这一点，我们详细分析代码里面的内容：首先创建了一个 SubscribeOnObserver （大神教你起类名系列四）。然后调用了我们创建的对象 o 的 onSubscribe 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSubscribe</span><span class="params">(Disposable d)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们的 onSubscribe 方法里面啥都没做。不过一般来说，你应该调用一下 onStart 方法。</p>
+<p>接下来是调用 parent.setDisposable(scheduler.scheduleDirect(new SubscribeTask(parent)));，setDisposable 的方法不影响流程分析，这里就先跳过了，有兴趣的可以点进去看一下。然后就是 scheduler 变量，这个变量就是我们使用 subscribeOn 传递的参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public final Observable&lt;T&gt; subscribeOn(Scheduler scheduler) &#123;</span><br><span class="line">    ObjectHelper.requireNonNull(scheduler, &quot;scheduler is null&quot;);</span><br><span class="line">    return RxJavaPlugins.onAssembly(new ObservableSubscribeOn&lt;T&gt;(this, scheduler));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ObservableSubscribeOn</span><span class="params">(ObservableSource&lt;T&gt; source, Scheduler scheduler)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(source);</span><br><span class="line">    <span class="keyword">this</span>.scheduler = scheduler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 scheduler 就是 Schedulers.computation()。然后调用了它的 scheduleDirect 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">scheduleDirect</span><span class="params">(@NonNull Runnable run)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> scheduleDirect(run, <span class="number">0L</span>, TimeUnit.NANOSECONDS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">scheduleDirect</span><span class="params">(@NonNull Runnable run, <span class="keyword">long</span> delay, @NonNull TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Worker w = createWorker();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> Runnable decoratedRun = RxJavaPlugins.onSchedule(run);</span><br><span class="line"></span><br><span class="line">    DisposeTask task = <span class="keyword">new</span> DisposeTask(decoratedRun, w);</span><br><span class="line"></span><br><span class="line">    w.schedule(task, delay, unit);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> task;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这两个方法是父类的，Schedulers.computation() 返回的是一个 ComputationScheduler 对象，这里找具体的实现类由于调用链比较长，就不给出了，自己点着点着就能找到了。看看 ComputationScheduler 有没有复写这两个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@NonNull</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">scheduleDirect</span><span class="params">(@NonNull Runnable run, <span class="keyword">long</span> delay, TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    PoolWorker w = pool.get().getEventLoop();</span><br><span class="line">    <span class="keyword">return</span> w.scheduleDirect(run, delay, unit);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它覆盖了父类的第2个 scheduleDirect 方法。这里就不深入分析里面的池了。看 w.scheduleDirect(run, delay, unit);：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Disposable <span class="title">scheduleDirect</span><span class="params">(<span class="keyword">final</span> Runnable run, <span class="keyword">long</span> delayTime, TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    ScheduledDirectTask task = <span class="keyword">new</span> ScheduledDirectTask(RxJavaPlugins.onSchedule(run));</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Future&lt;?&gt; f;</span><br><span class="line">        <span class="keyword">if</span> (delayTime &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">            f = executor.submit(task);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            f = executor.schedule(task, delayTime, unit);</span><br><span class="line">        &#125;</span><br><span class="line">        task.setFuture(f);</span><br><span class="line">        <span class="keyword">return</span> task;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RejectedExecutionException ex) &#123;</span><br><span class="line">        RxJavaPlugins.onError(ex);</span><br><span class="line">        <span class="keyword">return</span> EmptyDisposable.INSTANCE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>熟悉的线程池使用代码。希望看到这里你还没有忘记我们要分析的是什么。简单的归纳一下，其实就是向我们创建的 scheduler 里面提交了一个 runnable。最终这个 Runnable 肯定会执行，那么看看这个 Runnable 里面有什么代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">parent.setDisposable(scheduler.scheduleDirect(<span class="keyword">new</span> SubscribeTask(parent)));</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">SubscribeTask</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> SubscribeOnObserver&lt;T&gt; parent;</span><br><span class="line"></span><br><span class="line">    SubscribeTask(SubscribeOnObserver&lt;T&gt; parent) &#123;</span><br><span class="line">        <span class="keyword">this</span>.parent = parent;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        source.subscribe(parent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>run 方法里面就只有一句代码，但是我们需要搞清楚这里的 source 和 parent 分别是哪个对象。</p>
+<p>parent 可以直接看到是 SubscribeOnObserver 对象。</p>
+<p>source 是使用的外部类的变量。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ObservableSubscribeOn</span><span class="params">(ObservableSource&lt;T&gt; source, Scheduler scheduler)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(source);</span><br><span class="line">    <span class="keyword">this</span>.scheduler = scheduler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里调用了 super 方法，所以构造函数里传递的变量就是 source。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Observable&lt;T&gt; <span class="title">subscribeOn</span><span class="params">(Scheduler scheduler)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(scheduler, <span class="string">"scheduler is null"</span>);</span><br><span class="line">    <span class="keyword">return</span> RxJavaPlugins.onAssembly(<span class="keyword">new</span> ObservableSubscribeOn&lt;T&gt;(<span class="keyword">this</span>, scheduler));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里是我们之前分析过的创建 ObservableSubscribeOn 的代码，这里的 this 指的是 observeOn 创建的 ObservableObserveOn 对象。希望看到这里你没有搞晕，如果你是使用手机看的，并且看懂了，我是真的佩服。</p>
+<p>也就是说，run 里面的代码就是调用了 ObservableObserveOn 对象的 subscribe 方法。之前我们分析过了，subscribe 方法实际上没有做什么，只是调用了 subscribeActual 方法，所以我们进入这个类内部看看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">subscribeActual</span><span class="params">(Observer&lt;? <span class="keyword">super</span> T&gt; observer)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (scheduler <span class="keyword">instanceof</span> TrampolineScheduler) &#123;</span><br><span class="line">        source.subscribe(observer);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Scheduler.Worker w = scheduler.createWorker();</span><br><span class="line"></span><br><span class="line">        source.subscribe(<span class="keyword">new</span> ObserveOnObserver&lt;T&gt;(observer, w, delayError, bufferSize));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们在 observeOn 传递的 scheduler 不是 TrampolineScheduler 类型的，所以只需要看 else 的代码。这里是先创建了一个工作线程（由于我们使用的是 AndroidScheduler，所以这里是指的主线程），然后调用了 source 的 subscribe 方法。需要注意的是这里最后创建了一个 ObserveOnObserver 对象（大神教你起类名系列五）。</p>
+<p>先看看 createWork，在 HandlerScheduler 中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Worker <span class="title">createWorker</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> HandlerWorker(handler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>返回了一个 HandlerWorker 对象。</p>
+<p>再看 source.subscribe()，首先这里的 source 指的是 create 方法创建的 ObservableCreate 对象，调用 subscribe 传递的是 ObserveOnObserver。看看这个对象的 subscribeActual 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">subscribeActual</span><span class="params">(Observer&lt;? <span class="keyword">super</span> T&gt; observer)</span> </span>&#123;</span><br><span class="line">    CreateEmitter&lt;T&gt; parent = <span class="keyword">new</span> CreateEmitter&lt;T&gt;(observer);</span><br><span class="line">    observer.onSubscribe(parent);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        source.subscribe(parent);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">        Exceptions.throwIfFatal(ex);</span><br><span class="line">        parent.onError(ex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的参数 observer 是 ObserveOnObserver，source 是我们代码中创建的 oos 对象。</p>
+<p>首先创建了一个 CreateEmitter 对象。</p>
+<p>接着看 ObserveOnObserver 的 onSubscribe 方法做了啥：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSubscribe</span><span class="params">(Disposable s)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (DisposableHelper.validate(<span class="keyword">this</span>.s, s)) &#123;</span><br><span class="line">        <span class="keyword">this</span>.s = s;</span><br><span class="line">        <span class="keyword">if</span> (s <span class="keyword">instanceof</span> QueueDisposable) &#123;</span><br><span class="line">            <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">            QueueDisposable&lt;T&gt; qd = (QueueDisposable&lt;T&gt;) s;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> m = qd.requestFusion(QueueDisposable.ANY | QueueDisposable.BOUNDARY);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (m == QueueDisposable.SYNC) &#123;</span><br><span class="line">                sourceMode = m;</span><br><span class="line">                queue = qd;</span><br><span class="line">                done = <span class="keyword">true</span>;</span><br><span class="line">                actual.onSubscribe(<span class="keyword">this</span>);</span><br><span class="line">                schedule();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (m == QueueDisposable.ASYNC) &#123;</span><br><span class="line">                sourceMode = m;</span><br><span class="line">                queue = qd;</span><br><span class="line">                actual.onSubscribe(<span class="keyword">this</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        queue = <span class="keyword">new</span> SpscLinkedArrayQueue&lt;T&gt;(bufferSize);</span><br><span class="line"></span><br><span class="line">        actual.onSubscribe(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里代码比较长，只分析重要的代码，就是 actual.onSubscribe 这句。actual 是构造函数中赋值的，所以我们回到创建 ObserveOnObserver 的地方，actual 指的是 SubscribeOnObserver 对象。所以它调用了 SubscribeOnObserver 的 onSubscribe 方法。接下来分析一下它的 onSubscribe 方法做了什么，这里不看也不会影响流程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SubscribeOnObserver(Observer&lt;? <span class="keyword">super</span> T&gt; actual) &#123;</span><br><span class="line">    <span class="keyword">this</span>.actual = actual;</span><br><span class="line">    <span class="keyword">this</span>.s = <span class="keyword">new</span> AtomicReference&lt;Disposable&gt;();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSubscribe</span><span class="params">(Disposable s)</span> </span>&#123;</span><br><span class="line">    DisposableHelper.setOnce(<span class="keyword">this</span>.s, s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法调用了 setOnce 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">setOnce</span><span class="params">(AtomicReference&lt;Disposable&gt; field, Disposable d)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(d, <span class="string">"d is null"</span>);</span><br><span class="line">    <span class="keyword">if</span> (!field.compareAndSet(<span class="keyword">null</span>, d)) &#123;</span><br><span class="line">        d.dispose();</span><br><span class="line">        <span class="keyword">if</span> (field.get() != DISPOSED) &#123;</span><br><span class="line">            reportDisposableSet();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里涉及到了乐观锁等玩意，简单来说就是先判断 field 的值是否为空，如果为空则设置为 d，不为空则将 d dispose。然后判断 field 的值，由于 field 的值只能设定一次非 DISPOSED 值，所以如果不为 DISPOSED，说明已经被设置过了，再报出异常，如果为 DISPOSED 是可以再次设置的。按照正常的流程，这里只是将 field 的值设置为 d，然后返回true。这个方法可以先不用管。</p>
+<p>回到主线流程上，source.subscribe(parent); 这是最重要的一句代码。source 是在构造函数赋值的，看看构造方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Observable&lt;T&gt; <span class="title">create</span><span class="params">(ObservableOnSubscribe&lt;T&gt; source)</span> </span>&#123;</span><br><span class="line">    ObjectHelper.requireNonNull(source, <span class="string">"source is null"</span>);</span><br><span class="line">    <span class="keyword">return</span> RxJavaPlugins.onAssembly(<span class="keyword">new</span> ObservableCreate&lt;T&gt;(source));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也就是说这里的 source 是我们代码中创建的 oos 对象。parent 是新创建的 CreateEmitter 对象。看看我们 oos 的 subscribe 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribe</span><span class="params">(ObservableEmitter&lt;Integer&gt; e)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Log.e(<span class="string">"aprz"</span>, Thread.currentThread().getName());</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> max = <span class="number">100</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;</span><br><span class="line">        e.onNext(i);</span><br><span class="line">    &#125;</span><br><span class="line">    e.onComplete();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里就是事件开始的起点。所有的事件都由 ObservableEmitter 开始发送，看看它的代码，它是一个接口，在我们的例子中，它的实现类是 CreateEmitter，所有我们分析这个类的 onNext 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (t == <span class="keyword">null</span>) &#123;</span><br><span class="line">        onError(<span class="keyword">new</span> NullPointerException(<span class="string">"onNext called with null. Null values are generally not allowed in 2.x operators and sources."</span>));</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!isDisposed()) &#123;</span><br><span class="line">        observer.onNext(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>isDisposed 方法返回 false 才会去调用 observer 的 onNext 方法，这个 observer 是谁呢? 看到这里我们就要从后往前推一遍之前的代码了，不管你绝不绝望，反正我是很绝望。这的 observer 是  ObserveOnObserver 对象。</p>
+<p>接下来我们就进入 ObserveOnObserver 里面，看看它接受事件之后做了什么，上面的参数 e 就是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (done) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (sourceMode != QueueDisposable.ASYNC) &#123;</span><br><span class="line">        queue.offer(t);</span><br><span class="line">    &#125;</span><br><span class="line">    schedule();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用了 schedule 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (getAndIncrement() == <span class="number">0</span>) &#123;</span><br><span class="line">        worker.schedule(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>向 work 中提交了一个 Runnable，这里传递的是 this。说明它自己肯定实现了这个接口，我们看看它的 run 方法做了啥：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (outputFused) &#123;</span><br><span class="line">        drainFused();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        drainNormal();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里一般是走 drainNormal 吧，我猜的，我们分析这个方法吧。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">drainNormal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> missed = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> SimpleQueue&lt;T&gt; q = queue;</span><br><span class="line">    <span class="keyword">final</span> Observer&lt;? <span class="keyword">super</span> T&gt; a = actual;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">if</span> (checkTerminated(done, q.isEmpty(), a)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="keyword">boolean</span> d = done;</span><br><span class="line">            T v;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                v = q.poll();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">                Exceptions.throwIfFatal(ex);</span><br><span class="line">                s.dispose();</span><br><span class="line">                q.clear();</span><br><span class="line">                a.onError(ex);</span><br><span class="line">                worker.dispose();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">boolean</span> empty = v == <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (checkTerminated(d, empty, a)) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (empty) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            a.onNext(v);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        missed = addAndGet(-missed);</span><br><span class="line">        <span class="keyword">if</span> (missed == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码很长，具体做了啥我们暂时不用关心，只需要注意到 a.onNexe(v) 这行代码，这个 a 是 actual 变量，actual 又是 SubscribeOnObserver 对象，我们看看它的 onNext 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">    actual.onNext(t);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>很简单，这里的 actual 就是我们创建的 o 了，所以最终调用到了我们的代码里面。</p>
+<p>好了，到这里一个完整的流程就整理出来了，但是还有一个问题没有解决，就是线程切换是发生在哪里。因为为了不影响整体流程的分析，所以上面并没有去分析线程切换的东西，下面开始分析。</p>
+<p>直接从 subscribeOn 开始，看 ObservableSubscribeOn 的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribeActual</span><span class="params">(<span class="keyword">final</span> Observer&lt;? <span class="keyword">super</span> T&gt; s)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> SubscribeOnObserver&lt;T&gt; parent = <span class="keyword">new</span> SubscribeOnObserver&lt;T&gt;(s);</span><br><span class="line"></span><br><span class="line">    s.onSubscribe(parent);</span><br><span class="line"></span><br><span class="line">    parent.setDisposable(scheduler.scheduleDirect(<span class="keyword">new</span> SubscribeTask(parent)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从这里开始就进行了线程的切换，根据上面的分析我们知道这里是将 SubscribeTask 作为一个 Runnable 对象给提交进了我们指定的 scheduler （subscribeOn 传递的）中。所以后面的流程都是在 scheduler 所在的线程在运行。</p>
+<p>再看 observeOn，看 ObservableObserveOn 的代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">subscribeActual</span><span class="params">(Observer&lt;? <span class="keyword">super</span> T&gt; observer)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (scheduler <span class="keyword">instanceof</span> TrampolineScheduler) &#123;</span><br><span class="line">        source.subscribe(observer);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Scheduler.Worker w = scheduler.createWorker();</span><br><span class="line"></span><br><span class="line">        source.subscribe(<span class="keyword">new</span> ObserveOnObserver&lt;T&gt;(observer, w, delayError, bufferSize));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的线程切换是发生在 ObserveOnObserver 这个对象的里面。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (getAndIncrement() == <span class="number">0</span>) &#123;</span><br><span class="line">        worker.schedule(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>schedule 的流程，我们上面分析过，worker.schedule(this) 这行代码就发生了线程切换，是将 this 作为 Runnable 对象提交到了我们指定的（observerOn 传递的）scheduler 中。具体分析，由于之前的流程是在别的线程中，所以想要进行线程切换，最先想到的肯定是 Handler。由于我们传递的是 AndroidSchedulers.mainThread()，所以我们就分析这个吧。</p>
+<p>AndroidSchedulers.mainThread() 的实现是 HandlerScheduler。看看它的 schedule 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public Disposable schedule(Runnable run, long delay, TimeUnit unit) &#123;</span><br><span class="line">    if (run == null) throw new NullPointerException(&quot;run == null&quot;);</span><br><span class="line">    if (unit == null) throw new NullPointerException(&quot;unit == null&quot;);</span><br><span class="line"></span><br><span class="line">    if (disposed) &#123;</span><br><span class="line">        return Disposables.disposed();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    run = RxJavaPlugins.onSchedule(run);</span><br><span class="line"></span><br><span class="line">    ScheduledRunnable scheduled = new ScheduledRunnable(handler, run);</span><br><span class="line"></span><br><span class="line">    Message message = Message.obtain(handler, scheduled);</span><br><span class="line">    message.obj = this; // Used as token for batch disposal of this worker&apos;s runnables.</span><br><span class="line"></span><br><span class="line">    handler.sendMessageDelayed(message, Math.max(0L, unit.toMillis(delay)));</span><br><span class="line"></span><br><span class="line">    // Re-check disposed state for removing in case we were racing a call to dispose().</span><br><span class="line">    if (disposed) &#123;</span><br><span class="line">        handler.removeCallbacks(scheduled);</span><br><span class="line">        return Disposables.disposed();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return scheduled;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>post 了一个 msg，这样就完成了线程的切换。</p>
+<p>下面上一张图，有助于理解和记忆：</p>
+
+
+<p>只需要理解，每次 observerOn 和 subscribeOn 的时候，内部都会创建一个新的 observable 和 observer。</p>
+<p>新创建的 observable 会引用前面的 observable，就是代码中我们分析的 source 变量。</p>
+<p>新创建的 observer 会引用前面的 observer，就是代码中我们分析的 actual 变量。</p>
+<p>最后我们 subscribe 的时候，是调用的最后创建的 observable 的方法。而每个 observable 内部又调用了 source 的 subscribe 方法，这样就形成了一层一层往前传递的调用链。当调用到最前面的一个 observable 的时候，就是我们自己创建的 observable，在这里我们需要手动触发该与该 observable 对应的 observer 对象的 onNext 方法。而 observer 的 onNext 方法的内部又调用了 actual 的 onNext 方法，这样就形成了一层一层往后传递的调用链。</p>
+<p>虽然在我们的例子中，CreateEmitter 并不是一个 observer ，但是它也有 onNext 等方法，可以把它看做一个 observer。</p>
+<p>如此，RxJava 的一个流程就理清楚了。这货的流程和 OkHttp 怎么有点像，只是稍微有点不一样。</p>
+<p>2018年01月08日20:49:03</p>
+<p>补充一下关于背压的知识：在异步订阅的时候，使用 Observable，默认的缓冲大小是 128，超过 这个数量之后会 resize，也就是说会缓冲所有的事件，这样就会导致内存占用一直增加。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>RXJAVA-源码分析1</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Observable-create-oos"><span class="nav-number">1.</span> <span class="nav-text">Observable.create(oos)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#observeOn-AndroidSchedulers-mainThread"><span class="nav-number">2.</span> <span class="nav-text">observeOn(AndroidSchedulers.mainThread())</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#subscribeOn-Schedulers-computation"><span class="nav-number">3.</span> <span class="nav-text">subscribeOn(Schedulers.computation())</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#subscribe-o"><span class="nav-number">4.</span> <span class="nav-text">subscribe(o)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#public-final-void-subscribe-Observer-lt-super-T-gt-observer-…"><span class="nav-number">5.</span> <span class="nav-text">public final void subscribe(Observer&lt;? super T&gt; observer) { … }</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接下来我们要进入正题了，"><span class="nav-number">6.</span> <span class="nav-text">接下来我们要进入正题了，</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

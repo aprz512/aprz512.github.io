@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="补间动画参考文章：https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA首先看看 Animation 动画的基本用法：1234567//1.new AnimationScaleAnimation animation = new ScaleAnimation(0, 1, 0, 1);//2.设置 Animation 各种参数配置animation.setD">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Android动画分析">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/Android动画分析.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="补间动画参考文章：https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA首先看看 Animation 动画的基本用法：1234567//1.new AnimationScaleAnimation animation = new ScaleAnimation(0, 1, 0, 1);//2.设置 Animation 各种参数配置animation.setD">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-03-07T12:41:11.968Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android动画分析">
+<meta name="twitter:description" content="补间动画参考文章：https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA首先看看 Animation 动画的基本用法：1234567//1.new AnimationScaleAnimation animation = new ScaleAnimation(0, 1, 0, 1);//2.设置 Animation 各种参数配置animation.setD">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/Android动画分析">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>Android动画分析 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">Android动画分析
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>ANDROID动画分析</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <h2 id="补间动画"><a href="#补间动画" class="headerlink" title="补间动画"></a>补间动画</h2><p>参考文章：<a href="https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA</a></p><p>首先看看 Animation 动画的基本用法：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//1.new Animation</span></span><br><span class="line">ScaleAnimation animation = <span class="keyword">new</span> ScaleAnimation(<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>);</span><br><span class="line"><span class="comment">//2.设置 Animation 各种参数配置</span></span><br><span class="line">animation.setDuration(<span class="number">300</span>);</span><br><span class="line">animation.setFillAfter(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">//3.启动动画</span></span><br><span class="line">view.startAnimation(animation);</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<p>分析的源码全都基于 android-27 版本</p>
+<h3 id="View-startAnimation"><a href="#View-startAnimation" class="headerlink" title="View.startAnimation()"></a><strong>View.startAnimation()</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startAnimation</span><span class="params">(Animation animation)</span> </span>&#123;</span><br><span class="line">    animation.setStartTime(Animation.START_ON_FIRST_FRAME);</span><br><span class="line">    setAnimation(animation);</span><br><span class="line">    invalidateParentCaches();</span><br><span class="line">    invalidate(<span class="keyword">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一个个跟进去看看，先是 animation.setStartTime()：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStartTime</span><span class="params">(<span class="keyword">long</span> startTimeMillis)</span> </span>&#123;</span><br><span class="line">    mStartTime = startTimeMillis;</span><br><span class="line">    mStarted = mEnded = <span class="keyword">false</span>;</span><br><span class="line">    mCycleFlip = <span class="keyword">false</span>;</span><br><span class="line">    mRepeated = <span class="number">0</span>;</span><br><span class="line">    mMore = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里只是对一些变量进行赋值，并没有运行动画的逻辑，继续看看 setAnimation()：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAnimation</span><span class="params">(Animation animation)</span> </span>&#123;</span><br><span class="line">    mCurrentAnimation = animation;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (animation != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// If the screen is off assume the animation start time is now instead of</span></span><br><span class="line">        <span class="comment">// the next frame we draw. Keeping the START_ON_FIRST_FRAME start time</span></span><br><span class="line">        <span class="comment">// would cause the animation to start when the screen turns back on</span></span><br><span class="line">        <span class="keyword">if</span> (mAttachInfo != <span class="keyword">null</span> &amp;&amp; mAttachInfo.mDisplayState == Display.STATE_OFF</span><br><span class="line">                &amp;&amp; animation.getStartTime() == Animation.START_ON_FIRST_FRAME) &#123;</span><br><span class="line">            animation.setStartTime(AnimationUtils.currentAnimationTimeMillis());</span><br><span class="line">        &#125;</span><br><span class="line">        animation.reset();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>View 里面有一个 Animation 类型的成员变量，所以这个方法其实是将我们 new 的 ScaleAnimation 动画跟 View 绑定起来而已，也没有运行动画的逻辑，后面的判断是与屏幕关闭有关，reset 方法重置了一下变量。继续往下看看 invalidateParentCached()：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">invalidateParentCaches</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mParent <span class="keyword">instanceof</span> View) &#123;</span><br><span class="line">        ((View) mParent).mPrivateFlags |= PFLAG_INVALIDATED;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法只是设置了一个标志位。继续跟进 invalidate()：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invalidate</span><span class="params">(<span class="keyword">boolean</span> invalidateCache)</span> </span>&#123;</span><br><span class="line">    invalidateInternal(<span class="number">0</span>, <span class="number">0</span>, mRight - mLeft, mBottom - mTop, invalidateCache, <span class="keyword">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>直接调用了 invalidateInternal ：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">invalidateInternal</span><span class="params">(<span class="keyword">int</span> l, <span class="keyword">int</span> t, <span class="keyword">int</span> r, <span class="keyword">int</span> b, <span class="keyword">boolean</span> invalidateCache,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">boolean</span> fullInvalidate)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mGhostView != <span class="keyword">null</span>) &#123;</span><br><span class="line">        mGhostView.invalidate(<span class="keyword">true</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (skipInvalidate()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((mPrivateFlags &amp; (PFLAG_DRAWN | PFLAG_HAS_BOUNDS)) == (PFLAG_DRAWN | PFLAG_HAS_BOUNDS)</span><br><span class="line">            || (invalidateCache &amp;&amp; (mPrivateFlags &amp; PFLAG_DRAWING_CACHE_VALID) == PFLAG_DRAWING_CACHE_VALID)</span><br><span class="line">            || (mPrivateFlags &amp; PFLAG_INVALIDATED) != PFLAG_INVALIDATED</span><br><span class="line">            || (fullInvalidate &amp;&amp; isOpaque() != mLastIsOpaque)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (fullInvalidate) &#123;</span><br><span class="line">            mLastIsOpaque = isOpaque();</span><br><span class="line">            mPrivateFlags &amp;= ~PFLAG_DRAWN;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        mPrivateFlags |= PFLAG_DIRTY;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (invalidateCache) &#123;</span><br><span class="line">            mPrivateFlags |= PFLAG_INVALIDATED;</span><br><span class="line">            mPrivateFlags &amp;= ~PFLAG_DRAWING_CACHE_VALID;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Propagate the damage rectangle to the parent view.</span></span><br><span class="line">        <span class="keyword">final</span> AttachInfo ai = mAttachInfo;</span><br><span class="line">        <span class="keyword">final</span> ViewParent p = mParent;</span><br><span class="line">        <span class="keyword">if</span> (p != <span class="keyword">null</span> &amp;&amp; ai != <span class="keyword">null</span> &amp;&amp; l &lt; r &amp;&amp; t &lt; b) &#123;</span><br><span class="line">            <span class="keyword">final</span> Rect damage = ai.mTmpInvalRect;</span><br><span class="line">            damage.set(l, t, r, b);</span><br><span class="line">            p.invalidateChild(<span class="keyword">this</span>, damage);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Damage the entire projection receiver, if necessary.</span></span><br><span class="line">        <span class="keyword">if</span> (mBackground != <span class="keyword">null</span> &amp;&amp; mBackground.isProjected()) &#123;</span><br><span class="line">            <span class="keyword">final</span> View receiver = getProjectionReceiver();</span><br><span class="line">            <span class="keyword">if</span> (receiver != <span class="keyword">null</span>) &#123;</span><br><span class="line">                receiver.damageInParent();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>invalidate() 内部其实是调用了 ViewParent 的 invalidateChild()，再跟进看看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">invalidateChild</span><span class="params">(View child, <span class="keyword">final</span> Rect dirty)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    ViewParent parent = <span class="keyword">this</span>;</span><br><span class="line">    <span class="keyword">if</span> (attachInfo != <span class="keyword">null</span>) &#123;</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            View view = <span class="keyword">null</span>;</span><br><span class="line">            <span class="keyword">if</span> (parent <span class="keyword">instanceof</span> View) &#123;</span><br><span class="line">                view = (View) parent;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            ...</span><br><span class="line"></span><br><span class="line">            parent = parent.invalidateChildInParent(location, dirty);</span><br><span class="line">            ...</span><br><span class="line">        &#125; <span class="keyword">while</span> (parent != <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法在 API 27 里面被标记为过时了，不太明白为啥。继续查看</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ViewParent <span class="title">invalidateChildInParent</span><span class="params">(<span class="keyword">final</span> <span class="keyword">int</span>[] location, <span class="keyword">final</span> Rect dirty)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ((mPrivateFlags &amp; (PFLAG_DRAWN | PFLAG_DRAWING_CACHE_VALID)) != <span class="number">0</span>) &#123;</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> mParent;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法主要是计算 dirty 区域，根据标志位返回 ViewParent，一般情况下 if 条件都是成立的。结合 invalidateChild 函数，只有当这个函数返回 null 的时候，invalidateChild 才能跳出循环。也就是说 invalidateChild 函数会一直网上调用，直到 ViewGroup 没有 parent。</p>
+<p>到这里考察源码功底的时候就到了，我们知道 activity 的根 View 是 DecorView，而DecorView 的 parent 又是 ViewRootImpl，那么我们去看看它的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public ViewParent invalidateChildInParent(int[] location, Rect dirty) &#123;</span><br><span class="line">    checkThread();</span><br><span class="line">    if (DEBUG_DRAW) Log.v(mTag, &quot;Invalidate child: &quot; + dirty);</span><br><span class="line"></span><br><span class="line">    if (dirty == null) &#123;</span><br><span class="line">        invalidate();</span><br><span class="line">        return null;</span><br><span class="line">    &#125; else if (dirty.isEmpty() &amp;&amp; !mIsAnimating) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    invalidateRectOnScreen(dirty);</span><br><span class="line"></span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所有 return 都返回 null。</p>
+<p>继续跟到 invalidateRectOnScreen() 方法里看看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">invalidateRectOnScreen</span><span class="params">(Rect dirty)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">if</span> (!mWillDrawSoon &amp;&amp; (intersected || mIsAnimating)) &#123;</span><br><span class="line">        scheduleTraversals();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看到了 scheduleTraversals。scheduleTraversals() 作用是将 performTraversals() 封装到一个 Runnable 里面，然后扔到 Choreographer 的待执行队列里，这些待执行的 Runnable 将会在最近的一个 16.6 ms 屏幕刷新信号到来的时候被执行。而 performTraversals() 是 View 的三大操作：测量、布局、绘制的发起者。</p>
+<p><strong>View 树里面不管哪个 View 发起了布局请求、绘制请求，统统最终都会走到 ViewRootImpl 里的 scheduleTraversals()，然后在最近的一个屏幕刷新信号到了的时候再通过 ViewRootImpl 的 performTraversals() 从根布局 DecorView 开始依次遍历 View 树去执行测量、布局、绘制三大操作。这也是为什么一直要求页面布局层次不能太深，因为每一次的页面刷新都会先走到 ViewRootImpl 里，然后再层层遍历到具体发生改变的 View 里去执行相应的布局或绘制操作。</strong></p>
+<p>我们从 View.startAnimation() 开始跟进源码分析的这一过程中，也可以看出，执行动画，其实内部会调用 View 的重绘请求操作 invalidate() ，所以最终会走到 ViewRootImpl 的 scheduleTraversals()，然后在下一个屏幕刷新信号到的时候去遍历 View 树刷新屏幕。</p>
+<p>所以，到这里可以得到的结论是：</p>
+<p><strong>当调用了 View.startAniamtion() 之后，动画并没有马上就被执行，这个方法只是做了一些变量初始化操作，接着将 View 和 Animation 绑定起来，然后调用重绘请求操作，内部层层寻找 mParent，最终走到 ViewRootImpl 的 scheduleTraversals 里发起一个遍历 View 树的请求，这个请求会在最近的一个屏幕刷新信号到来的时候被执行，调用 performTraversals 从根布局 DecorView 开始遍历 View 树。</strong></p>
+<p>分析到这里，我们没有看到有关动画的代码，这时候我们可以想一下，动画虽然复杂，但是它的每一帧也是绘制出来了，那么我们去 View 的绘制流程中看看。先贴一张流程图：</p>
+
+
+<h2 id="View-draw"><a href="#View-draw" class="headerlink" title="View.draw"></a>View.draw</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> privateFlags = mPrivateFlags;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> dirtyOpaque = (privateFlags &amp; PFLAG_DIRTY_MASK) == PFLAG_DIRTY_OPAQUE &amp;&amp;</span><br><span class="line">            (mAttachInfo == <span class="keyword">null</span> || !mAttachInfo.mIgnoreDirtyState);</span><br><span class="line">    mPrivateFlags = (privateFlags &amp; ~PFLAG_DIRTY_MASK) | PFLAG_DRAWN;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Draw traversal performs several drawing steps which must be executed</span></span><br><span class="line"><span class="comment">     * in the appropriate order:</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     *      1. Draw the background</span></span><br><span class="line"><span class="comment">     *      2. If necessary, save the canvas' layers to prepare for fading</span></span><br><span class="line"><span class="comment">     *      3. Draw view's content</span></span><br><span class="line"><span class="comment">     *      4. Draw children</span></span><br><span class="line"><span class="comment">     *      5. If necessary, draw the fading edges and restore layers</span></span><br><span class="line"><span class="comment">     *      6. Draw decorations (scrollbars for instance)</span></span><br><span class="line"><span class="comment">     */</span></span><br></pre></td></tr></table></figure>
+
+<p>方法里面的注释就很清楚的说了该方法做了什么。接下来是一串调用链：</p>
+<p>dispatchDraw</p>
+<p>drawChild</p>
+<p>draw 这个方法不同于draw(canvas)：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">draw</span><span class="params">(Canvas canvas, ViewGroup parent, <span class="keyword">long</span> drawingTime)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> more = <span class="keyword">false</span>;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//1.获取View绑定的动画</span></span><br><span class="line">    <span class="keyword">final</span> Animation a = getAnimation();</span><br><span class="line">    <span class="keyword">if</span> (a != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">//2.如果View有绑定动画，执行动画相关逻辑</span></span><br><span class="line">        more = applyLegacyAnimation(parent, drawingTime, a, scalingRequired);</span><br><span class="line">        ...</span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> more;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>动画真正执行的地方应该也就是在 applyLegacyAnimation() 方法里了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">applyLegacyAnimation</span><span class="params">(ViewGroup parent, <span class="keyword">long</span> drawingTime, Animation a, <span class="keyword">boolean</span> scalingRequired)</span> </span>&#123;</span><br><span class="line">    Transformation invalidationTransform;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> flags = parent.mGroupFlags;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> initialized = a.isInitialized();</span><br><span class="line">    <span class="keyword">if</span> (!initialized) &#123;</span><br><span class="line">        <span class="comment">//1.动画初始化</span></span><br><span class="line">        a.initialize(mRight - mLeft, mBottom - mTop, parent.getWidth(), parent.getHeight());</span><br><span class="line">        a.initializeInvalidateRegion(<span class="number">0</span>, <span class="number">0</span>, mRight - mLeft, mBottom - mTop);</span><br><span class="line">        <span class="keyword">if</span> (mAttachInfo != <span class="keyword">null</span>) a.setListenerHandler(mAttachInfo.mHandler);</span><br><span class="line">        <span class="comment">//2.通知动画开始</span></span><br><span class="line">        onAnimationStart();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> Transformation t = parent.getChildTransformation();</span><br><span class="line">    <span class="comment">//3.调用动画的getTransfomation()计算动画</span></span><br><span class="line">    <span class="keyword">boolean</span> more = a.getTransformation(drawingTime, t, <span class="number">1f</span>);</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> more;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对动画进行初始化，以及调用了 Animation 的 getTransformation：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">getTransformation</span><span class="params">(<span class="keyword">long</span> currentTime, Transformation outTransformation)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//1.记录动画第一帧时间</span></span><br><span class="line">    <span class="keyword">if</span> (mStartTime == -<span class="number">1</span>) &#123;</span><br><span class="line">        mStartTime = currentTime;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">long</span> startOffset = getStartOffset();<span class="comment">//动画延迟开始时间，默认为0</span></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">long</span> duration = mDuration;<span class="comment">//动画持续时间</span></span><br><span class="line">    <span class="keyword">float</span> normalizedTime;</span><br><span class="line">    <span class="keyword">if</span> (duration != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//2.计算动画的进度：根据（当前时间 - 动画第一帧时间） / 动画持续时间</span></span><br><span class="line">        normalizedTime = ((<span class="keyword">float</span>) (currentTime - (mStartTime + startOffset))) / (<span class="keyword">float</span>) duration;</span><br><span class="line">    &#125; ...</span><br><span class="line"></span><br><span class="line">    <span class="comment">//3.确保动画进度在 0.0 ---- 1.0 之间</span></span><br><span class="line">    <span class="keyword">if</span> (!mFillEnabled) normalizedTime = Math.max(Math.min(normalizedTime, <span class="number">1.0f</span>), <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((normalizedTime &gt;= <span class="number">0.0f</span> || mFillBefore) &amp;&amp; (normalizedTime &lt;= <span class="number">1.0f</span> || mFillAfter)) &#123;</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mFillEnabled) normalizedTime = Math.max(Math.min(normalizedTime, <span class="number">1.0f</span>), <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">        <span class="comment">//4.根据插值器计算实际的动画进度</span></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">float</span> interpolatedTime = mInterpolator.getInterpolation(normalizedTime);</span><br><span class="line">        <span class="comment">//5.根据动画进度应用动画效果</span></span><br><span class="line">        applyTransformation(interpolatedTime, outTransformation);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ...    </span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> mMore;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法里做了几件事：</p>
+<ul>
+<li><p>记录动画第一帧的时间</p>
+</li>
+<li><p>根据当前时间到动画第一帧的时间这之间的时长和动画应持续的时长来计算动画的进度</p>
+</li>
+<li><p>把动画进度控制在 0-1 之间，超过 1 的表示动画已经结束，重新赋值为 1 即可</p>
+</li>
+<li><p>根据插值器来计算动画的实际进度</p>
+</li>
+<li><p>调用 applyTransformation() 应用动画效果</p>
+<p>applyTransformation() 最终是在绘制流程中的 draw() 过程中执行到的，那么显然在每一帧的屏幕刷新信号来的时候，遍历 View 树是为了重新计算屏幕数据，也就是所谓的 View 的刷新，而动画只是在这个过程中顺便执行的。</p>
+</li>
+</ul>
+<p>经过上面的分析我们知道了动画原理的一个大概，但是动画到底是怎么绘制的，还是没有分析出来，我们只是知道动画怎么开始，动画怎么被不断的调用。下面我们开始分析动画的绘制过程。</p>
+<p>在 Animation 的 public boolean getTransformation(long currentTime, Transformation outTransformation) {} 方法中，有这样的一句代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">applyTransformation(interpolatedTime, outTransformation);</span><br></pre></td></tr></table></figure>
+
+<p>搞过自定义动画效果的人应该相当熟悉这个方法，我们看看 ScaleAnimation 是怎么复写这个方法的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">applyTransformation</span><span class="params">(<span class="keyword">float</span> interpolatedTime, Transformation t)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">float</span> sx = <span class="number">1.0f</span>;</span><br><span class="line">    <span class="keyword">float</span> sy = <span class="number">1.0f</span>;</span><br><span class="line">    <span class="keyword">float</span> scale = getScaleFactor();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mFromX != <span class="number">1.0f</span> || mToX != <span class="number">1.0f</span>) &#123;</span><br><span class="line">        sx = mFromX + ((mToX - mFromX) * interpolatedTime);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mFromY != <span class="number">1.0f</span> || mToY != <span class="number">1.0f</span>) &#123;</span><br><span class="line">        sy = mFromY + ((mToY - mFromY) * interpolatedTime);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mPivotX == <span class="number">0</span> &amp;&amp; mPivotY == <span class="number">0</span>) &#123;</span><br><span class="line">        t.getMatrix().setScale(sx, sy);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        t.getMatrix().setScale(sx, sy, scale * mPivotX, scale * mPivotY);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>具体干了什么，我们不关心，只需要注意 Transformation 可以获取到 matrix，在这个方法里面，给 matrix 设置了 x, y 的缩放值。</p>
+<p>再回到  applyLegacyAnimation 这个方法，可以看到如下逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">applyLegacyAnimation</span><span class="params">(ViewGroup parent, <span class="keyword">long</span> drawingTime,</span></span></span><br><span class="line"><span class="function"><span class="params">        Animation a, <span class="keyword">boolean</span> scalingRequired)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">      </span><br><span class="line">    <span class="keyword">if</span> (more) &#123;</span><br><span class="line">      <span class="comment">// 补间动画，除了 alpha 外，willChangeBounds 都返回 true</span></span><br><span class="line">        <span class="keyword">if</span> (!a.willChangeBounds()) &#123;</span><br><span class="line">            ...</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (parent.mInvalidateRegion == <span class="keyword">null</span>) &#123;</span><br><span class="line">                parent.mInvalidateRegion = <span class="keyword">new</span> RectF();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">final</span> RectF region = parent.mInvalidateRegion;</span><br><span class="line">            a.getInvalidateRegion(<span class="number">0</span>, <span class="number">0</span>, mRight - mLeft, mBottom - mTop, region,</span><br><span class="line">                    invalidationTransform);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// The child need to draw an animation, potentially offscreen, so</span></span><br><span class="line">            <span class="comment">// make sure we do not cancel invalidate requests</span></span><br><span class="line">            parent.mPrivateFlags |= PFLAG_DRAW_ANIMATION;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">final</span> <span class="keyword">int</span> left = mLeft + (<span class="keyword">int</span>) region.left;</span><br><span class="line">            <span class="keyword">final</span> <span class="keyword">int</span> top = mTop + (<span class="keyword">int</span>) region.top;</span><br><span class="line">            parent.invalidate(left, top, left + (<span class="keyword">int</span>) (region.width() + .<span class="number">5f</span>),</span><br><span class="line">                    top + (<span class="keyword">int</span>) (region.height() + .<span class="number">5f</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> more;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重点看 else 里面的逻辑，调用了 getInvalidateRegion 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getInvalidateRegion</span><span class="params">(<span class="keyword">int</span> left, <span class="keyword">int</span> top, <span class="keyword">int</span> right, <span class="keyword">int</span> bottom,</span></span></span><br><span class="line"><span class="function"><span class="params">        RectF invalidate, Transformation transformation)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> RectF tempRegion = mRegion;</span><br><span class="line">    <span class="keyword">final</span> RectF previousRegion = mPreviousRegion;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 重绘区域</span></span><br><span class="line">    invalidate.set(left, top, right, bottom);</span><br><span class="line">  <span class="comment">// 获取 scaleAnimation 设置的 matrix ，对重绘区域进行变换</span></span><br><span class="line">    transformation.getMatrix().mapRect(invalidate);</span><br><span class="line">    <span class="comment">// Enlarge the invalidate region to account for rounding errors</span></span><br><span class="line">    invalidate.inset(-<span class="number">1.0f</span>, -<span class="number">1.0f</span>);</span><br><span class="line">    tempRegion.set(invalidate);</span><br><span class="line">  <span class="comment">// 合并重绘区域</span></span><br><span class="line">    invalidate.union(previousRegion);</span><br><span class="line"></span><br><span class="line">    previousRegion.set(tempRegion);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> Transformation tempTransformation = mTransformation;</span><br><span class="line">    <span class="keyword">final</span> Transformation previousTransformation = mPreviousTransformation;</span><br><span class="line"></span><br><span class="line">    tempTransformation.set(transformation);</span><br><span class="line">    transformation.set(previousTransformation);</span><br><span class="line">    previousTransformation.set(tempTransformation);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数就是根据动画的效果重新计算需要重绘的区域。</p>
+<p>回到 applyLegacyAnimation 方法中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> left = mLeft + (<span class="keyword">int</span>) region.left;</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> top = mTop + (<span class="keyword">int</span>) region.top;</span><br><span class="line">parent.invalidate(left, top, left + (<span class="keyword">int</span>) (region.width() + .<span class="number">5f</span>),</span><br><span class="line">        top + (<span class="keyword">int</span>) (region.height() + .<span class="number">5f</span>));</span><br></pre></td></tr></table></figure>
+
+<p>这里显然就是将计算出来的区域当做参数传递进去，这样 VSYNC 触发重绘的时候，就能够正确的绘制出动画效果。 </p>
+<p>分析到这里又进了一步，但是与 Canvas 有关的还没有找到。</p>
+<p>View 的 draw 函数里有这样一句：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">transformToApply = parent.getChildTransformation();</span><br></pre></td></tr></table></figure>
+
+<p>我怀疑这个 transformToApply 也是与动画相关的，但是没有找到它赋值的地方。</p>
+<p>总结一下：补间动画的原理是对画布进行变换，可惜我没有找到位置，只是找到了重绘区域变换的位置。</p>
+<h2 id="属性动画源码分析："><a href="#属性动画源码分析：" class="headerlink" title="属性动画源码分析："></a>属性动画源码分析：</h2><p><a href="http://gityuan.com/2015/09/06/android-anaimator-4/" target="_blank" rel="noopener">http://gityuan.com/2015/09/06/android-anaimator-4/</a></p>
+<p><a href="https://mp.weixin.qq.com/s/F7rayacuvadHVjGZDX-kpg" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/F7rayacuvadHVjGZDX-kpg</a></p>
+<p>总结一下：就是使用反射不断的更改 View 的属性值，在每一帧刷新的时候。</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>ANDROID动画分析</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#补间动画"><span class="nav-number">1.</span> <span class="nav-text">补间动画</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#View-startAnimation"><span class="nav-number">1.1.</span> <span class="nav-text">View.startAnimation()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#View-draw"><span class="nav-number">2.</span> <span class="nav-text">View.draw</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#属性动画源码分析："><span class="nav-number">3.</span> <span class="nav-text">属性动画源码分析：</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

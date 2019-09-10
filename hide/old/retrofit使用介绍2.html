@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="本文是Retrofit的请求篇。 Synchronous and Asynchronous RequestsRetrofit支持同步和异步请求。在Retrofit 2中，请求的返回类型需要使用Call&amp;lt;&amp;gt;包住。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="retrofit使用介绍2">
+<meta property="og:url" content="http://aprz512.github.io/hide/old/retrofit使用介绍2.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="本文是Retrofit的请求篇。 Synchronous and Asynchronous RequestsRetrofit支持同步和异步请求。在Retrofit 2中，请求的返回类型需要使用Call&amp;lt;&amp;gt;包住。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-06-05T14:02:27.275Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="retrofit使用介绍2">
+<meta name="twitter:description" content="本文是Retrofit的请求篇。 Synchronous and Asynchronous RequestsRetrofit支持同步和异步请求。在Retrofit 2中，请求的返回类型需要使用Call&amp;lt;&amp;gt;包住。">
+  <link rel="canonical" href="http://aprz512.github.io/hide/old/retrofit使用介绍2">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>retrofit使用介绍2 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">retrofit使用介绍2
+
+</h1>
+
+<div class="post-meta">
+  
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>RETROFIT使用介绍2</li>
+          
+        
+      
+    
+  </ul>
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>本文是Retrofit的请求篇。</p>
+<h3 id="Synchronous-and-Asynchronous-Requests"><a href="#Synchronous-and-Asynchronous-Requests" class="headerlink" title="Synchronous and Asynchronous Requests"></a>Synchronous and Asynchronous Requests</h3><p>Retrofit支持同步和异步请求。在Retrofit 2中，请求的返回类型需要使用<code>Call&lt;&gt;</code>包住。</p>
+<a id="more"></a>
+
+<p><strong>Synchronous Requests</strong></p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getTasks();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用同步请求的时候，一定记住在非UI线程中使用。</p>
+<p><strong>Get Results from Synchronous Requests</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TaskService taskService = ServiceGenerator.createService(TaskService.class);  </span><br><span class="line">Call&lt;List&lt;Task&gt;&gt; call = taskService.getTasks();  </span><br><span class="line">List&lt;Task&gt;&gt; tasks = call.execute().body();</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>execute</code>执行同步请求，调用 <code>body()</code>获取结果。</p>
+<p><strong>Asynchronous Requests</strong></p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getTasks();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接口方法的定义与同步一样，所以只需要定义一个接口方法就行了。</p>
+<p><strong>Get Results from Asynchronous Requests</strong></p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">TaskService taskService = ServiceGenerator.createService(TaskService.class);  </span><br><span class="line">Call&lt;List&lt;Task&gt;&gt; call = taskService.getTasks();  </span><br><span class="line">call.enqueue(<span class="keyword">new</span> Callback&lt;List&lt;Task&gt;&gt;() &#123;  </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(Call&lt;List&lt;Task&gt;&gt; call, Response&lt;List&lt;Task&gt;&gt; response)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (response.isSuccessful()) &#123;</span><br><span class="line">            <span class="comment">// tasks available</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// error response, no access to resource?</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(Call&lt;List&lt;Task&gt;&gt; call, Throwable t)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// something went completely south (like no internet connection)</span></span><br><span class="line">        Log.d(<span class="string">"Error"</span>, t.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意<code>onResponse</code>无论请求成功还是失败都会回调，除非 没有响应。所以需要在<code>onResponse</code>里面判断是否请求成功。</p>
+<p><strong>Get Raw HTTP Response</strong></p>
+<p>如果你需要使用原始的HTTP数据，可以使用如下方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">call.enqueue(<span class="keyword">new</span> Callback&lt;List&lt;Task&gt;&gt;() &#123;  </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(Call&lt;List&lt;Task&gt;&gt; call, Response&lt;List&lt;Task&gt;&gt; response)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// get raw response</span></span><br><span class="line">        Response raw = response.raw();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(Call&lt;List&lt;Task&gt;&gt; call, Throwable t)</span> </span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用<code>Response</code>的<code>raw</code>方法即可获取到原始数据。</p>
+<h3 id="Send-Objects-in-Request-Body"><a href="#Send-Objects-in-Request-Body" class="headerlink" title="Send Objects in Request Body"></a>Send Objects in Request Body</h3><p>Retrofit 能将对象作为请求提传递，使用<code>@Body</code>注解可以轻易的实现。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@POST</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    <span class="function">Call&lt;Task&gt; <span class="title">createTask</span><span class="params">(@Body Task task)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义接口方法的时候，给要传递的对象参数前加上<code>@Body</code>注解。</p>
+<p><strong>Example</strong></p>
+<p>看一个完整的例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Task</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> id;</span><br><span class="line">    <span class="keyword">private</span> String text;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Task</span><span class="params">(<span class="keyword">long</span> id, String text)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.id = id;</span><br><span class="line">        <span class="keyword">this</span>.text = text;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>发起请求：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Task task = <span class="keyword">new</span> Task(<span class="number">1</span>, <span class="string">"my task title"</span>);  </span><br><span class="line">Call&lt;Task&gt; call = taskService.createTask(task);  </span><br><span class="line">call.enqueue(<span class="keyword">new</span> Callback&lt;Task&gt;() &#123;&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>在本例中，createTask方法会将task对象，转成json格式，然后放入请求体里面。</p>
+<p>这里我有一个疑问，之所以会将task对象转成json形式，是因为添加了GsonConverter吗？如果没有添加convert会怎么样？</p>
+<h3 id="Add-Custom-Request-Header"><a href="#Add-Custom-Request-Header" class="headerlink" title="Add Custom Request Header"></a>Add Custom Request Header</h3><p>Retrofit 提供了2种方法来添加自定义的请求头，一种是静态添加方式，一种是动态添加方式。使用静态方式添加请求头之后，就无法再更改请求头了，它们在你的应用一启动的时候，就固定了。</p>
+<p><strong>Static Request Header</strong></p>
+<p>第一种添加静态请求头的方式是在接口方法上使用<code>@Headers</code>注解。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@Headers</span>(<span class="string">"Cache-Control: max-age=640000"</span>)</span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getTasks();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果想添加多个请求头，使用<code>{}</code>，请求头之间用<code>,</code>分割。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@Headers</span>(&#123;</span><br><span class="line">        <span class="string">"Accept: application/vnd.yourapi.v1.full+json"</span>,</span><br><span class="line">        <span class="string">"User-Agent: Your-App-Name"</span></span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks/&#123;task_id&#125;"</span>)</span><br><span class="line">    <span class="function">Call&lt;Task&gt; <span class="title">getTask</span><span class="params">(@Path(<span class="string">"task_id"</span>)</span> <span class="keyword">long</span> taskId)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二种添加静态请求头的方式是使用拦截器的方式。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient.Builder httpClient = <span class="keyword">new</span> OkHttpClient.Builder();  </span><br><span class="line">httpClient.addInterceptor(<span class="keyword">new</span> Interceptor() &#123;  </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Response <span class="title">intercept</span><span class="params">(Interceptor.Chain chain)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        Request original = chain.request();</span><br><span class="line"></span><br><span class="line">        Request request = original.newBuilder()</span><br><span class="line">            .header(<span class="string">"User-Agent"</span>, <span class="string">"Your-App-Name"</span>)</span><br><span class="line">            .header(<span class="string">"Accept"</span>, <span class="string">"application/vnd.yourapi.v1.full+json"</span>)</span><br><span class="line">            .method(original.method(), original.body())</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> chain.proceed(request);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">OkHttpClient client = httpClient.build();  </span><br><span class="line">Retrofit retrofit = <span class="keyword">new</span> Retrofit.Builder()  </span><br><span class="line">    .baseUrl(API_BASE_URL)</span><br><span class="line">    .addConverterFactory(GsonConverterFactory.create())</span><br><span class="line">    .client(client)</span><br><span class="line">    .build();</span><br></pre></td></tr></table></figure>
+
+<p>使用这种方式会为每个请求都添加上自定义的请求头。</p>
+<p><strong>Dynamic Header</strong></p>
+<p>动态添加请求头的方式更加灵活，使用<code>@Header</code>注解，传递一个参数就可以添加自定义请求头，在Retrofit执行这个请求之前，会自动的映射请求头的值，并添加到请求头中。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getTasks(<span class="meta">@Header</span>(<span class="string">"Content-Range"</span>) String contentRange);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Override Existing Headers in Retrofit 2</strong></p>
+<p>Request.Builder提供了两个方法用来添加请求头：</p>
+<ul>
+<li><code>header(key, value)</code>：如果要添加的请求头已经存在的时候，会覆盖之前的值。</li>
+<li><code>addHeader(key, value)</code>：如果要添加的请求头存在时，不会覆盖之前的值。</li>
+</ul>
+<p><em>写到这里我有一个大胆的想法，如果同时使用3中方式添加请求头，会是什么效果？条件有限，没能测试，真是遗憾。</em></p>
+<p>我才醒，使用拦截器的方式，是直接拦截请求，所以如果拦截器里面使用了<code>header()</code>方法，那么请求头肯定是被替换掉了，如果使用的是<code>addHeader()</code>，那么相当于添加了一个同名的请求头。所以现在不确定的是，如果使用注解的时候，添加了同名的请求头，会怎么样？？？</p>
+<p> <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2" target="_blank" rel="noopener">HTTP RFC2616</a> 指定多个请求头同名的时候，相当于一个请求头key对应着多个value，每个value用分号隔开。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Cache-Control</span>: no-cache  </span><br><span class="line"><span class="attribute">Cache-Control</span>: no-store</span><br></pre></td></tr></table></figure>
+
+<p>相当于</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Cache-Control</span>: no-cache, no-store</span><br></pre></td></tr></table></figure>
+
+<h3 id="Dynamic-Request-Headers-with-HeaderMap"><a href="#Dynamic-Request-Headers-with-HeaderMap" class="headerlink" title="Dynamic Request Headers with @HeaderMap"></a>Dynamic Request Headers with <code>@HeaderMap</code></h3><p>该特性是 Retrofit 2.1 的新特性。</p>
+<p><strong>Dynamic Request Headers</strong></p>
+<p>如果你想在运行时再决定添加到请求的请求头，除了前面介绍的<code>@Header</code>，还可以使用<code>@HeaderMap</code>。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getTasks(</span><br><span class="line">        <span class="meta">@HeaderMap</span> Map&lt;String, String&gt; headers</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>@HeaderMap</code> 注解的时候，确保接口方法的形参类型实现了<code>Map</code>接口。</p>
+<p>调用的时候，传递一个Map的实例对象就好了。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">TaskService taskService = ServiceGenerator.createService(TaskService.class);</span><br><span class="line"></span><br><span class="line">Map&lt;String, String&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();  </span><br><span class="line">map.put(<span class="string">"Page"</span>, String.valueOf(page));</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (BuildConfig.DEBUG) &#123;  </span><br><span class="line">    map.put(<span class="string">"Accept"</span>, <span class="string">"application/vnd.yourapi.v1.full+json"</span>);</span><br><span class="line">    map.put(<span class="string">"User-Agent"</span>, <span class="string">"Future Studio Debug"</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> &#123;  </span><br><span class="line">    map.put(<span class="string">"Accept"</span>, <span class="string">"application/json"</span>);</span><br><span class="line">    map.put(<span class="string">"Accept-Charset"</span>, <span class="string">"utf-8"</span>);</span><br><span class="line">    map.put(<span class="string">"User-Agent"</span>, <span class="string">"Future Studio Release"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Call&lt;List&lt;Task&gt;&gt; call = taskService.getTasks(map);  </span><br><span class="line"><span class="comment">// Use it like any other Retrofit call</span></span><br></pre></td></tr></table></figure>
+
+<p>原文说，Retrofit会将map中的非空元素添加到请求头，请各位大神自己测试。</p>
+<h3 id="Multiple-Query-Parameters-of-Same-Name"><a href="#Multiple-Query-Parameters-of-Same-Name" class="headerlink" title="Multiple Query Parameters of Same Name"></a>Multiple Query Parameters of Same Name</h3><p><strong>Query Parameters</strong></p>
+<p>当我们请求后台的数据时，传递查询参数是非常非常常见的。下面看一个例子：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://api.example.com/tasks?id=123</span><br></pre></td></tr></table></figure>
+
+<p>执行这样的一个请求，使用 Retrofit 如何实现呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    <span class="function">Call&lt;Task&gt; <span class="title">getTask</span><span class="params">(@Query(<span class="string">"id"</span>)</span> <span class="keyword">long</span> taskId)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@GET</code>表示执行的是get请求。<code>@Query</code>表示该形参作为url的查询参数。url就是 baseUrl/tasks?id=taskId。这里taskId 是实参的值。不想再解释了，想吐了。</p>
+<p><strong>Multiple Query Parameters</strong></p>
+<p>如果你有需求，相同名字的查询参数有多个值，如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://api.example.com/tasks?id=123&amp;id=124&amp;id=125</span><br></pre></td></tr></table></figure>
+
+<p>实现这样的请求，将形参类型替换为<code>list</code>即可。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getTask(<span class="meta">@Query</span>(<span class="string">"id"</span>) List&lt;Long&gt; taskIds);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>###　Optional Query Parameters</p>
+<p>假如我们定义了一个接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/tasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getTasks(<span class="meta">@Query</span>(<span class="string">"sort"</span>) String order);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果，我不想使用 <code>order</code>参数怎么办，再写一个接口方法？？？完全不用，只需要穿<code>null</code>就好了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service.getTasks(<span class="keyword">null</span>);</span><br></pre></td></tr></table></figure>
+
+<p>注意，当你的形参基本类型的时候，不能传递<code>null</code>，使用包装类型。</p>
+<h3 id="Send-Data-Form-Urlencoded"><a href="#Send-Data-Form-Urlencoded" class="headerlink" title="Send Data Form-Urlencoded"></a>Send Data Form-Urlencoded</h3><p><strong>Form Encoded Requests</strong></p>
+<p>Retrofit执行一个<code>form-urlencoded</code>请求相当简单，使用<code>@FormUrlEncoded</code>注解。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@FormUrlEncoded</span></span><br><span class="line">    <span class="meta">@POST</span>(<span class="string">"tasks"</span>)</span><br><span class="line">    <span class="function">Call&lt;Task&gt; <span class="title">createTask</span><span class="params">(@Field(<span class="string">"title"</span>)</span> String title)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们是往服务器发送数据，所以请求方式是<code>post</code>，<code>@FormUrlEncoded</code>表示发送数据的 mime 类型是<code>application/x-www-form-urlencoded</code>。带<code>@Field</code>注释的参数表示你要发送给服务器的数据。如果参数类型不是String的话，Retrofit会自动创建一个String：<code>String.valueOf(yourObject)</code>。</p>
+<p>当我们使用如下的方式调用该接口时：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service.createTask(<span class="string">"Research Retrofit form encoded requests"</span>);</span><br></pre></td></tr></table></figure>
+
+<p>请求的请求体为：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">title=Research+Retrofit+form+encoded+requests</span><br></pre></td></tr></table></figure>
+
+<p><strong>Form Encoded Requests Using an Array of Values</strong></p>
+<p>前面说过，如果使用非String的参数，Retrofit 会自动创建一个String，但是如果你使用<code>List&lt;String&gt;</code>作为参数的话，会有不同：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@FormUrlEncoded</span></span><br><span class="line">    <span class="meta">@POST</span>(<span class="string">"tasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; createTasks(<span class="meta">@Field</span>(<span class="string">"title"</span>) List&lt;String&gt; titles);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们传递一个List对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; titles = <span class="keyword">new</span> ArrayList&lt;&gt;();  </span><br><span class="line">titles.add(<span class="string">"Research Retrofit"</span>);  </span><br><span class="line">titles.add(<span class="string">"Retrofit Form Encoded"</span>)</span><br><span class="line"></span><br><span class="line">service.createTasks(titles);</span><br></pre></td></tr></table></figure>
+
+<p>请求体如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">title=Research+Retrofit&amp;title=Retrofit+Form+Encoded</span><br></pre></td></tr></table></figure>
+
+<p>当你要传递多个键值对，且键值对的键值相同的时候，可以使用该方式。</p>
+<p><strong>Field Options</strong></p>
+<p>上面介绍的<code>Field</code>注解，有一个可选字段：</p>
+<ul>
+<li>encode：true 或者 false，默认是 false</li>
+</ul>
+<p>使用方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Field</span>(value = <span class="string">"title"</span>, encoded = <span class="keyword">true</span>) String title</span><br></pre></td></tr></table></figure>
+
+<p>encode字段表示是否对键值对进行 <code>url encode</code> 。</p>
+<h3 id="Send-Data-Form-Urlencoded-Using-FieldMap"><a href="#Send-Data-Form-Urlencoded-Using-FieldMap" class="headerlink" title="Send Data Form-Urlencoded Using FieldMap"></a>Send Data Form-Urlencoded Using FieldMap</h3><p>假设我们有一个更新用户信息的接口，需要传递多个键值对，那么接口定义可能如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@FormUrlEncoded</span></span><br><span class="line">    <span class="meta">@PUT</span>(<span class="string">"user"</span>)</span><br><span class="line">    <span class="function">Call&lt;User&gt; <span class="title">update</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            @Field(<span class="string">"username"</span>)</span> String username,</span></span><br><span class="line"><span class="function">            @<span class="title">Field</span><span class="params">(<span class="string">"name"</span>)</span> String name,</span></span><br><span class="line"><span class="function">            @<span class="title">Field</span><span class="params">(<span class="string">"email"</span>)</span> String email,</span></span><br><span class="line"><span class="function">            @<span class="title">Field</span><span class="params">(<span class="string">"homepage"</span>)</span> String homepage,</span></span><br><span class="line"><span class="function">            @<span class="title">Field</span><span class="params">(<span class="string">"location"</span>)</span> String location</span></span><br><span class="line"><span class="function">    )</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在接口方法中，我们传递了N多个参数，如果需要更新的用户信息更多的话，代码看起来就很多余。Retrofit提供了另外一种注解<code>@FieldMap</code>来解决这类问题。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@FormUrlEncoded</span></span><br><span class="line">    <span class="meta">@PUT</span>(<span class="string">"user"</span>)</span><br><span class="line">    <span class="function">Call&lt;User&gt; <span class="title">update</span><span class="params">(@FieldMap Map&lt;String, String&gt; fields)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样的，<code>@FieldMap</code>也有一个可选字段<code>encode</code>，使用方式如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FieldMap</span>(encoded = <span class="keyword">true</span>) Map&lt;String, String&gt; fields</span><br></pre></td></tr></table></figure>
+
+<h3 id="How-to-Add-Query-Parameters-to-Every-Request"><a href="#How-to-Add-Query-Parameters-to-Every-Request" class="headerlink" title="How to Add Query Parameters to Every Request"></a>How to Add Query Parameters to Every Request</h3><p>前面介绍过如何为单个请求添加查询参数，但是有时候我们需要为每一个请求都添加同样的查询参数，该怎么做了，总不能每个请求都添加一个吧。机智的童鞋可能就想到了拦截器，来看一个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient.Builder httpClient =  </span><br><span class="line">    <span class="keyword">new</span> OkHttpClient.Builder();</span><br><span class="line">httpClient.addInterceptor(<span class="keyword">new</span> Interceptor() &#123;  </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Response <span class="title">intercept</span><span class="params">(Chain chain)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        Request original = chain.request();</span><br><span class="line">        HttpUrl originalHttpUrl = original.url();</span><br><span class="line"></span><br><span class="line">        HttpUrl url = originalHttpUrl.newBuilder()</span><br><span class="line">                .addQueryParameter(<span class="string">"apikey"</span>, <span class="string">"your-actual-api-key"</span>)</span><br><span class="line">                .build();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Request customization: add request headers</span></span><br><span class="line">        Request.Builder requestBuilder = original.newBuilder()</span><br><span class="line">                .url(url);</span><br><span class="line"></span><br><span class="line">        Request request = requestBuilder.build();</span><br><span class="line">        <span class="keyword">return</span> chain.proceed(request);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>如上所示，我们为每个请求url都添加了一个 apikey=your-actual-api-key的查询参数。</p>
+<h3 id="Add-Multiple-Query-Parameter-With-QueryMap"><a href="#Add-Multiple-Query-Parameter-With-QueryMap" class="headerlink" title="Add Multiple Query Parameter With QueryMap"></a>Add Multiple Query Parameter With QueryMap</h3><p>看到这里不要问我为毛不将相关的内容写在一起，我只是将内容大概翻译一下，自己也学习下 Retrofit 的api，如果最终你看到文章是经过整理了的，那么你运气太好了，如果不是，那么就是我懒癌犯了。</p>
+<p><strong>What is <code>@QueryMap</code> in Retrofit?</strong></p>
+<p>Retrofit 使用注解将键值对转换为合适的格式。</p>
+<p>我觉得你看到<code>@QueryMap</code>这个注解，第一反应应该是想到<code>@Query</code>，然后考虑到map，然后就是“我有一个大胆的想法”……</p>
+<p><code>@QueryMap</code>就是用来处理多个查询参数的。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> interface <span class="title">NewsService</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"/news"</span>)</span><br><span class="line">    Call&lt;List&lt;News&gt;&gt; getNews(</span><br><span class="line">        <span class="meta">@QueryMap</span> Map&lt;String, String&gt; options</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用接口的时候，传递一个map即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">fetchNews</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">    Map&lt;String, String&gt; data = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    data.put(<span class="string">"author"</span>, <span class="string">"Marcus"</span>);</span><br><span class="line">    data.put(<span class="string">"page"</span>, String.valueOf(<span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// simplified call to request the news with already initialized service</span></span><br><span class="line">    Call&lt;List&lt;News&gt;&gt; call = newsService.getNews(data);</span><br><span class="line">    call.enqueue(…);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终请求的url是：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://your.api.url/news?page=2&amp;author=Marcus</span><br></pre></td></tr></table></figure>
+
+<p><strong>QueryMap Options</strong></p>
+<p>巧的是，<code>@QueryMap</code>也有一个可选字段<code>encode</code>，惊不惊喜，开不开心，激不激动。</p>
+<ul>
+<li><code>encoded</code>： 取值可以是 <code>true</code> 或者<code>false</code>， 默认是 <code>false</code>。</li>
+</ul>
+<p>用法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Call&lt;List&lt;News&gt;&gt; getNews((<span class="meta">@QueryMap</span>(encoded=<span class="keyword">true</span>) Map&lt;String, String&gt; options);</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子，如果我们设置了encode为true，那么最终url就是：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://your.api.url/news?page=2&amp;author=marcus%2Dpoehls.</span><br></pre></td></tr></table></figure>
+
+<h3 id="How-to-Use-Dynamic-Urls-for-Requests"><a href="#How-to-Use-Dynamic-Urls-for-Requests" class="headerlink" title="How to Use Dynamic Urls for Requests"></a>How to Use Dynamic Urls for Requests</h3><p>我记得前面有讲过……</p>
+<p><strong>Use-Case Scenarios</strong></p>
+<p>举两个现实场景中需要使用动态url的例子：</p>
+<ol>
+<li>图片：当你的应用允许用户上传照片的时候，你存放图片的地方肯定是在另外的服务器。</li>
+<li>文件下载：鬼知道不同文件存放的路径到底在哪</li>
+</ol>
+<p><strong>How to Use Dynamic Urls</strong></p>
+<p>使用<code>@Url</code>实现动态url，看例子</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Call&lt;ResponseBody&gt; <span class="title">profilePicture</span><span class="params">(@Url String url)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要注意，<code>@GET</code>后面毛都没有，形参加上<code>@Url</code>注解。</p>
+<p><strong>How Urls Resolve Against Your Base Url</strong></p>
+<p>原文总是提到<code>&lt;a href=&quot;&quot;&gt;…&lt;/a&gt;</code> ，这到底是个什么鬼，我只知道这是一个url，难道它也有baseUrl。</p>
+<p>看例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Retrofit retrofit = Retrofit.Builder()  </span><br><span class="line">    .baseUrl(<span class="string">"https://your.api.url/"</span>);</span><br><span class="line">    .build();</span><br><span class="line"></span><br><span class="line">UserService service = retrofit.create(UserService.class);  </span><br><span class="line">service.profilePicture(<span class="string">"https://s3.amazon.com/profile-picture/path"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// request url results in:</span></span><br><span class="line"><span class="comment">// https://s3.amazon.com/profile-picture/path</span></span><br></pre></td></tr></table></figure>
+
+<p>当你传递的url设置了host时，Retrofit会直接使用动态的url。</p>
+<p>另外一个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Retrofit retrofit = Retrofit.Builder()  </span><br><span class="line">    .baseUrl(<span class="string">"https://your.api.url/"</span>);</span><br><span class="line">    .build();</span><br><span class="line"></span><br><span class="line">UserService service = retrofit.create(UserService.class);  </span><br><span class="line">service.profilePicture(<span class="string">"profile-picture/path"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// request url results in:</span></span><br><span class="line"><span class="comment">// https://your.api.url/profile-picture/path</span></span><br></pre></td></tr></table></figure>
+
+<p>将传递的url拼接到baseUrl上。</p>
+<p>再看一个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Retrofit retrofit = Retrofit.Builder()  </span><br><span class="line">    .baseUrl(<span class="string">"https://your.api.url/v2/"</span>);</span><br><span class="line">    .build();</span><br><span class="line"></span><br><span class="line">UserService service = retrofit.create(UserService.class);  </span><br><span class="line">service.profilePicture(<span class="string">"/profile-picture/path"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// request url results in:</span></span><br><span class="line"><span class="comment">// https://your.api.url/profile-picture/path</span></span><br></pre></td></tr></table></figure>
+
+<p>注意，当你传递的url以<code>/</code>开头的时候，Retrofit会将你传递的url直接拼接到baseUrl的host后面。在这个例子中，<code>/v2/</code>被忽略。</p>
+<h3 id="Constant-Default-and-Logic-Values-for-POST-and-PUT-Requests"><a href="#Constant-Default-and-Logic-Values-for-POST-and-PUT-Requests" class="headerlink" title="Constant, Default and Logic Values for POST and PUT Requests"></a>Constant, Default and Logic Values for POST and PUT Requests</h3><p>好长的标题……</p>
+<p><strong>Adding a Request for a Feedback Function</strong></p>
+<p>假设你的老板给你这样一个任务：在app里面添加一个反馈功能，能获取用户反馈的信息和用户手机的数据。你的后台已经开发好了接口，接口文档如下：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">URL</span>: /feedback  </span><br><span class="line"><span class="attribute">Method</span>: POST  </span><br><span class="line">Request Body Params (Required):</span><br><span class="line"></span><br><span class="line">- osName=[String]</span><br><span class="line">- osVersion=[Integer]</span><br><span class="line">- device=[String]</span><br><span class="line">- message=[String]</span><br><span class="line">- userIsATalker=[boolean]</span><br><span class="line"></span><br><span class="line"><span class="attribute">Response</span>: 204 (Empty Response Body)</span><br></pre></td></tr></table></figure>
+
+<p>很简单，没啥说的。</p>
+<p><strong>Simple Approach</strong></p>
+<p>拿到接口文档之后，我们定义的第一版接口方法，可能如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FormUrlEncoded</span></span><br><span class="line"><span class="meta">@POST</span>(<span class="string">"/feedback"</span>)</span><br><span class="line"><span class="function">Call&lt;ResponseBody&gt; <span class="title">sendFeedbackSimple</span><span class="params">(  </span></span></span><br><span class="line"><span class="function"><span class="params">    @Field(<span class="string">"osName"</span>)</span> String osName,</span></span><br><span class="line"><span class="function">    @<span class="title">Field</span><span class="params">(<span class="string">"osVersion"</span>)</span> <span class="keyword">int</span> osVersion,</span></span><br><span class="line"><span class="function">    @<span class="title">Field</span><span class="params">(<span class="string">"device"</span>)</span> String device,</span></span><br><span class="line"><span class="function">    @<span class="title">Field</span><span class="params">(<span class="string">"message"</span>)</span> String message,</span></span><br><span class="line"><span class="function">    @<span class="title">Field</span><span class="params">(<span class="string">"userIsATalker"</span>)</span> Boolean userIsATalker)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>接下来，我们需要对反馈的提交按钮，进行事件监听，用户点击提交时，上传数据：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">sendFeedbackFormSimple</span><span class="params">(@NonNull String message)</span> </span>&#123;  </span><br><span class="line">    <span class="comment">// create the service to make the call, see first Retrofit blog post</span></span><br><span class="line">    FeedbackService taskService = ServiceGenerator.create(FeedbackService.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// create flag if message is especially long</span></span><br><span class="line">    <span class="keyword">boolean</span> userIsATalker = (message.length() &gt; <span class="number">200</span>);</span><br><span class="line"></span><br><span class="line">    Call&lt;ResponseBody&gt; call = taskService.sendFeedbackSimple(</span><br><span class="line">            <span class="string">"Android"</span>,</span><br><span class="line">            android.os.Build.VERSION.SDK_INT,</span><br><span class="line">            Build.MODEL,</span><br><span class="line">            message,</span><br><span class="line">            userIsATalker</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    call.enqueue(<span class="keyword">new</span> Callback&lt;ResponseBody&gt;() &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>大功告成！！！完事不忘称赞一下自己，我真特么机。但是这样的代码让你的软件工程老师看到了，简直是男默女泪，幸好我没有软件工程老师。上面的代码中，唯一的真正变量是message，<code>osName</code>是不会变的，<code>osVersion</code>和<code>device</code>的值只与手机有关，<code>userIsATalker</code>在哪里计算都一样。本例中，你可能觉得这算不了什么大问题，因为就一个地方用到，如果有多个地方呢？接下来教你解决之道。</p>
+<p><strong>Advanced Approach With Passing the Only True Variable</strong></p>
+<p>首先，我们改变接口声明：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@POST</span>(<span class="string">"/feedback"</span>)</span><br><span class="line"><span class="function">Call&lt;ResponseBody&gt; <span class="title">sendFeedbackConstant</span><span class="params">(@Body UserFeedback feedbackObject)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>UserFeedback类如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserFeedback</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String osName = <span class="string">"Android"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> osVersion = android.os.Build.VERSION.SDK_INT;</span><br><span class="line">    <span class="keyword">private</span> String device = Build.MODEL;</span><br><span class="line">    <span class="keyword">private</span> String message;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> userIsATalker;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UserFeedback</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.message = message;</span><br><span class="line">        <span class="keyword">this</span>.userIsATalker = (message.length() &gt; <span class="number">200</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// getters &amp; setters</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个时候，我们再使用的时候，是不是就简单很多了呢！！！</p>
+<p>示例代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">sendFeedbackFormAdvanced</span><span class="params">(@NonNull String message)</span> </span>&#123;  </span><br><span class="line">    FeedbackService taskService = ServiceGenerator.create(FeedbackService.class);</span><br><span class="line"></span><br><span class="line">    Call&lt;ResponseBody&gt; call = taskService.sendFeedbackConstant(<span class="keyword">new</span> UserFeedback(message));</span><br><span class="line"></span><br><span class="line">    call.enqueue(<span class="keyword">new</span> Callback&lt;ResponseBody&gt;() &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>说了这么多，其实就是前面讲的post一个java对象的灵活应用。</p>
+<h3 id="Cancel-Requests"><a href="#Cancel-Requests" class="headerlink" title="Cancel Requests"></a>Cancel Requests</h3><p>取消请求，这块是我自己非常感兴趣的，如果真的能取消请求的话，能避免很多问题。</p>
+<p>我们先来看一个下载文件的例子（下载还没介绍到，估计会在第8篇里）。</p>
+<p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CallExampleActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">"CallInstances"</span>;</span><br><span class="line">    <span class="keyword">private</span> Callback&lt;ResponseBody&gt; downloadCallback;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_file_download);</span><br><span class="line"></span><br><span class="line">        FileDownloadService downloadService = </span><br><span class="line">            ServiceGenerator.create(FileDownloadService.class);</span><br><span class="line"></span><br><span class="line">        String fileUrl = <span class="string">"http://futurestud.io/test.mp4"</span>;</span><br><span class="line">        Call&lt;ResponseBody&gt; call = </span><br><span class="line">            downloadService.downloadFileWithDynamicUrlSync(fileUrl);</span><br><span class="line">        call.enqueue(<span class="keyword">new</span> Callback&lt;ResponseBody&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(Call&lt;ResponseBody&gt; call, Response&lt;ResponseBody&gt; response)</span> </span>&#123;</span><br><span class="line">                Log.d(TAG, <span class="string">"request success"</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(Call&lt;ResponseBody&gt; call, Throwable t)</span> </span>&#123;</span><br><span class="line">                Log.e(TAG, <span class="string">"request failed"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// other methods</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果，用户点击了取消按钮，那么我们就应该取消这个请求：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">String fileUrl = <span class="string">"http://futurestud.io/test.mp4"</span>;  </span><br><span class="line">Call&lt;ResponseBody&gt; call =  </span><br><span class="line">    downloadService.downloadFileWithDynamicUrlSync(fileUrl);</span><br><span class="line">call.enqueue(<span class="keyword">new</span> Callback&lt;ResponseBody&gt;() &#123;  </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(Call&lt;ResponseBody&gt; call, Response&lt;ResponseBody&gt; response)</span> </span>&#123;</span><br><span class="line">        Log.d(TAG, <span class="string">"request success"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(Call&lt;ResponseBody&gt; call, Throwable t)</span> </span>&#123;</span><br><span class="line">        Log.e(TAG, <span class="string">"request failed"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// something happened, for example: user clicked cancel button</span></span><br><span class="line">call.cancel();  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>cancel()</code>方法，取消请求。同样的疑问：正在执行的请求，能不能取消？</p>
+<p><strong>Check If Request Was Cancelled</strong></p>
+<p>当你执行了取消请求的操作之后，Retrofit会回调该请求的<code>onFailure()</code>方法。我们知道在无网络请求的时候，也会出发<code>onFailure()</code>回调，那么我们该如何区分这两种情况呢？使用<code>isCanceled()</code>方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Callback&lt;ResponseBody&gt;() &#123;  </span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(Call&lt;ResponseBody&gt; call, Response&lt;ResponseBody&gt; response)</span> </span>&#123;</span><br><span class="line">                Log.d(TAG, <span class="string">"request success"</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(Call&lt;ResponseBody&gt; call, Throwable t)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (call.isCanceled()) &#123;</span><br><span class="line">                    Log.e(TAG, <span class="string">"request was cancelled"</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> &#123;</span><br><span class="line">                    Log.e(TAG, <span class="string">"other larger issue, i.e. no network connection?"</span>);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Reuse-and-Analyze-Requests"><a href="#Reuse-and-Analyze-Requests" class="headerlink" title="Reuse and Analyze Requests"></a>Reuse and Analyze Requests</h3><p>我们采用一个下载的例子来演示如何重复执行一个请求。关于下载的详细内容请看后续文章。</p>
+<p><strong>One Request for Each Call Object</strong></p>
+<p>每个<code>Call</code>实例只能用于执行一个请求。这是啥意思呢，看如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">FileDownloadService downloadService = ServiceGenerator.create(FileDownloadService.class);</span><br><span class="line"></span><br><span class="line">Call&lt;ResponseBody&gt; originalCall = downloadService.downloadFileWithDynamicUrlSync(fileUrl);  </span><br><span class="line">Callback&lt;ResponseBody&gt; downloadCallback = <span class="keyword">new</span> Callback&lt;ResponseBody&gt;() &#123;...&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// correct usage:</span></span><br><span class="line">originalCall.enqueue(downloadCallback);</span><br><span class="line"></span><br><span class="line"><span class="comment">// some other actions in between</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// incorrect reuse:</span></span><br><span class="line"><span class="comment">// if you need to make the same request again, don't use the same originalCall again!</span></span><br><span class="line"><span class="comment">// it'll crash the app with a java.lang.IllegalStateException: Already executed.</span></span><br><span class="line">originalCall.enqueue(downloadCallback); <span class="comment">// &lt;-- would crash the app</span></span><br></pre></td></tr></table></figure>
+
+<p>使用同一个<code>call</code>实例对象多次调用<code>enqueque</code>方法的时候，会crash。</p>
+<p><strong>Duplicated Call Objects</strong></p>
+<p>既然同一个<code>call</code>对象无法重复的执行请求，那我有重复执行请求的需求该怎么办呢？Retrofit提供了<code>clone</code>方法来创建一个<code>copy</code>对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">FileDownloadService downloadService =  </span><br><span class="line">    ServiceGenerator.create(FileDownloadService.class);</span><br><span class="line"></span><br><span class="line">Call&lt;ResponseBody&gt; originalCall =  </span><br><span class="line">    downloadService.downloadFileWithDynamicUrlSync(fileUrl);</span><br><span class="line">Callback&lt;ResponseBody&gt; downloadCallback = <span class="keyword">new</span> Callback&lt;ResponseBody&gt;() &#123;...&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// correct reuse:</span></span><br><span class="line">Call&lt;ResponseBody&gt; newCall = originalCall.clone();  </span><br><span class="line">newCall.enqueue(downloadCallback);</span><br></pre></td></tr></table></figure>
+
+<p><strong>Analyzing Requests With the Call Object</strong></p>
+<p>看一个分析请求的例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">FileDownloadService downloadService =  </span><br><span class="line">    ServiceGenerator.create(FileDownloadService.class);</span><br><span class="line"></span><br><span class="line">Call&lt;ResponseBody&gt; originalCall =  </span><br><span class="line">    downloadService.downloadFileWithDynamicUrlSync(fileUrl);</span><br><span class="line"></span><br><span class="line">originalCall.enqueue(<span class="keyword">new</span> Callback&lt;ResponseBody&gt;() &#123;  </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(Call&lt;ResponseBody&gt; call, Response&lt;ResponseBody&gt; response)</span> </span>&#123;</span><br><span class="line">        checkRequestContent(call.request());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(Call&lt;ResponseBody&gt; call, Throwable t)</span> </span>&#123;</span><br><span class="line">        checkRequestContent(call.request());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>call.request()</code>， 可以获取一个<code>Request</code>对象，用于分析请求：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkRequestContent</span><span class="params">(Request request)</span> </span>&#123;  </span><br><span class="line">    Headers requestHeaders = request.headers();</span><br><span class="line">    RequestBody requestBody = request.body();</span><br><span class="line">    HttpUrl requestUrl = request.url();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// todo make decision depending on request content</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Preview Requests</strong></p>
+<p>如果请求没有执行之前调用<code>call.request()</code>， 该方法会执行大量的计算，所以最好不要在UI线程使用。</p>
+<h3 id="Optional-Path-Parameters"><a href="#Optional-Path-Parameters" class="headerlink" title="Optional Path Parameters"></a>Optional Path Parameters</h3><p>假设我们有这样的一个<code>API</code>：</p>
+<ul>
+<li>/task</li>
+<li>/task/taskid</li>
+</ul>
+<p>使用 <code>/task</code>会返回资源列表，<code>/task/taksid</code>返回指定id的资源。</p>
+<p>根据上面的接口，我们可以写出如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"tasks/&#123;taskId&#125;"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getTasks(<span class="meta">@Path</span>(<span class="string">"taskId"</span>) String taskId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当我们给参数传递空字符串的时候，就会产生下面的结果：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># will be handled the same</span><br><span class="line">https://your.api.url/tasks/  </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="attribute">https://your.api.url/tasks</span></span><br></pre></td></tr></table></figure>
+
+<p>服务端对这两种url的处理方式是一样的。</p>
+<p><strong>Attention</strong></p>
+<p>但是上面的小技巧也有弊端。当path是在url中间的时候：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TaskService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@GET</span>(<span class="string">"tasks/&#123;taskId&#125;/subtasks"</span>)</span><br><span class="line">    Call&lt;List&lt;Task&gt;&gt; getSubTasks(<span class="meta">@Path</span>(<span class="string">"taskId"</span>) String taskId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个时候，如果你传递空字符串，就会产生如下结果：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">https://your.api.url/tasks//subtasks</span></span><br></pre></td></tr></table></figure>
+
+<p>这会导致url错误。</p>
+<p><strong>Don’t Pass <code>Null</code> as Parameter Value</strong></p>
+<p>注意，不要给参数传递<code>null</code>。这会引发 <code>IllegalArgumentException</code> ， 导致app crash。</p>
+<h3 id="How-to-Send-Plain-Text-Request-Body"><a href="#How-to-Send-Plain-Text-Request-Body" class="headerlink" title="How to Send Plain Text Request Body"></a>How to Send Plain Text Request Body</h3><p>有很多方法可以在请求中发送普通文本。这里展示两种方法。</p>
+<p>原文中有这样一段话：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Related to the actual question of how to send plain text within the request body, we’ll await a plain text in response. Retrofit and its converters got your back in both situations.</span><br></pre></td></tr></table></figure>
+
+<p>这个应该是说添加转换器会影响请求和响应，不知道我理解的对不对！</p>
+<p><strong>Solution 1: Scalars Converter</strong></p>
+<p><code>Retrofit Scalars Converter</code>用于解析java的原始类型然后将其放入请求体中。</p>
+<p><strong>Add Scalars Converter to Your Project</strong></p>
+<p>首先，我们在<code>build.gradle</code>文件中添加依赖：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ompile  <span class="string">'com.squareup.retrofit2:converter-scalars:2.1.0'</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，在Retrofit中添加转换器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Retrofit retrofit = <span class="keyword">new</span> Retrofit.Builder()  </span><br><span class="line">        .addConverterFactory(ScalarsConverterFactory.create())</span><br><span class="line">        .addConverterFactory(GsonConverterFactory.create())</span><br><span class="line">        .baseUrl(<span class="string">"https://your.base.url/"</span>)</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
+
+<p>注意转换器顺序。</p>
+<p><strong>Use Primitives and Boxed Types for Requests &amp; Response</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ScalarService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@POST</span>(<span class="string">"path"</span>)</span><br><span class="line">    <span class="function">Call&lt;String&gt; <span class="title">getStringScalar</span><span class="params">(@Body String body)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String body = <span class="string">"plain text request body"</span>;  </span><br><span class="line">Call&lt;String&gt; call = service.getStringScalar(body);</span><br><span class="line"></span><br><span class="line">Response&lt;String&gt; response = call.execute();  </span><br><span class="line">String value = response.body();</span><br></pre></td></tr></table></figure>
+
+<p>如上，添加转换器之后，直接使用就可以了，至于原始类型的使用，原文就提了一句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Requests with primitives are handled exactly the same as with more complex objects. Use the call instance as you would do with any other Java object.</span><br></pre></td></tr></table></figure>
+
+<p>这特么是什么意思，使用包装类型？？？</p>
+<p>如果不想添加转换器，再介绍另外一种方式。</p>
+<p><strong>Solution 2: Use <code>RequestBody</code> Class</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ScalarService</span> </span>&#123;  </span><br><span class="line">    <span class="meta">@POST</span>(<span class="string">"path"</span>)</span><br><span class="line">    <span class="function">Call&lt;ResponseBody&gt; <span class="title">getStringRequestBody</span><span class="params">(@Body RequestBody body)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">String text = <span class="string">"plain text request body"</span>;  </span><br><span class="line">RequestBody body =  </span><br><span class="line">        RequestBody.create(MediaType.parse(<span class="string">"text/plain"</span>), text);</span><br><span class="line"></span><br><span class="line">Call&lt;ResponseBody&gt; call = service.getStringRequestBody(body);  </span><br><span class="line">Response&lt;ResponseBody&gt; response = call.execute();  </span><br><span class="line">String value = response.body().string();</span><br></pre></td></tr></table></figure>
+
+<p>一目了然，我就不多说什么了。但是很蛋疼的是，为什么传递普通的对象，会转Json形式，使用RequestBody不会呢，有哪位大佬出个源码解析吧，给大佬递女装！！！</p>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+  <ul class="breadcrumb">
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/">HIDE</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li><a href="/hide/old/">OLD</a></li>
+          
+        
+      
+    
+      
+      
+        
+          
+            
+          
+          
+            <li>RETROFIT使用介绍2</li>
+          
+        
+      
+    
+  </ul>
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Synchronous-and-Asynchronous-Requests"><span class="nav-number">1.</span> <span class="nav-text">Synchronous and Asynchronous Requests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Send-Objects-in-Request-Body"><span class="nav-number">2.</span> <span class="nav-text">Send Objects in Request Body</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Add-Custom-Request-Header"><span class="nav-number">3.</span> <span class="nav-text">Add Custom Request Header</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dynamic-Request-Headers-with-HeaderMap"><span class="nav-number">4.</span> <span class="nav-text">Dynamic Request Headers with @HeaderMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Multiple-Query-Parameters-of-Same-Name"><span class="nav-number">5.</span> <span class="nav-text">Multiple Query Parameters of Same Name</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Send-Data-Form-Urlencoded"><span class="nav-number">6.</span> <span class="nav-text">Send Data Form-Urlencoded</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Send-Data-Form-Urlencoded-Using-FieldMap"><span class="nav-number">7.</span> <span class="nav-text">Send Data Form-Urlencoded Using FieldMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-Add-Query-Parameters-to-Every-Request"><span class="nav-number">8.</span> <span class="nav-text">How to Add Query Parameters to Every Request</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Add-Multiple-Query-Parameter-With-QueryMap"><span class="nav-number">9.</span> <span class="nav-text">Add Multiple Query Parameter With QueryMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-Use-Dynamic-Urls-for-Requests"><span class="nav-number">10.</span> <span class="nav-text">How to Use Dynamic Urls for Requests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constant-Default-and-Logic-Values-for-POST-and-PUT-Requests"><span class="nav-number">11.</span> <span class="nav-text">Constant, Default and Logic Values for POST and PUT Requests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cancel-Requests"><span class="nav-number">12.</span> <span class="nav-text">Cancel Requests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reuse-and-Analyze-Requests"><span class="nav-number">13.</span> <span class="nav-text">Reuse and Analyze Requests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Optional-Path-Parameters"><span class="nav-number">14.</span> <span class="nav-text">Optional Path Parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-to-Send-Plain-Text-Request-Body"><span class="nav-number">15.</span> <span class="nav-text">How to Send Plain Text Request Body</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

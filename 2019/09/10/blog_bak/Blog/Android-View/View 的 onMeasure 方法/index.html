@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="View 的测量过程中，有一个比较重要的类需要掌握：MeasureSpec。我们在阅读源码的时候会发现，在 View 的测量过程中，MeasureSpec 是一个会经常出现的类，如果不先掌握这个类的话，是没法阅读下去的。MeasureSpec 会在很大程度上决定一个 View 的尺寸规格，之所以是很大程度上是因为这个过程还受父容器的影响，因为父容器影响 View 的 MesaureSpec 的创建">
+<meta name="keywords" content="Android-View">
+<meta property="og:type" content="article">
+<meta property="og:title" content="View 的 onMeasure 方法">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的 onMeasure 方法/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="View 的测量过程中，有一个比较重要的类需要掌握：MeasureSpec。我们在阅读源码的时候会发现，在 View 的测量过程中，MeasureSpec 是一个会经常出现的类，如果不先掌握这个类的话，是没法阅读下去的。MeasureSpec 会在很大程度上决定一个 View 的尺寸规格，之所以是很大程度上是因为这个过程还受父容器的影响，因为父容器影响 View 的 MesaureSpec 的创建">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/1346374636_1935.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B7.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B71.PNG?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B72.PNG?raw=true">
+<meta property="og:updated_time" content="2019-08-18T04:16:05.752Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="View 的 onMeasure 方法">
+<meta name="twitter:description" content="View 的测量过程中，有一个比较重要的类需要掌握：MeasureSpec。我们在阅读源码的时候会发现，在 View 的测量过程中，MeasureSpec 是一个会经常出现的类，如果不先掌握这个类的话，是没法阅读下去的。MeasureSpec 会在很大程度上决定一个 View 的尺寸规格，之所以是很大程度上是因为这个过程还受父容器的影响，因为父容器影响 View 的 MesaureSpec 的创建">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/1346374636_1935.png?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的 onMeasure 方法/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>View 的 onMeasure 方法 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">15</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">5</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">108</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的 onMeasure 方法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">View 的 onMeasure 方法
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:16:05" itemprop="dateModified" datetime="2019-08-18T12:16:05+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-View/View 的 onMeasure 方法/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-View/View 的 onMeasure 方法/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span></span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>View 的测量过程中，有一个比较重要的类需要掌握：MeasureSpec。我们在阅读源码的时候会发现，在 View 的测量过程中，MeasureSpec 是一个会经常出现的类，如果不先掌握这个类的话，是没法阅读下去的。</p><p>MeasureSpec 会在很大程度上决定一个 View 的尺寸规格，之所以是很大程度上是因为这个过程还受父容器的影响，因为父容器影响 View 的 MesaureSpec 的创建过程。</p><a id="more"></a>
+
+<p>在测量过程中，系统会将 View 的 LayoutParams 根据父容器所施加的规则转换成对应的 MeasureSpec，然后再根据这个 MeasureSpec 来测量出 View 的宽/高。</p>
+<h3 id="MeasureSpec"><a href="#MeasureSpec" class="headerlink" title="MeasureSpec"></a>MeasureSpec</h3><p>MeasureSpec 是一个int值，但是这个int值被分为了两部分，一部分表示 SpecMode （测量模式），一部分表示 SpecSize（在某种测量模式下的大小）。</p>
+<p>可能有很多人想不通，一个int型整数怎么可以表示两个东西（大小模式和大小的值），一个int类型我们知道有32位。而<strong>模式有三种</strong>，要表示三种状态，至少得2位二进制位。于是系统采用了最高的2位表示模式。如图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/1346374636_1935.png?raw=true" alt></p>
+<p>最高两位是00的时候表示”未指定模式”，即MeasureSpec.UNSPECIFIED。</p>
+<p>最高两位是01的时候表示”‘精确模式”，即MeasureSpec.EXACTLY。</p>
+<p>最高两位是11的时候表示”最大模式”，即MeasureSpec.AT_MOST。</p>
+<ul>
+<li><p>精确模式（MeasureSpec.EXACTLY）</p>
+<p>在这种模式下，尺寸的值是多少，那么这个组件的长或宽就是多少。</p>
+</li>
+<li><p>最大模式（MeasureSpec.AT_MOST）</p>
+<p>这个也就是父组件，能够给出的最大的空间，当前组件的长或宽最大只能为这么大，当然也可以比这个小。</p>
+</li>
+<li><p>未指定模式（MeasureSpec.UNSPECIFIED）</p>
+<p>这个就是说，当前组件，可以随便用空间，不受限制。</p>
+</li>
+</ul>
+<p>MeasureSpec 通过将 SpecMode 与 SpecSize 打包成一个 int 值来避免过多的对象内存分配。为了方便操作，它还提供了对应的打包与解包方法。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将 size 与 mode 组合成一个 MeasureSpec 对象</span></span><br><span class="line">android.view.View.MeasureSpec#makeMeasureSpec</span><br><span class="line"></span><br><span class="line"><span class="comment">// 从 MeasureSpec 中获取 mode</span></span><br><span class="line">android.view.View.MeasureSpec#getMode</span><br><span class="line"></span><br><span class="line"><span class="comment">// 从 MeasureSpec 中获取 size</span></span><br><span class="line">android.view.View.MeasureSpec#getSize</span><br></pre></td></tr></table></figure>
+
+<p>在 View 测量的时候，系统会将 LayoutParams 在父容器的约束下转换成对应的 MeasureSpec，然后再根据这个 MeasureSpec 来确定 View 测量后的大小。（<strong>这里需要注意，MeasureSpec 不是由 LayoutParams 唯一决定的，而是由 LayoutParams 与父布局一起决定的</strong>）</p>
+<h3 id="各种-View-测量的区别"><a href="#各种-View-测量的区别" class="headerlink" title="各种 View 测量的区别"></a>各种 View 测量的区别</h3><h4 id="顶层-View"><a href="#顶层-View" class="headerlink" title="顶层 View"></a>顶层 View</h4><p>我们知道一般的 View 都会有父布局，但是最顶层的 View 是没有的，那么它是如何测量的呢？</p>
+<p>首先它会获取 LayoutParams，再判断 LayoutParams 宽高的值：</p>
+<ul>
+<li>如果为 LayoutParams.MATCH_PARENT，这表示精确模式，大小就是窗口大小。</li>
+<li>如果为 LayoutParams.WRAP_CONTENT，这表示最大模式，大小未定，但是不能超过窗口大小。</li>
+</ul>
+<p>这就比较简单了，顶层View的测量，一般宽高都是 LayoutParams.MATCH_PARENT，大小为窗口大小。</p>
+<h4 id="子-View"><a href="#子-View" class="headerlink" title="子 View"></a>子 View</h4><p>对于普通的 View 来说，它的测量与父布局有关，而每个父布局的特性又不同，无法每个都涉及到，所以这里采取一个“管中窥豹，可见一斑”的方法。</p>
+<p>这里介绍一下 ViewGroup 的 measureChildWithMargins 方法。</p>
+<blockquote>
+<p>android.view.ViewGroup#measureChildWithMargins</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">measureChildWithMargins</span><span class="params">(View child,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">int</span> parentWidthMeasureSpec, <span class="keyword">int</span> widthUsed,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">int</span> parentHeightMeasureSpec, <span class="keyword">int</span> heightUsed)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,</span><br><span class="line">            mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin</span><br><span class="line">                    + widthUsed, lp.width);</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,</span><br><span class="line">            mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin</span><br><span class="line">                    + heightUsed, lp.height);</span><br><span class="line"></span><br><span class="line">    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>方法中的 getChildMeasureSpec 方法比较长，就不贴代码了，下面会有文字说明。</p>
+<p>getChildMeasureSpec 其实最后就是生成了一个 MeasureSpec 对象。</p>
+<p>它的 size 由<strong>两部分决定</strong>，一个是 <code>parentWidthMeasureSpec</code>，一个是 <code>lp.width / lp.height</code>。</p>
+<p>具体的规则用表说明：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B7.PNG?raw=true" alt></p>
+<p>从这个表中我们可以看到，在构造 child 的 MeasureSpec 还是优先考虑了 child 自身的 size 的，特别是 child 直接要求一个固定的值的时候。</p>
+<p>我们深入思考一下，比如我们经常使用到的 LinearLayout（竖向），它在决定 child 的大小的时，肯定不能让 child 的高度与自己的高度一样大，那么它是如何处理的呢？我们看看源码：</p>
+<blockquote>
+<p>android.widget.LinearLayout#measureVertical</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(Math.max(<span class="number">0</span>, childHeight), MeasureSpec.EXACTLY);</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> childWidthMeasureSpec = getChildMeasureSpec(widthMeasureSpec,mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin,lp.width);</span><br><span class="line">child.measure(childWidthMeasureSpec, childHeightMeasureSpec);</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，LinearLayout 并没有使用 ViewGroup 提供的 measureChild 方法，因为它并不符合 LinearLayout 的特性。那么哪一个布局符合呢？？？FrameLayout！！！</p>
+<blockquote>
+<p>android.widget.FrameLayout#onMeasure</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> count = getChildCount();</span><br><span class="line">			</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">        <span class="keyword">final</span> View child = getChildAt(i);</span><br><span class="line">        <span class="keyword">if</span> (mMeasureAllChildren || child.getVisibility() != GONE) &#123;</span><br><span class="line">            measureChildWithMargins(child, widthMeasureSpec, <span class="number">0</span>, heightMeasureSpec, <span class="number">0</span>);</span><br><span class="line">...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，它就是直接使用了 measureChildWithMargins 方法，因为它的特性只是做了一个层叠，并没有其他对 child 有其他限制，所以可以直接使用。</p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p>说了这么多，我们来看看一个实际的应用场景吧。</p>
+<p>我们知道，TextView 是有自己的 onMeasure 方法的。系统提供的 TextView，文字是从做到右的，那么我们现在想做这样的一个效果，将 TextView 的显示旋转一下，从上到下。如下图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B71.PNG?raw=true" alt></p>
+<p>变成这样：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B72.PNG?raw=true" alt></p>
+<p>那么，有的同学就说话了，这旋转一下不就不可以了吗！是这样吗？在我们的屏幕中，不可能只会有一个 TextView，所以这个 TextView 很可能会与其他控件一起排列，当我们在旋转之前，假设它的宽与高是 100*300，那么旋转之后，它的高度变成了300，这个时候，由于父布局的限制，我们很可能看不到整个 TextView。而且我们在 xml 中也不好去预览它的效果。</p>
+<p>那么下面，我们就来实现一下这个效果。</p>
+<p>首先我们需要处理该控件的大小。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.measure(heightMeasureSpec, widthMeasureSpec);</span><br><span class="line">    setMeasuredDimension(getMeasuredHeight(), getMeasuredWidth());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们首先来看这个方法：<code>super.measure(heightMeasureSpec, widthMeasureSpec);</code>。</p>
+<p>这行代码非常容易引起误解，<strong>有的人就以为，我们将 widthMeasureSpec 与 heightMeasureSpec 换了一下，那么它测量出来的宽高自然就会互换。这是错误的理解！！！</strong></p>
+<p>比如，我们在 xml 中是这样使用这个自定义控件的：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">RelativeLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:tools</span>=<span class="string">"http://schemas.android.com/tools"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:app</span>=<span class="string">"http://schemas.android.com/apk/res/com.yoog.widget"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">tools:context</span>=<span class="string">".MainActivity"</span> &gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">com.yoog.widget.VerticalTextView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"20:59"</span>                              </span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span> /&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">RelativeLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们假设<code>20：59</code>这串文字的长度为 300，高度为 100。父布局的宽高均大于 300。</p>
+<p>所以，TextView 测量出来的就是 300*100，VerticalTextView 测量出来的值应该是 100 * 300。</p>
+<p>但是，如果父布局的高度只有 250 的时候，横着测量的时候，是完全没有问题的，仍然测量出 300 * 100，但是竖着测量的时候，高度只能有 250，它需要换行，所以，结果是 200 * 250。</p>
+<p>所以说，<strong>将 widthMeasureSpec 与 heightMeasureSpec 互换，只是为了正确的将父布局对 child 的影响正确的传递进去</strong>。</p>
+<p>由于，正确的传递了父容器的宽与高，走 TextView 的方法自然就会测量出正确的值，然后我们调用 <code>setMeasuredDimension(getMeasuredHeight(), getMeasuredWidth());</code> 方法，就可以将宽与高换过来了。</p>
+<p>至于 onDraw 方法，我们就不深入了，只需要在 view 的左上角旋转一下画布就好了。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的 onMeasure 方法/" title="View 的 onMeasure 方法">http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的 onMeasure 方法/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-View/" rel="tag"># Android-View</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-View/RecyclerView 的缓存机制/" rel="next" title="图解 RecyclerView 的缓存机制">
+                  <i class="fa fa-chevron-left"></i> 图解 RecyclerView 的缓存机制
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/10/blog_bak/Blog/Android-View/View 的事件分发/" rel="prev" title="View 的事件分发">
+                  View 的事件分发 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#MeasureSpec"><span class="nav-number">1.</span> <span class="nav-text">MeasureSpec</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#各种-View-测量的区别"><span class="nav-number">2.</span> <span class="nav-text">各种 View 测量的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#顶层-View"><span class="nav-number">2.1.</span> <span class="nav-text">顶层 View</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#子-View"><span class="nav-number">2.2.</span> <span class="nav-text">子 View</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子"><span class="nav-number">3.</span> <span class="nav-text">例子</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数"></span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长"></span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
