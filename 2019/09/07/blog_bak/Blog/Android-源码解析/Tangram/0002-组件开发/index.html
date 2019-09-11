@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="在 Tangram 的领域里，我们将一个普通的列表页面结构化成树状结构：分别是页面 - 布局 - 组件。123456789101112131415161718192021222324252627282930页面	|	- 布局1	|	|	|	- 组件11	|	|	|	- 组件12	|	|	|	- 组件13	|	- 布局2	|	|	|	- 组件21	|	|	|	- 组件22	|	- 布局3	|	|	|">
+<meta name="keywords" content="Android源码解析-Tangram">
+<meta property="og:type" content="article">
+<meta property="og:title" content="0002-组件开发">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="在 Tangram 的领域里，我们将一个普通的列表页面结构化成树状结构：分别是页面 - 布局 - 组件。123456789101112131415161718192021222324252627282930页面	|	- 布局1	|	|	|	- 组件11	|	|	|	- 组件12	|	|	|	- 组件13	|	- 布局2	|	|	|	- 组件21	|	|	|	- 组件22	|	- 布局3	|	|	|">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-11T09:05:54.015Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="0002-组件开发">
+<meta name="twitter:description" content="在 Tangram 的领域里，我们将一个普通的列表页面结构化成树状结构：分别是页面 - 布局 - 组件。123456789101112131415161718192021222324252627282930页面	|	- 布局1	|	|	|	- 组件11	|	|	|	- 组件12	|	|	|	- 组件13	|	- 布局2	|	|	|	- 组件21	|	|	|	- 组件22	|	- 布局3	|	|	|">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>0002-组件开发 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">16</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">6</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">118</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">0002-组件开发
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-07 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-07T00:00:00+08:00">2019-09-07</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-11 17:05:54" itemprop="dateModified" datetime="2019-09-11T17:05:54+08:00">2019-09-11</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tangram/" itemprop="url" rel="index"><span itemprop="name">Tangram</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>4.3k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>4 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在 Tangram 的领域里，我们将一个普通的列表页面结构化成树状结构：分别是页面 - 布局 - 组件。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">页面</span><br><span class="line">	|</span><br><span class="line">	- 布局1</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件11</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件12</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件13</span><br><span class="line">	|</span><br><span class="line">	- 布局2</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件21</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件22</span><br><span class="line">	|</span><br><span class="line">	- 布局3</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件31</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件32</span><br><span class="line">	|</span><br><span class="line">	- 组件4</span><br><span class="line">	...</span><br><span class="line">	|</span><br><span class="line">	|</span><br><span class="line">	|</span><br><span class="line">	- 布局n</span><br><span class="line">		|</span><br><span class="line">		- 组件n1</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+<p>组件分为两层：model 和 View。Tangram 里提供了通用 model 类型 <code>BaseCell</code>，因此开发组件有两个选择：</p>
+<ol>
+<li>采用通用 model，开发自定义 View。</li>
+<li>采用自定义 model 和自定义 View</li>
+</ol>
+<p>BaseCell 里面储存了组件的数据信息，又需要的都可以在里面获取到，可以看一下结构树来了解一下里面的方法都有什么，这里就不展开说了，方法名很明了。</p>
+<h2 id="通用-Model-开发自定义-View"><a href="#通用-Model-开发自定义-View" class="headerlink" title="通用 Model 开发自定义 View"></a>通用 Model 开发自定义 View</h2><p>文档提供了两种开发方式，一种是需要实现 <code>ITangramViewLifeCycle</code> 接口，一种是使用注解加反射的方式。</p>
+<p>我们先来看第一种，实现结构的方式，以官方的demo为例：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.example.data.SingleImageView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SingleImageView</span> <span class="keyword">extends</span> <span class="title">LinearLayout</span> <span class="keyword">implements</span> <span class="title">ITangramViewLifeCycle</span> </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>自定义的 View 需要实现接口，这个没啥说的。</p>
+<p>该接口有 3 个方法需要实现：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.structure.view.ITangramViewLifeCycle</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ITangramViewLifeCycle</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">cellInited</span><span class="params">(BaseCell cell)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">postBindView</span><span class="params">(BaseCell cell)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">postUnBindView</span><span class="params">(BaseCell cell)</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一个方法，就是用来做一些初始化工作的，cell 表示是这个组件的一些信息。上面说过，页面由布局与组件组成，对应的就是 Card 与 Cell。</p>
+<p>我们追踪一下，看这个方法在哪里被调用：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.MVHelper#initView</p>
+</blockquote>
+<blockquote>
+<p>com.tmall.wireless.tangram.MVHelper#mountView</p>
+</blockquote>
+<blockquote>
+<p>com.tmall.wireless.tangram.core.adapter.BinderViewHolder#bind</p>
+</blockquote>
+<blockquote>
+<p>com.tmall.wireless.tangram.core.adapter.GroupBasicAdapter#onBindViewHolder</p>
+</blockquote>
+<p>可以看到，最后到了 GroupBasicAdapter 的 onBindViewHolder方法里面。Tangram 的布局是基于 RecyclerView 的，我们将 GroupBasicAdapter 当作一个超级强的 Adapter 的实现就好了，所以 Cell 的初始化是在 onBindViewHolder 中执行的。</p>
+<p>再看接口中的第二个方法，看名字就应该知道也是在 onBindViewHolder 的时候执行的，不过有一个 post 前缀，我们追踪一下就会发现，其实就是比 cellInited 方法晚一点调用而已。</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.MVHelper#mountView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    loadMethod(cell, view);</span><br><span class="line">    initView(cell, view);</span><br><span class="line">    renderView(cell, view);</span><br><span class="line">    renderStyle(cell, view);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (mvResolver.isCompatibleType(cell.stringType)) &#123;</span><br><span class="line">    mvResolver.getCellClass(cell.stringType).cast(cell).bindView(view);</span><br><span class="line">&#125;</span><br><span class="line">postMountView(cell, view);</span><br></pre></td></tr></table></figure>
+
+<p>第 3 行与第 10 行，第 3 行会触发 cellInited 的调用，第 10 行触发了 postBindView。</p>
+<p>再看接口中的第三个方法，我们可以思考一下，应该在什么时候触发 postUnBindView 方法？最显然的应该是在滑出屏幕的时候，但是如果对 RecyclerView 的回收机制有一定了解的应该知道，一个 item 滑出屏幕的时候，还没有进入 pool 里面，而是进入到了 cache 里面，是为了防止用户滑出又滑入的情况。所以我们应该在 item 进入 pool 的时候再触发 postUnBindView，而且只有进入了 pool 中的 item 才会重新走 onBindViewHolder，这刚好与 postBindView 是对称的。</p>
+<p>我们追踪一下代码，看看它是什么时候调用的：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.core.adapter.GroupBasicAdapter#onViewRecycled</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onViewRecycled</span><span class="params">(BinderViewHolder&lt;C, ? extends View&gt; holder)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    holder.unbind();</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与我们思考的一样，是当 item 被回收的时候，触发的。</p>
+<p>现在，我们知道了这 3 个方法调用的时机，就知道我们可以在这 3 个方法里面做什么了，下面是一个例子：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.example.data.TestView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cellInited</span><span class="params">(BaseCell cell)</span> </span>&#123;</span><br><span class="line">    setOnClickListener(cell);</span><br><span class="line">    <span class="keyword">this</span>.cell = cell;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里处理了点击事件。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postBindView</span><span class="params">(BaseCell cell)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pos = cell.pos;</span><br><span class="line">    String parent = <span class="string">""</span>;</span><br><span class="line">    <span class="keyword">if</span> (cell.parent != <span class="keyword">null</span>) &#123;</span><br><span class="line">        parent = cell.parent.getClass().getSimpleName();</span><br><span class="line">    &#125;</span><br><span class="line">    textView.setText(</span><br><span class="line">            cell.id + <span class="string">" pos: "</span> + pos + <span class="string">" "</span> + parent + <span class="string">" "</span> + cell</span><br><span class="line">                    .optParam(<span class="string">"msg"</span>));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (pos &gt; <span class="number">57</span>) &#123;</span><br><span class="line">        textView.setBackgroundColor(<span class="number">0x66cccf00</span> + (pos - <span class="number">50</span>) * <span class="number">128</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (pos % <span class="number">2</span> == <span class="number">0</span>) &#123;</span><br><span class="line">        textView.setBackgroundColor(<span class="number">0xaaaaff55</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        textView.setBackgroundColor(<span class="number">0xcceeeeee</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法里，就是设置组件了。</p>
+<p>postBindView 与 cellInited 的区别在于，postBindView 调用的时候，view 与 style 的渲染准备工作都完成了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postUnBindView</span><span class="params">(BaseCell cell)</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一般情况下，这个方法都不用做什么，除非你有什么需要取消的，比如网络请求，定时器。</p>
+<p>自定义 View 还支持注解加反射的方式，原理是一样的，不过一个是直接调用，一个是使用反射来调用，我不太喜欢这种方式，就不介绍了。</p>
+<h2 id="自定义-Model-开发组件"><a href="#自定义-Model-开发组件" class="headerlink" title="自定义 Model 开发组件"></a>自定义 Model 开发组件</h2><p>采用通用的 model 开发组件，只需要写 View 就可以了，然而需要在<strong>每次绑定数据的时候都要取原始 json 里解析一下字段</strong>。有时候一个业务方会<strong>有一些通用的业务字段定义</strong>，每个组件里<strong>重复解析会让代码显得冗余</strong>，因此也提供了注册自定义 model 的兼容模式开发组件。这个时候就需要写自定义 model 和自定义 View 两部分了。</p>
+<p>自定义 Model 需要继承 BaseCell，可以实现下面的几个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 解析数据业务数据，可以将解析值缓存到成员变量里 */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parseWith</span><span class="params">(JSONObject data)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">/** 解析数据样式数据，可以将解析值缓存到成员变量里 */</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parseStyle</span><span class="params">(@Nullable JSONObject data)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">/** 绑定数据到自定义 View */</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bindView</span><span class="params">(@NonNull V view)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">/** 绑定数据到 View 之后，可选实现 */</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postBindView</span><span class="params">(@NonNull V view)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">/** 校验原始数据，检查组件的合法性 */</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isValid</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+
+<p>其中两个 parse 方法可以理解，但是两个 bind 方法感觉没啥作用啊，有啥通用的 bind 与 unbind 逻辑可以写在这里吗？当成一个切面好理解些。</p>
+<h2 id="粒度"><a href="#粒度" class="headerlink" title="粒度"></a>粒度</h2><p>想一下，Tangram 复用的粒度是 Card 还是 Cell？Card的作用是用来排列 Cell 的，所以它只是起了一个布局的作用，是一个虚拟的概念，在实际的绘制中根本不存在 Card 。所以粒度是 Cell。</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章推荐</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0001-前言/" rel="bookmark">0001-前言</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0003-处理点击与曝光/" rel="bookmark">0003-处理点击与曝光</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0004-异步加载数据/" rel="bookmark">0004-异步加载数据</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0005-使用定时器/" rel="bookmark">0005-使用定时器</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0006-使用组件辅助模块/" rel="bookmark">0006-使用组件辅助模块</a></div>
+      
+    </li>
+  
+  </ul>
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/" title="0002-组件开发">http://aprz512.github.io/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android源码解析-Tangram/" rel="tag"># Android源码解析-Tangram</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/" rel="next" title="0007-控件">
+                  <i class="fa fa-chevron-left"></i> 0007-控件
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0001-前言/" rel="prev" title="0001-前言">
+                  0001-前言 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">118</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#通用-Model-开发自定义-View"><span class="nav-number">1.</span> <span class="nav-text">通用 Model 开发自定义 View</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义-Model-开发组件"><span class="nav-number">2.</span> <span class="nav-text">自定义 Model 开发组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#粒度"><span class="nav-number">3.</span> <span class="nav-text">粒度</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">471k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">7:08</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

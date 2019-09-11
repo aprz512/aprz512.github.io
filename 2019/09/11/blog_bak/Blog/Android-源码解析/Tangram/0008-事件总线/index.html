@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="事件总线(TangramBus)用于组件和组件、组件和卡片、组件和页面之间的通信。它也是默认被注册到 Tangram 的 serviceManager 里，在组件和 TangramEngine 里都可以获取到。BusSupport 与 TimerSupport 一样，都是内置在 TangramEngine 里面了的，不需要我们手动注册：">
+<meta name="keywords" content="Android源码解析-Tangram">
+<meta property="og:type" content="article">
+<meta property="og:title" content="0008-事件总线">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/11/blog_bak/Blog/Android-源码解析/Tangram/0008-事件总线/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="事件总线(TangramBus)用于组件和组件、组件和卡片、组件和页面之间的通信。它也是默认被注册到 Tangram 的 serviceManager 里，在组件和 TangramEngine 里都可以获取到。BusSupport 与 TimerSupport 一样，都是内置在 TangramEngine 里面了的，不需要我们手动注册：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Tangram/BusSupport.png?raw=true">
+<meta property="og:updated_time" content="2019-09-11T09:05:54.015Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="0008-事件总线">
+<meta name="twitter:description" content="事件总线(TangramBus)用于组件和组件、组件和卡片、组件和页面之间的通信。它也是默认被注册到 Tangram 的 serviceManager 里，在组件和 TangramEngine 里都可以获取到。BusSupport 与 TimerSupport 一样，都是内置在 TangramEngine 里面了的，不需要我们手动注册：">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Tangram/BusSupport.png?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/11/blog_bak/Blog/Android-源码解析/Tangram/0008-事件总线/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>0008-事件总线 | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">16</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">6</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">118</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/11/blog_bak/Blog/Android-源码解析/Tangram/0008-事件总线/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">0008-事件总线
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-11 00:00:00 / 修改时间：17:05:54" itemprop="dateCreated datePublished" datetime="2019-09-11T00:00:00+08:00">2019-09-11</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tangram/" itemprop="url" rel="index"><span itemprop="name">Tangram</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/11/blog_bak/Blog/Android-源码解析/Tangram/0008-事件总线/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/11/blog_bak/Blog/Android-源码解析/Tangram/0008-事件总线/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>4.7k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>4 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>事件总线(TangramBus)用于组件和组件、组件和卡片、组件和页面之间的通信。它也是默认被注册到 Tangram 的 serviceManager 里，在组件和 TangramEngine 里都可以获取到。</p><p>BusSupport 与 TimerSupport 一样，都是内置在 TangramEngine 里面了的，不需要我们手动注册：</p><a id="more"></a>
+
+<blockquote>
+<p>com.tmall.wireless.tangram.TangramBuilder.InnerBuilder#build</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tangramEngine.register(TimerSupport.class, <span class="keyword">new</span> TimerSupport());</span><br><span class="line">tangramEngine.register(BusSupport.class, <span class="keyword">new</span> BusSupport());</span><br></pre></td></tr></table></figure>
+
+<p>我们在其他地方就可以获取注册进去的这个对象了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">BusSupport busSupport = serviceManager.getService(BusSupport.class);</span><br></pre></td></tr></table></figure>
+
+<p>获取到 BusSupport 之后，我们就可以使用这个对象来发送一个事件对象了，就像 EventBus 一样。</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.eventbus.BusSupport#post(com.tmall.wireless.tangram.eventbus.Event)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">post</span><span class="params">(@NonNull Event event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> mDispatcher.enqueue(event);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在深入分析之前，我们来先看看 Event 相关的东西。</p>
+<p>Event 这个类相当简单，可以当作一个 bean 来看待。我们可以直接创建这个对象，但是比较好的做法是复用该对象，为此 Tangram 提供了一个 EventPool 来帮助我们复用 Event 对象，如下：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.eventbus.BusSupport#obtainEvent(java.lang.String, java.lang.String, android.support.v4.util.ArrayMap&lt;java.lang.String,java.lang.String&gt;, com.tmall.wireless.tangram.eventbus.EventContext)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Event <span class="title">obtainEvent</span><span class="params">(String type, String sourceId,</span></span></span><br><span class="line"><span class="function"><span class="params">        ArrayMap&lt;String, String&gt; args, EventContext eventContext)</span> </span>&#123;</span><br><span class="line">    Event event = EventPool.sharedInstance().acquire();</span><br><span class="line">    event.type = type;</span><br><span class="line">    event.sourceId = sourceId;</span><br><span class="line">    event.args = args;</span><br><span class="line">    event.eventContext = eventContext;</span><br><span class="line">    <span class="keyword">return</span> event;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里，我们使用了 BusSupport 封装的方法来获取到一个 Event 对象，并对其字段赋值。</p>
+<p>事件对象创建好了之后，使用 post 方法发送出去，那么如果去接收这个对象呢？上面我们分析到，post 方法内部是调用了 Dispatcher.enqueue 方法：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.eventbus.Dispatcher#enqueue(com.tmall.wireless.tangram.eventbus.Event)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">enqueue</span><span class="params">(@NonNull Event event)</span> </span>&#123;</span><br><span class="line">    Message msg = obtainMessage();</span><br><span class="line">    msg.obj = event;</span><br><span class="line">    <span class="keyword">return</span> sendMessage(msg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于 Dispatcher 是继承了 Handler 的，所以这里是将 Event 封装成了一个 Message，然后发送出去了。那么哪里可以接收到这个消息呢，看 Dispatcher 的构造方法：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.eventbus.Dispatcher#Dispatcher</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Dispatcher</span><span class="params">(IDispatcherDelegate dispatcherDelegate)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(Looper.getMainLooper());</span><br><span class="line">    <span class="keyword">this</span>.mDispatcherDelegate = dispatcherDelegate;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到 Looper 是主线程的 Looper 对象，所以发送出去的消息在主线程可以接收到。又因为 Hander 在发送 Message 的时候，会将接收者（target）设置为自己，所以 Dispatcher 想要处理接收到的消息的话，肯定需要重写 handleMessage 方法。</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.eventbus.Dispatcher#handleMessage</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleMessage</span><span class="params">(Message msg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.handleMessage(msg);</span><br><span class="line">    <span class="keyword">if</span> (mDispatcherDelegate != <span class="keyword">null</span>) &#123;</span><br><span class="line">        mDispatcherDelegate.dispatch((Event) msg.obj);</span><br><span class="line">    &#125;</span><br><span class="line">    EventPool.sharedInstance().release((Event) msg.obj);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里做了两件事：</p>
+<ul>
+<li>将接收到的消息分发出去</li>
+<li>将事件对象回收</li>
+</ul>
+<p>我们继续跟踪下去，发现 BusSupport 实现了 IDispatcherDelegate 接口：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.eventbus.BusSupport#dispatch</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">dispatch</span><span class="params">(@NonNull Event event)</span> </span>&#123;</span><br><span class="line">    String type = event.type;</span><br><span class="line">    List&lt;EventHandlerWrapper&gt; eventHandlers = subscribers.get(type);</span><br><span class="line">    <span class="keyword">if</span> (eventHandlers != <span class="keyword">null</span>) &#123;</span><br><span class="line">        EventHandlerWrapper handler = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, size = eventHandlers.size(); i &lt; size; i++) &#123;</span><br><span class="line">            handler = eventHandlers.get(i);</span><br><span class="line">            <span class="keyword">if</span> (!TextUtils.isEmpty(handler.producer) &amp;&amp; handler.producer.equals(event.sourceId)) &#123;</span><br><span class="line">                handler.handleEvent(event);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (TextUtils.isEmpty(handler.producer)) &#123;</span><br><span class="line">                handler.handleEvent(event);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里出现了一个新类：EventHandlerWrapper，看类名就知道它是来处理事件的。</p>
+<p>有个地方需要注意，如果我们在创建 EventHandlerWrapper 对象的时候指定了 producer，那么需要在创建 Event 的时候，也指定相应的值，否则匹配不上哦。</p>
+<p>首先，我们获取到事件的类型，然后根据这个类型，获取到该类型对应的所有观察者，然后一个一个的将事件回调过去，很是很简单的。</p>
+<p>了解了 BusSupport 的工作流程，我们就知道如果我们想要接收一个事件，需要定义一个事件类型，然后向 BusSupport 注册该类型的观察者：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> EventHandlerWrapper mSetMeta = BusSupport.wrapEventHandler(<span class="string">"setMeta"</span>, <span class="keyword">null</span>, <span class="keyword">this</span>, <span class="string">"parseMeta"</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onAdded</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onAdded();</span><br><span class="line">    BusSupport busSupport = serviceManager.getService(BusSupport.class);</span><br><span class="line">    <span class="keyword">if</span> (busSupport != <span class="keyword">null</span>) &#123;</span><br><span class="line">        busSupport.register(mSetMeta);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onRemoved</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onRemoved();</span><br><span class="line">    BusSupport busSupport = serviceManager.getService(BusSupport.class);</span><br><span class="line">    <span class="keyword">if</span> (busSupport != <span class="keyword">null</span>) &#123;</span><br><span class="line">        busSupport.unregister(mSetMeta);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Keep</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parseMeta</span><span class="params">(Event event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (mTotalPageCount != Integer.MAX_VALUE) &#123;</span><br><span class="line">            storeCache();</span><br><span class="line">        &#125;</span><br><span class="line">        mIndex = Integer.parseInt(event.args.get(KEY_INDEX));</span><br><span class="line">        mTotalPageCount = Integer.parseInt(event.args.get(KEY_PAGE_COUNT));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于 EventHandlerWrapper 内部是使用了反射来获取回调的方法，所以这里需要写一个 parseMeta 方法，而且为了防止代码压缩的时候被删除，需要 keep 一下。</p>
+<p>好长时间不画图了，画个图吧，感觉这个图没有说清楚，觉得没有帮助的话当作没看见吧：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Tangram/BusSupport.png?raw=true" alt></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章推荐</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0001-前言/" rel="bookmark">0001-前言</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/" rel="bookmark">0002-组件开发</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0003-处理点击与曝光/" rel="bookmark">0003-处理点击与曝光</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0004-异步加载数据/" rel="bookmark">0004-异步加载数据</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0005-使用定时器/" rel="bookmark">0005-使用定时器</a></div>
+      
+    </li>
+  
+  </ul>
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/11/blog_bak/Blog/Android-源码解析/Tangram/0008-事件总线/" title="0008-事件总线">http://aprz512.github.io/2019/09/11/blog_bak/Blog/Android-源码解析/Tangram/0008-事件总线/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android源码解析-Tangram/" rel="tag"># Android源码解析-Tangram</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/11/blog_bak/Blog/Android-源码解析/Tangram/0009-使用布局/" rel="next" title="0009-使用布局">
+                  <i class="fa fa-chevron-left"></i> 0009-使用布局
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">118</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">471k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">7:08</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
