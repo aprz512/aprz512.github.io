@@ -76,7 +76,7 @@
 <meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/4-9-8.png?raw=true">
 <meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/4-9-9.png?raw=true">
 <meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/4-9-10.png?raw=true">
-<meta property="og:updated_time" content="2019-09-07T03:42:50.530Z">
+<meta property="og:updated_time" content="2019-09-29T09:18:21.893Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="0027-栈的应用之四则表达式">
 <meta name="twitter:description" content="四则表达式大家应该都知道如何取计算，有个口诀： 先乘除，后加减，从左算到右，先括号内再括号外。 看下面的这个表达式：19 + (3 - 1) * 3 + 10 / 2这个表达式，让我们来算，非常的简单。但是让计算机来计算呢，就比较麻烦了。因为计算机不会口诀，它不知道应该先计算括号里面的。那么如何才能让计算机计算四则表达式呢？在 20 世纪 50 年代，一个波兰逻辑学家（名字太长，就不打了）发明了一">
@@ -189,7 +189,7 @@
       
     
 
-    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">16</span></a>
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">18</span></a>
 
   </li>
       
@@ -202,7 +202,7 @@
       
     
 
-    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">6</span></a>
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">9</span></a>
 
   </li>
       
@@ -228,7 +228,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">118</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">128</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -322,7 +322,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
+                <time title="修改时间：2019-09-29 17:18:21" itemprop="dateModified" datetime="2019-09-29T17:18:21+08:00">2019-09-29</time>
               </span>
             
           
@@ -371,7 +371,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>1.3k</span>
+              <span>6.6k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -381,7 +381,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>1 分钟</span>
+              <span>6 分钟</span>
             </span>
           
 
@@ -468,6 +468,25 @@
 <p>此时表达式为：9 3 1 - 3 * + 10 2 / +</p>
 </li>
 </ol>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><p>先定义操作符数据结构，因为涉及到优先级比较：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> Operator &#123;</span><br><span class="line"></span><br><span class="line">    PLUS(<span class="string">"+"</span>, <span class="number">1</span>), MINUS(<span class="string">"-"</span>, <span class="number">1</span>), MUl(<span class="string">"*"</span>, <span class="number">2</span>), DIV(<span class="string">"/"</span>, <span class="number">2</span>), LEFT_BRACKET(<span class="string">"("</span>, <span class="number">3</span>), RIGHT_BRACKET(<span class="string">")"</span>, <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">    String symbol;</span><br><span class="line">    <span class="keyword">int</span> priority;</span><br><span class="line"></span><br><span class="line">    Operator(String s, <span class="keyword">int</span> priority) &#123;</span><br><span class="line">        <span class="keyword">this</span>.symbol = s;</span><br><span class="line">        <span class="keyword">this</span>.priority = priority;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">lessOrEqual</span><span class="params">(Operator operator)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.priority &lt;= operator.priority;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Operator <span class="title">get</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">        Operator[] values = Operator.values();</span><br><span class="line">        <span class="keyword">for</span> (Operator operator : values) &#123;</span><br><span class="line">            <span class="keyword">if</span> (operator.symbol.equals(s)) &#123;</span><br><span class="line">                <span class="keyword">return</span> operator;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后开始想法子计算表达式，分为几个步骤。</p>
+<ol>
+<li><p>将字符串表达式分解开</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> String[] splitExpr(String expr) &#123;</span><br><span class="line">    List&lt;String&gt; result = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    expr = expr.replaceAll(<span class="string">" "</span>, <span class="string">""</span>);</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">int</span> length = expr.length();</span><br><span class="line">   </span><br><span class="line">    <span class="comment">// 用来储存数字</span></span><br><span class="line">    StringBuilder builder = <span class="keyword">null</span>;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; length; i++) &#123;</span><br><span class="line">   </span><br><span class="line">        String c = expr.substring(i, i + <span class="number">1</span>);</span><br><span class="line">   </span><br><span class="line">        <span class="comment">// 遇到符号，需要先判断将 builder 里面储存的数字添加到集合，然后将符号添加到集合</span></span><br><span class="line">        <span class="keyword">if</span> (isSymbol(c)) &#123;</span><br><span class="line">            <span class="keyword">if</span> (builder != <span class="keyword">null</span>) &#123;</span><br><span class="line">                result.add(builder.toString());</span><br><span class="line">                builder = <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            result.add(c);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isNumber(c)) &#123;</span><br><span class="line">            <span class="comment">// 遇到数字就将数字添加到 builder，避免多位数字问题</span></span><br><span class="line">            <span class="keyword">if</span> (builder == <span class="keyword">null</span>) &#123;</span><br><span class="line">                builder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">            &#125;</span><br><span class="line">            builder.append(c);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"表达式有问题"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">   </span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">if</span> (builder != <span class="keyword">null</span>) &#123;</span><br><span class="line">        result.add(builder.toString());</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">return</span> result.toArray(<span class="keyword">new</span> String[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将表达式分解之后，可以执行中缀转后缀</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> String[] midToEnd(String expr) &#123;</span><br><span class="line">   </span><br><span class="line">    List&lt;String&gt; result = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">   </span><br><span class="line">    <span class="comment">// 先将表达式分解出来</span></span><br><span class="line">    String[] array = splitExpr(expr);</span><br><span class="line">    Stack&lt;String&gt; stack = <span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line">   </span><br><span class="line">    String pop;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; array.length; i++) &#123;</span><br><span class="line">        String s = array[i];</span><br><span class="line">        <span class="keyword">if</span> (isNumber(s)) &#123;</span><br><span class="line">            <span class="comment">// 数字直接输出</span></span><br><span class="line">            result.add(s);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isOperator(s)) &#123;</span><br><span class="line">            <span class="comment">// 符号将栈顶优先级高于或等于的依次出栈</span></span><br><span class="line">            Operator operator;</span><br><span class="line">            Operator top;</span><br><span class="line">            <span class="keyword">while</span> (!stack.isEmpty() &amp;&amp; isOperator(stack.peek())) &#123;</span><br><span class="line">                operator = Operator.get(s);</span><br><span class="line">                top = Operator.get(stack.peek());</span><br><span class="line">                <span class="keyword">if</span> (operator.lessOrEqual(top)) &#123;</span><br><span class="line">                    result.add(stack.pop());</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 将自己进栈</span></span><br><span class="line">            stack.push(s);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (s.equals(Operator.LEFT_BRACKET.symbol)) &#123;</span><br><span class="line">            <span class="comment">// 左括号进栈</span></span><br><span class="line">            stack.push(s);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (s.equals(Operator.RIGHT_BRACKET.symbol)) &#123;</span><br><span class="line">            <span class="comment">// 右括号需要匹配左括号</span></span><br><span class="line">            <span class="keyword">while</span> (!stack.empty()) &#123;</span><br><span class="line">                pop = stack.pop();</span><br><span class="line">                <span class="keyword">if</span> (pop.equals(Operator.LEFT_BRACKET.symbol)) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                result.add(pop);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"表达式有问题"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">while</span> (!stack.isEmpty()) &#123;</span><br><span class="line">        result.add(stack.pop());</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">return</span> result.toArray(<span class="keyword">new</span> String[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>然后计算后缀表达式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">double</span> <span class="title">cal</span><span class="params">(String expr)</span> </span>&#123;</span><br><span class="line">    String[] temp = midToEnd(expr);</span><br><span class="line">    Stack&lt;Double&gt; number = <span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (String s : temp) &#123;</span><br><span class="line">        <span class="keyword">if</span> (isNumber(s)) &#123;</span><br><span class="line">            <span class="comment">// 数字直接进栈</span></span><br><span class="line">            number.push(Double.parseDouble(s));</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isOperator(s)) &#123;</span><br><span class="line">            <span class="comment">// 运算符则弹出两个数字，计算结果，将结果进栈</span></span><br><span class="line">            <span class="keyword">if</span> (number.size() &gt;= <span class="number">2</span>) &#123;</span><br><span class="line">                Double opr = number.pop();</span><br><span class="line">                Double opl = number.pop();</span><br><span class="line">                number.push(func(opl, opr, s));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"表达式有问题"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">return</span> number.pop();</span><br><span class="line">   </span><br><span class="line">&#125;</span><br><span class="line">   </span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> Double <span class="title">func</span><span class="params">(Double opl, Double opr, String op)</span> </span>&#123;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">if</span> (Operator.PLUS.symbol.equals(op)) &#123;</span><br><span class="line">        <span class="keyword">return</span> opl + opr;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (Operator.MINUS.symbol.equals(op)) &#123;</span><br><span class="line">        <span class="keyword">return</span> opl - opr;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (Operator.MUl.symbol.equals(op)) &#123;</span><br><span class="line">        <span class="keyword">return</span> opl * opr;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (Operator.DIV.symbol.equals(op)) &#123;</span><br><span class="line">        <span class="keyword">return</span> opl / opr;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"表达式有问题"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>这里我为了简单，只处理了运算数为整形的情况，分解表达式字符串用的是正则，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isNumber</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">    String numberRegex = <span class="string">"\\d+"</span>;</span><br><span class="line">    <span class="keyword">return</span> s.matches(numberRegex);</span><br><span class="line">&#125;</span><br><span class="line">   </span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isSymbol</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">    String regex = <span class="string">"[\\+\\-\\*\\/()]"</span>;</span><br><span class="line">    <span class="keyword">return</span> s.matches(regex);</span><br><span class="line">&#125;</span><br><span class="line">   </span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isOperator</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">    String regex = <span class="string">"[\\+\\-\\*\\/]"</span>;</span><br><span class="line">    <span class="keyword">return</span> s.matches(regex);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
 
     </div>
 
@@ -480,7 +499,7 @@
     <li class="popular-posts-item">
       
       
-      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/算法/大话数据结构/0014-线性表的顺序储存/" rel="bookmark">0014-线性表的顺序储存</a></div>
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/算法/大话数据结构/0015-线性表的链式储存结构/" rel="bookmark">0015-线性表的链式储存结构</a></div>
       
     </li>
   
@@ -572,8 +591,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/" rel="next" title="0003-模板编译与解析">
-                  <i class="fa fa-chevron-left"></i> 0003-模板编译与解析
+                <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0001-前言/" rel="next" title="0001-前言">
+                  <i class="fa fa-chevron-left"></i> 0001-前言
                 </a>
               
             </div>
@@ -582,8 +601,8 @@
 
             <div class="post-nav-prev post-nav-item">
               
-                <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0001-前言/" rel="prev" title="0001-前言">
-                  0001-前言 <i class="fa fa-chevron-right"></i>
+                <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/" rel="prev" title="0004-组件的创建">
+                  0004-组件的创建 <i class="fa fa-chevron-right"></i>
                 </a>
               
             </div>
@@ -644,7 +663,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">118</span>
+          <span class="site-state-item-count">128</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -671,7 +690,13 @@
         
           
         
-        <span class="site-state-item-count">6</span>
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -718,7 +743,11 @@
         
           
         
-        <span class="site-state-item-count">16</span>
+          
+        
+          
+        
+        <span class="site-state-item-count">18</span>
         <span class="site-state-item-name">标签</span>
         </a>
       </div>
@@ -758,7 +787,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#后缀表达式的计算"><span class="nav-number">1.</span> <span class="nav-text">后缀表达式的计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀表达式转后缀表达式"><span class="nav-number">2.</span> <span class="nav-text">中缀表达式转后缀表达式</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#后缀表达式的计算"><span class="nav-number">1.</span> <span class="nav-text">后缀表达式的计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀表达式转后缀表达式"><span class="nav-number">2.</span> <span class="nav-text">中缀表达式转后缀表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码实现"><span class="nav-number">3.</span> <span class="nav-text">代码实现</span></a></li></ol></div>
             
 
           </div>
@@ -787,14 +816,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">471k</span>
+    <span title="站点总字数">525k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">7:08</span>
+    <span title="站点阅读时长">7:57</span>
 </div>
 
         

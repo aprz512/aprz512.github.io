@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="在实现自己的 LayoutHelper 之前，我们先看看官方是如何实现的。如果你之前了解过自定义 LayoutManager，那么这个就是小意思了。我们先来看一个比较简单的 com.alibaba.android.vlayout.layout.FixLayoutHelper。 com.alibaba.android.vlayout.layout.FixLayoutHelper">
+<meta name="keywords" content="vLayout">
+<meta property="og:type" content="article">
+<meta property="og:title" content="0002-自定义LayoutHelper">
+<meta property="og:url" content="http://aprz512.github.io/2019/09/17/blog_bak/Blog/Android-源码解析/vLayout/0002-自定义LayoutHelper/index.html">
+<meta property="og:site_name" content="六根不净堂">
+<meta property="og:description" content="在实现自己的 LayoutHelper 之前，我们先看看官方是如何实现的。如果你之前了解过自定义 LayoutManager，那么这个就是小意思了。我们先来看一个比较简单的 com.alibaba.android.vlayout.layout.FixLayoutHelper。 com.alibaba.android.vlayout.layout.FixLayoutHelper">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-29T09:18:21.889Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="0002-自定义LayoutHelper">
+<meta name="twitter:description" content="在实现自己的 LayoutHelper 之前，我们先看看官方是如何实现的。如果你之前了解过自定义 LayoutManager，那么这个就是小意思了。我们先来看一个比较简单的 com.alibaba.android.vlayout.layout.FixLayoutHelper。 com.alibaba.android.vlayout.layout.FixLayoutHelper">
+  <link rel="canonical" href="http://aprz512.github.io/2019/09/17/blog_bak/Blog/Android-源码解析/vLayout/0002-自定义LayoutHelper/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>0002-自定义LayoutHelper | 六根不净堂</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">六根不净堂</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">18</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">9</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">128</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/17/blog_bak/Blog/Android-源码解析/vLayout/0002-自定义LayoutHelper/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="六根不净堂">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">0002-自定义LayoutHelper
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-17 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-17T00:00:00+08:00">2019-09-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-29 17:18:21" itemprop="dateModified" datetime="2019-09-29T17:18:21+08:00">2019-09-29</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Android源码分析-vLayout/" itemprop="url" rel="index"><span itemprop="name">Android源码分析-vLayout</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/17/blog_bak/Blog/Android-源码解析/vLayout/0002-自定义LayoutHelper/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/17/blog_bak/Blog/Android-源码解析/vLayout/0002-自定义LayoutHelper/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>9.8k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>9 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在实现自己的 LayoutHelper 之前，我们先看看官方是如何实现的。如果你之前了解过自定义 LayoutManager，那么这个就是小意思了。</p><p>我们先来看一个比较简单的 <code>com.alibaba.android.vlayout.layout.FixLayoutHelper</code>。</p><blockquote>
+<p>com.alibaba.android.vlayout.layout.FixLayoutHelper</p>
+</blockquote><a id="more"></a>
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setItemCount</span><span class="params">(<span class="keyword">int</span> itemCount)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (itemCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">super</span>.setItemCount(<span class="number">1</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.setItemCount(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，固定的 item 只管理单个 view，就算我们设置了多个，也只取第一个。比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">FixLayoutHelper layoutHelper = <span class="keyword">new</span> FixLayoutHelper(<span class="number">10</span>, <span class="number">10</span>);</span><br><span class="line"><span class="comment">// itemCount 设置为 0，不显示，LayoutHelper 认为没有 view 需要排列</span></span><br><span class="line">adapters.add(<span class="keyword">new</span> SubAdapter(<span class="keyword">this</span>, layoutHelper, <span class="number">0</span>));</span><br><span class="line"></span><br><span class="line">layoutHelper = <span class="keyword">new</span> FixLayoutHelper(FixLayoutHelper.TOP_RIGHT, <span class="number">20</span>, <span class="number">20</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里即使将 itemCount 设置为 10，效果也是一样的</span></span><br><span class="line">adapters.add(<span class="keyword">new</span> SubAdapter(<span class="keyword">this</span>, layoutHelper, <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onBindViewHolder</span><span class="params">(MainViewHolder holder, <span class="keyword">int</span> position)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onBindViewHolder(holder, position);</span><br><span class="line">        LayoutParams layoutParams = <span class="keyword">new</span> LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, <span class="number">200</span>);</span><br><span class="line">        holder.itemView.setLayoutParams(layoutParams);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>看看别的方法，有三个比较重要，我们先看第一个：</p>
+<blockquote>
+<p>com.alibaba.android.vlayout.layout.FixLayoutHelper#layoutViews</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">layoutViews</span><span class="params">(RecyclerView.Recycler recycler, RecyclerView.State state,</span></span></span><br><span class="line"><span class="function"><span class="params">        VirtualLayoutManager.LayoutStateWrapper layoutState, LayoutChunkResult result,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">final</span> LayoutManagerHelper helper)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// reach the end of this layout</span></span><br><span class="line">    <span class="keyword">if</span> (isOutOfRange(layoutState.getCurrentPosition())) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!mShouldDrawn) &#123;</span><br><span class="line">        layoutState.skipCurrentPosition();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// find view in currentPosition</span></span><br><span class="line">    View view = mFixView;</span><br><span class="line">    <span class="keyword">if</span> (view == <span class="keyword">null</span>) &#123;</span><br><span class="line">        view = layoutState.next(recycler);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        layoutState.skipCurrentPosition();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (view == <span class="keyword">null</span>) &#123;</span><br><span class="line">        result.mFinished = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mDoNormalHandle = state.isPreLayout();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mDoNormalHandle) &#123;</span><br><span class="line">        <span class="comment">// in PreLayout do normal layout</span></span><br><span class="line">        helper.addChildView(layoutState, view);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mFixView = view;</span><br><span class="line"></span><br><span class="line">    doMeasureAndLayout(view, helper);</span><br><span class="line"></span><br><span class="line">    result.mConsumed = <span class="number">0</span>;</span><br><span class="line">    result.mIgnoreConsumed = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    handleStateOnResult(result, view);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看第 16-21 行的代码，这是很重要的一个部分，这里就是获取是否有可以复用的 view。往下看，到 37 行，这里就是处理了 view 的测量与布局。里面的逻辑还是很简单的，这里截取两段看一看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> widthSpec = helper.getChildMeasureSpec(xxx);</span><br><span class="line">heightSpec = helper.getChildMeasureSpec(xxx);</span><br><span class="line"></span><br><span class="line"><span class="comment">// do measurement</span></span><br><span class="line">helper.measureChildWithMargins(view, widthSpec, heightSpec);</span><br></pre></td></tr></table></figure>
+
+<p>测量都是一样的，先创建 MeasureSpec，然后调用 measureChildWithMargins 方法，view 的大小就测量好了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">top = helper.getPaddingTop() + mY + mAdjuster.top;</span><br><span class="line">right = helper.getContentWidth() - helper.getPaddingRight() - mX - mAdjuster.right;</span><br><span class="line">left = right - params.leftMargin - params.rightMargin - view.getMeasuredWidth();</span><br><span class="line">bottom = top + params.topMargin + params.bottomMargin + view.getMeasuredHeight();</span><br></pre></td></tr></table></figure>
+
+<p>布局就更简单了，因为是固定位置，所以只需要算一下绝对位置就好了，没啥好说的。</p>
+<p>我们再看另外两个方法：</p>
+<blockquote>
+<p>com.alibaba.android.vlayout.layout.FixLayoutHelper#beforeLayout</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeLayout</span><span class="params">(RecyclerView.Recycler recycler, RecyclerView.State state,</span></span></span><br><span class="line"><span class="function"><span class="params">                         LayoutManagerHelper helper)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.beforeLayout(recycler, state, helper);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mFixView != <span class="keyword">null</span> &amp;&amp; helper.isViewHolderUpdated(mFixView)) &#123;</span><br><span class="line">        <span class="comment">// recycle view for later usage</span></span><br><span class="line">        helper.removeChildView(mFixView);</span><br><span class="line">        recycler.recycleView(mFixView);</span><br><span class="line">        mFixView = <span class="keyword">null</span>;</span><br><span class="line">        isAddFixViewImmediately = <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mDoNormalHandle = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法的作用，是在 layout 之前做一些事情，这里做的事情是如果检测到 viewHolder 变化了，就将 view 放入复用池中，便于接下来layout时复用。</p>
+<blockquote>
+<p>com.alibaba.android.vlayout.layout.FixLayoutHelper#afterLayout</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterLayout</span><span class="params">(<span class="keyword">final</span> RecyclerView.Recycler recycler, RecyclerView.State state,</span></span></span><br><span class="line"><span class="function"><span class="params">                        <span class="keyword">int</span> startPosition, <span class="keyword">int</span> endPosition, <span class="keyword">int</span> scrolled,</span></span></span><br><span class="line"><span class="function"><span class="params">                        <span class="keyword">final</span> LayoutManagerHelper helper)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.afterLayout(recycler, state, startPosition, endPosition, scrolled, helper);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// disabled if mPos is negative number</span></span><br><span class="line">    <span class="keyword">if</span> (mPos &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mDoNormalHandle &amp;&amp; state.isPreLayout()) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mFixView != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">//                Log.d(TAG, "after layout doNormal removeView");</span></span><br><span class="line">            helper.removeChildView(mFixView);</span><br><span class="line">            recycler.recycleView(mFixView);</span><br><span class="line">            isAddFixViewImmediately = <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        mFixView = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Not in normal flow</span></span><br><span class="line">    <span class="keyword">if</span> (shouldBeDraw(helper, startPosition, endPosition, scrolled)) &#123;</span><br><span class="line">        mShouldDrawn = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">if</span> (mFixView != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// already capture in layoutViews phase</span></span><br><span class="line">            <span class="comment">// if it's not shown on screen</span></span><br><span class="line">            <span class="keyword">if</span> (mFixView.getParent() == <span class="keyword">null</span>) &#123;</span><br><span class="line">                addFixViewWithAnimator(helper, mFixView);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// helper.removeChildView(mFixView);</span></span><br><span class="line">                helper.addFixedView(mFixView);</span><br><span class="line">                isRemoveFixViewImmediately = <span class="keyword">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Runnable action = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                    mFixView = recycler.getViewForPosition(mPos);</span><br><span class="line">                    doMeasureAndLayout(mFixView, helper);</span><br><span class="line">                    <span class="keyword">if</span> (isAddFixViewImmediately) &#123;</span><br><span class="line">                        helper.addFixedView(mFixView);</span><br><span class="line">                        isRemoveFixViewImmediately = <span class="keyword">false</span>;</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        addFixViewWithAnimator(helper, mFixView);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;;</span><br><span class="line">            <span class="keyword">if</span> (mFixViewDisappearAnimatorListener.isAnimating()) &#123;</span><br><span class="line">                mFixViewDisappearAnimatorListener.withEndAction(action);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                action.run();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        mShouldDrawn = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (mFixView != <span class="keyword">null</span>) &#123;</span><br><span class="line">            removeFixViewWithAnimator(recycler, helper, mFixView);</span><br><span class="line">            mFixView = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法的作用，是在 layout 之后做一些事情。不知道你看到这里时有没有产生疑问：我们 RecyclerView 时从上往下，或者从下往上布局的，那么如果我们的屏幕上只能显示 10 个 item，而在第 100 个位置有一个 FixView，那么问题就来了，为什么我们一打开这个界面 FixView 就能立即显示出来，而不是滑动到了第 100 个位置才显示出来？</p>
+<p>我们先看该方法时在什么时候被调用的？</p>
+<blockquote>
+<p>com.alibaba.android.vlayout.VirtualLayoutManager#runPostLayout</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">runPostLayout</span><span class="params">(RecyclerView.Recycler recycler, RecyclerView.State state, <span class="keyword">int</span> scrolled)</span> </span>&#123;</span><br><span class="line">    mNested--;</span><br><span class="line">    <span class="keyword">if</span> (mNested &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        mNested = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> startPosition = findFirstVisibleItemPosition();</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> endPosition = findLastVisibleItemPosition();</span><br><span class="line">        List&lt;LayoutHelper&gt; layoutHelpers = mHelperFinder.getLayoutHelpers();</span><br><span class="line">        Iterator&lt;LayoutHelper&gt; iterator = layoutHelpers.iterator();</span><br><span class="line">        LayoutHelper layoutHelper = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">            layoutHelper = iterator.next();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                layoutHelper.afterLayout(recycler, state, startPosition, endPosition, scrolled, <span class="keyword">this</span>);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                <span class="keyword">if</span> (VirtualLayoutManager.sDebuggable) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> e;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != mViewLifeCycleHelper) &#123;</span><br><span class="line">            mViewLifeCycleHelper.checkViewStatusInScreen();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法在 <code>com.alibaba.android.vlayout.VirtualLayoutManager#onLayoutChildren</code> 里面被调用，而 onLayoutChildren 几乎是不断的在被调用，RecyclerView 刚显示时，滚动时都需要调用该方法，所以 runPostLayout 也是不断的会被调用。</p>
+<p>看 runPostLayout 的内部逻辑，可以发现它调用了所有的 LayoutHelper 的 afterLayout 方法。即，与 layoutViews 不一样，layoutViews 只会在滚动到相应位置才会调用，afterLayout 与 beforeLayout 都会不断的被调用。</p>
+<p>所以，FixView 一开始就可以显示，显然是在 afterLayout 中做了什么。</p>
+<p>说实话，这段逻辑我没看懂，写这个代码的人太喜欢用bool变量来控制逻辑了，所以只好使出断点调试大法。界面（VLayoutActivity）刚展示的时候，只会走 afterLayout 与 beforeLayout，beforeLayout 没什么影响，afterLayout 走到了第 47 行：</p>
+<blockquote>
+<p>com.alibaba.android.vlayout.layout.FixLayoutHelper#addFixViewWithAnimator</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">addFixViewWithAnimator</span><span class="params">(LayoutManagerHelper layoutManagerHelper, View fixView)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mFixViewAnimatorHelper != <span class="keyword">null</span>) &#123;</span><br><span class="line">        ViewPropertyAnimator animator = mFixViewAnimatorHelper</span><br><span class="line">                .onGetFixViewAppearAnimator(fixView);</span><br><span class="line">        <span class="keyword">if</span> (animator != <span class="keyword">null</span>) &#123;</span><br><span class="line">            fixView.setVisibility(View.INVISIBLE);</span><br><span class="line">            layoutManagerHelper.addFixedView(fixView);</span><br><span class="line">            mFixViewAppearAnimatorListener.bindAction(layoutManagerHelper, fixView);</span><br><span class="line">            animator.setListener(mFixViewAppearAnimatorListener).start();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            layoutManagerHelper.addFixedView(fixView);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        layoutManagerHelper.addFixedView(fixView);</span><br><span class="line">    &#125;</span><br><span class="line">    isRemoveFixViewImmediately = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后调用了第 14 行，所以，是 addFixedView 方法起了作用。该方法是将 FixView add 到了 LayoutManager 里面。这里需要 add 是因为本来 fixView 不应该在 LayoutManager 管理的集合里面，但是它又需要显示出来，所以需要 add。</p>
+<p>addFixedView 这个方法里面的逻辑也很简单：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addFixedView</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    addOffFlowView(view, <span class="keyword">false</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addOffFlowView</span><span class="params">(View view, <span class="keyword">boolean</span> head)</span> </span>&#123;</span><br><span class="line">    showView(view);</span><br><span class="line">    addHiddenView(view, head);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">addHiddenView</span><span class="params">(View view, <span class="keyword">boolean</span> head)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> index = head ? <span class="number">0</span> : -<span class="number">1</span>;</span><br><span class="line">    addView(view, index);</span><br><span class="line">    mChildHelperWrapper.hide(view);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>showView 是调用了 mChildHelperWrapper 的 show 方法，最终会调用到 <code>android.support.v7.widget.ChildHelper.Bucket#clear</code> 里面。这个类具体可以看看这篇文章：<a href="https://blog.csdn.net/fyfcauc/article/details/54175072" target="_blank" rel="noopener">https://blog.csdn.net/fyfcauc/article/details/54175072</a> ，它的内部逻辑就是将该 view 标记为可见。</p>
+<p>我刚开始以为这个 showView 方法没啥作用，因为后面不是又重新隐藏了么，直到我将这行代码注掉之后，发现刚开始是正常的吗，但是上下滑动之后， FixView 的层次变化了，但是没找到原因。</p>
+<p>查看 LayoutManagerHelper 的注释与 layer 有点关系，下篇再讲。</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章推荐</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/16/blog_bak/Blog/Android-源码解析/vLayout/0001-设计思想/" rel="bookmark">0001-设计思想</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/18/blog_bak/Blog/Android-源码解析/vLayout/0003-View的层次/" rel="bookmark">0003-View的层次</a></div>
+      
+    </li>
+  
+  </ul>
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2019/09/17/blog_bak/Blog/Android-源码解析/vLayout/0002-自定义LayoutHelper/" title="0002-自定义LayoutHelper">http://aprz512.github.io/2019/09/17/blog_bak/Blog/Android-源码解析/vLayout/0002-自定义LayoutHelper/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/vLayout/" rel="tag"># vLayout</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/16/blog_bak/Blog/Android-源码解析/vLayout/0001-设计思想/" rel="next" title="0001-设计思想">
+                  <i class="fa fa-chevron-left"></i> 0001-设计思想
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/18/blog_bak/Blog/Android-源码解析/vLayout/0003-View的层次/" rel="prev" title="0003-View的层次">
+                  0003-View的层次 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">128</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">525k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">7:57</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
