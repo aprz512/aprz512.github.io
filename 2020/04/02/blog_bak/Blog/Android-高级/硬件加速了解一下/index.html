@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="由于几年前在XXX面试时，有一个 Canvas.saveLayer 的问题没有答好，导致没有拿到期望的薪资，所以拒绝了，心有怨念，所以做了一些笔记。今天突然发现这些知识点完全想不起来了，多以再次复习一下。应该还是有相当一部分开发者不知道硬件加速到底是个什么东西。这个名词跟硬件相关，可能是一个很高级的东西，潜意思里都不想去接触。但是实际上，以我们的能力理解起来是没有问题的。听我慢慢道来。">
+<meta name="keywords" content="Android-高级">
+<meta property="og:type" content="article">
+<meta property="og:title" content="硬件加速了解一下">
+<meta property="og:url" content="http://aprz512.github.io/2020/04/02/blog_bak/Blog/Android-高级/硬件加速了解一下/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="由于几年前在XXX面试时，有一个 Canvas.saveLayer 的问题没有答好，导致没有拿到期望的薪资，所以拒绝了，心有怨念，所以做了一些笔记。今天突然发现这些知识点完全想不起来了，多以再次复习一下。应该还是有相当一部分开发者不知道硬件加速到底是个什么东西。这个名词跟硬件相关，可能是一个很高级的东西，潜意思里都不想去接触。但是实际上，以我们的能力理解起来是没有问题的。听我慢慢道来。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/note-markdown/raw/master/%E6%80%A7%E8%83%BD%E7%AC%94%E5%BD%95/render-func.png">
+<meta property="og:updated_time" content="2020-04-04T14:52:07.377Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="硬件加速了解一下">
+<meta name="twitter:description" content="由于几年前在XXX面试时，有一个 Canvas.saveLayer 的问题没有答好，导致没有拿到期望的薪资，所以拒绝了，心有怨念，所以做了一些笔记。今天突然发现这些知识点完全想不起来了，多以再次复习一下。应该还是有相当一部分开发者不知道硬件加速到底是个什么东西。这个名词跟硬件相关，可能是一个很高级的东西，潜意思里都不想去接触。但是实际上，以我们的能力理解起来是没有问题的。听我慢慢道来。">
+<meta name="twitter:image" content="https://github.com/aprz512/note-markdown/raw/master/%E6%80%A7%E8%83%BD%E7%AC%94%E5%BD%95/render-func.png">
+  <link rel="canonical" href="http://aprz512.github.io/2020/04/02/blog_bak/Blog/Android-高级/硬件加速了解一下/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>硬件加速了解一下 | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">10</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">164</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/02/blog_bak/Blog/Android-高级/硬件加速了解一下/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">硬件加速了解一下
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-02 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-02T00:00:00+08:00">2020-04-02</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-04 22:52:07" itemprop="dateModified" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/02/blog_bak/Blog/Android-高级/硬件加速了解一下/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/02/blog_bak/Blog/Android-高级/硬件加速了解一下/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>8k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>7 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>由于几年前在XXX面试时，有一个 Canvas.saveLayer 的问题没有答好，导致没有拿到期望的薪资，所以拒绝了，心有怨念，所以做了一些笔记。今天突然发现这些知识点完全想不起来了，多以再次复习一下。</p><p>应该还是有相当一部分开发者不知道硬件加速到底是个什么东西。这个名词跟硬件相关，可能是一个很高级的东西，潜意思里都不想去接触。但是实际上，以我们的能力理解起来是没有问题的。听我慢慢道来。</p><a id="more"></a>
+
+<h3 id="系统变化"><a href="#系统变化" class="headerlink" title="系统变化"></a>系统变化</h3><p>在Android平台的演变过程中，针对图形渲染方面的改进：</p>
+<ol>
+<li>Android 3.0 Honeycomd 中，引入了硬件加速。</li>
+<li>Android 4.0 Ice Cream Sandwich 中，默认开启硬件加速。</li>
+</ol>
+<p>随着平台带来的这个变化，视图以及所有的Canvas对象的绘制操作，原本由CPU来完成，现在都交由GPU来完成。</p>
+<h3 id="硬件加速的主要原理"><a href="#硬件加速的主要原理" class="headerlink" title="硬件加速的主要原理"></a>硬件加速的主要原理</h3><p>通过底层软件代码，将CPU不擅长的图形计算转换成GPU专用指令，转由GPU完成。</p>
+<p>可以看到，硬件加速的底层确实是与硬件相关，但是这个不是我们的主要了解对象。我们需要了解的是它对我们开发者有什么影响。</p>
+<h3 id="从例子开始"><a href="#从例子开始" class="headerlink" title="从例子开始"></a>从例子开始</h3><p>我们开一个新项目：</p>
+<ol>
+<li><p>自定义两个View：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HardwareLinearLayout</span> <span class="meta">@JvmOverloads</span> <span class="keyword">constructor</span></span>(</span><br><span class="line">    context: Context,</span><br><span class="line">    attrs: AttributeSet? = <span class="literal">null</span>,</span><br><span class="line">    defStyleAttr: <span class="built_in">Int</span> = <span class="number">0</span></span><br><span class="line">) : LinearLayout(context, attrs, defStyleAttr) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        setWillNotDraw(<span class="literal">false</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onDraw</span><span class="params">(canvas: <span class="type">Canvas</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onDraw(canvas)</span><br><span class="line">        Log.e(<span class="string">"HardwareLinearLayout"</span>, <span class="string">"onDraw"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HardwareTextView</span> <span class="meta">@JvmOverloads</span> <span class="keyword">constructor</span></span>(</span><br><span class="line">    context: Context,</span><br><span class="line">    attrs: AttributeSet? = <span class="literal">null</span>,</span><br><span class="line">    defStyleAttr: <span class="built_in">Int</span> = <span class="number">0</span></span><br><span class="line">) : TextView(context, attrs, defStyleAttr) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="meta">@JvmStatic</span></span><br><span class="line">        <span class="keyword">val</span> TAG = <span class="string">"HardwareTextView"</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onDraw</span><span class="params">(canvas: <span class="type">Canvas</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onDraw(canvas)</span><br><span class="line">        Log.e(TAG, <span class="string">"onDraw"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+<ol start="2">
+<li><p>给这两个控件都设置上背景颜色，如果没有给HardwareLinearLayout设置背景色，需要调用 setWillNotDraw(false)，在界面上的布局如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">com.example.hardware.HardwareLinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:tools</span>=<span class="string">"http://schemas.android.com/tools"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:background</span>=<span class="string">"@color/colorAccent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:gravity</span>=<span class="string">"center"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:id</span>=<span class="string">"@+id/linear"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">"horizontal"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">tools:context</span>=<span class="string">".MainActivity"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">com.example.hardware.HardwareTextView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/text"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:background</span>=<span class="string">"@color/colorPrimary"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"Hello World!"</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">com.example.hardware.HardwareLinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>界面非常的简单，一个 LinearLayout 包含了一个 TextView。</p>
+</li>
+<li><p>然后给添加点击事件，事件也很简单，重绘自己而已。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">    setContentView(R.layout.activity_main)</span><br><span class="line">    text.setOnClickListener &#123; text.invalidate() &#125;</span><br><span class="line">   </span><br><span class="line">    linear.setOnClickListener &#123; linear.invalidate() &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>那么，有趣的问题来了！！！</p>
+<p>测试会出现以下几种情况：</p>
+<ol>
+<li><p>给Application设置 android:hardwareAccelerated=”false” ，当我们点击这个TextView的时候：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">E/HardwareLinearLayout: onDraw</span><br><span class="line">E/HardwareTextView: onDraw</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>给Application设置 android:hardwareAccelerated=”true”，当我们点击这个TextView的时候：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">E/HardwareTextView: onDraw</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>给Application设置 android:hardwareAccelerated=”false” ，当我们点击这个LinearLayout的时候：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">E/HardwareLinearLayout: onDraw</span><br><span class="line">E/HardwareTextView: onDraw</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+<p>下面我们来说说为什么会这样。我们首先介绍一下两个绘制模型。</p>
+<h3 id="基于软件的绘制模型"><a href="#基于软件的绘制模型" class="headerlink" title="基于软件的绘制模型"></a>基于软件的绘制模型</h3><p>也就是没有硬件加速之前的模型。</p>
+<h4 id="基于软件的绘制模型主要由以下两步构成："><a href="#基于软件的绘制模型主要由以下两步构成：" class="headerlink" title="基于软件的绘制模型主要由以下两步构成："></a>基于软件的绘制模型主要由以下两步构成：</h4><ol>
+<li><strong>Invalidation:</strong> 当视图层级需要更新，或者只是 View 的一个属性发生变化，View.invalidata() 方法就会被调用，该方法会传播到整个视图层级，使得整个视图层级被重绘。</li>
+<li><strong>Redrawing:</strong> 每个 View 在重绘时，都会消耗大量的CPU性能。</li>
+</ol>
+<h4 id="基于软件的绘制模型缺点分析："><a href="#基于软件的绘制模型缺点分析：" class="headerlink" title="基于软件的绘制模型缺点分析："></a>基于软件的绘制模型缺点分析：</h4><ol>
+<li>首先，这个模型需要在每个绘图过程中执行大量代码。 例如，如果您的应用程序界面中有一个按钮，并且该按钮位于另一个视图的顶部。 调用按钮的invalidate()方法，则Android系统会重新绘制整个视图（包括按钮下面的另一个视图），即使它没有更改。</li>
+<li>第二个问题是绘图模型可以隐藏应用程序中的错误。 由于Android系统在与脏区域相交时重绘视图，因此即使invalidate()方法没有在脏区域上调用，也可能会重绘它。 发生这种情况时，我们是依赖于另一个视图触发了invalidate()方法以获得正确的行为。 因此，每当修改影响视图绘图代码的数据或状态时，应始终在自定义视图上调用invalidate()。</li>
+</ol>
+<h4 id="基于软件绘制模型中调用-invalidate-所发生的事情"><a href="#基于软件绘制模型中调用-invalidate-所发生的事情" class="headerlink" title="基于软件绘制模型中调用 invalidate() 所发生的事情:"></a>基于软件绘制模型中调用 invalidate() 所发生的事情:</h4><ul>
+<li>默认情况下，<code>View</code>的<code>clipChildren</code>属性为<code>true</code>，即每个<code>View</code>绘制区域不能超出其父<code>View</code>的范围。如果设置一个页面根布局的<code>clipChildren</code>属性为<code>false</code>，则子<code>View</code>可以超出父<code>View</code>的绘制区域。</li>
+<li>当一个<code>View</code>触发<code>invalidate</code>，且没有播放动画、没有触发<code>layout</code>的情况下：<ul>
+<li><code>clipChildren</code>为<code>true</code>时，脏区会被转换成<code>ViewRoot</code>中的<code>Rect</code>，刷新时层层向下判断，当<code>View</code>与脏区<strong>有重叠则重绘</strong>。如果一个<code>View</code>超出父<code>View</code>范围且与脏区重叠，但其父<code>View</code>不与脏区重叠，这个子<code>View</code>不会重绘。</li>
+<li><code>clipChildren</code>为<code>false</code>时，<code>ViewGroup.invalidateChildInParent()</code>中会把脏区扩大到自身整个区域，于是与这个区域重叠的所有View都会重绘。</li>
+</ul>
+</li>
+</ul>
+<p>简而言之，<strong>就是基于软件绘制的模型不仅仅会重绘自己，还会影响到与自己相交的控件</strong>。</p>
+<h3 id="基于硬件加速绘制模型"><a href="#基于硬件加速绘制模型" class="headerlink" title="基于硬件加速绘制模型"></a>基于硬件加速绘制模型</h3><h4 id="基于硬件加速绘制模型主要由以下三步构成："><a href="#基于硬件加速绘制模型主要由以下三步构成：" class="headerlink" title="基于硬件加速绘制模型主要由以下三步构成："></a>基于硬件加速绘制模型主要由以下三步构成：</h4><p>随着全新硬件加速绘制模型的引入，重绘并不会立即执行，因为View被存储起来了。所以步骤变成这样：</p>
+<ol>
+<li><strong>Invalidate:</strong> 与软件绘制模型一样。</li>
+<li><strong>Storing：</strong> 在这种情况下，<strong>只有需要被更新的视图才进行重绘</strong>，并且在重绘之后被<strong>存储</strong>起来，以便重用，从而减少运行时的计算量。</li>
+<li><strong>Redrawing:</strong> 每个View利用之前存储下来的<em>绘图</em>进行更新，也就是说，那些不需要被更新的View，可以通过上次被储存下来的<em>绘图</em>进行更新（注：绘图这个词可能描述的并不准确，希望自行体会）。</li>
+</ol>
+<p>优点很明显了，完全弥补了软件绘制模型的缺点，做到了按需更新，缓存更新操作。</p>
+<h3 id="两个模型的View绘制流程图对比"><a href="#两个模型的View绘制流程图对比" class="headerlink" title="两个模型的View绘制流程图对比"></a>两个模型的View绘制流程图对比</h3><p>通过上面的介绍，开发者应该能有一个大致的了解，现在截取美团基于Android 6.0的绘制流程分析来具体的讲解硬件加速做了什么。</p>
+<p><em>下面是安卓View完整的绘制流程图，主要通过阅读源码和调试得出，虚线箭头表示递归调用。</em></p>
+<p><a href="https://github.com/aprz512/note-markdown/blob/master/性能笔录/render-func.png" target="_blank" rel="noopener"><img src="https://github.com/aprz512/note-markdown/raw/master/%E6%80%A7%E8%83%BD%E7%AC%94%E5%BD%95/render-func.png" alt="img"></a> </p>
+<ul>
+<li>从<code>ViewRootImpl.performTraversals</code>到<code>PhoneWindow.DecroView.drawChild</code>是每次遍历<code>View</code>树的固定流程，首先根据标志位判断是否需要重新布局并执行布局；然后进行<code>Canvas</code>的创建等操作开始绘制。<ul>
+<li>如果硬件加速不支持或者被关闭，则使用软件绘制，生成的<code>Canvas</code>即<code>Canvas.class</code>的对象；</li>
+<li>如果支持硬件加速，则生成的是<code>DisplayListCanvas.class</code>的对象；</li>
+<li>两者的<code>isHardwareAccelerated()</code>方法返回的值分别为<code>false</code>、<code>true</code>，<code>View</code>根据这个值判断是否使用硬件加速。</li>
+</ul>
+</li>
+<li><code>View</code>中的<code>draw(canvas,parent,drawingTime) - draw(canvas) - onDraw - dispachDraw - drawChild</code>这条递归路径（下文简称<code>Draw</code>路径），调用了<code>Canvas.drawXxx()</code>方法，在软件渲染时用于实际绘制；在硬件加速时，用于构建<code>DisplayList</code>。</li>
+<li><code>View</code>中的<code>updateDisplayListIfDirty - dispatchGetDisplayList - recreateChildDisplayList</code>这条递归路径（下文简称<code>DisplayList</code>路径），仅在硬件加速时会经过，用于在遍历<code>View</code>树绘制的过程中更新<code>DisplayList</code>属性，并快速跳过不需要重建<code>DisplayList</code>的<code>View</code>。<ul>
+<li><code>Android 6.0</code>中，和<code>DisplayList</code>相关的<code>API</code>目前仍被标记为<code>“@hide”</code>不可访问，表示还不成熟，后续版本可能开放。</li>
+</ul>
+</li>
+<li>硬件加速情况下，<code>draw</code>流程执行结束后<code>DisplayList</code>构建完成，然后通过<code>ThreadedRenderer.nSyncAndDrawFrame()</code>利用<code>GPU</code>绘制<code>DisplayList</code>到屏幕上。</li>
+</ul>
+<p>从图中可以看出，只有父布局的 DisplayList 构建完成之后，才会去建构 child 的 DisplayList。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><ol>
+<li>CPU更擅长复杂逻辑控制，而GPU得益于大量ALU和并行结构设计，更擅长数学运算。</li>
+<li>页面由各种基础元素（DisplayList）构成，渲染时需要进行大量浮点运算。</li>
+<li>硬件加速条件下，CPU用于控制复杂绘制逻辑、构建或更新DisplayList；GPU用于完成图形计算、渲染DisplayList。</li>
+<li>硬件加速条件下，刷新界面尤其是播放动画时，CPU只重建或更新必要的DisplayList，进一步提高渲染效率。</li>
+<li>实现同样效果，应尽量使用更简单的DisplayList，从而达到更好的性能（Shape代替Bitmap等）。</li>
+</ol>
+<p>当然这篇文章只是让你知道硬件加速做了什么，如果你想了解的更深入，应该去看看上面流程图的源码了。</p>
+<h3 id="补充知识点"><a href="#补充知识点" class="headerlink" title="补充知识点"></a>补充知识点</h3><h4 id="离屏缓冲"><a href="#离屏缓冲" class="headerlink" title="离屏缓冲"></a>离屏缓冲</h4><p>每个View都能被渲染并保存为一个离屏位图，以供未来使用。首先通过调用Canvas.saveLayer()方法，渲染并保存位图，接着通过Canvas.restore()方法将所保存的位图绘制回画布。这些操作需要谨慎自行，因为绘制一个不需要的离屏位图同样需要消耗计算量。</p>
+<p>上面我们说了硬件加速，但是不是所有的操作都支持硬件加速，<strong>如果你的绘制操作不支持硬件加速，你需要手动关闭硬件加速来绘制界面</strong>，关闭的方式是通过这行代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">view.setLayerType(LAYER_TYPE_SOFTWARE, null);</span><br></pre></td></tr></table></figure>
+
+<p>下面再截取Hencoder关于离屏缓冲的讲解：</p>
+<p>有不少人都有过疑问：什么是 <code>layer type</code>？如果这个方法是硬件加速的开关，那么它的参数为什么不是一个 <code>LAYER_TYPE_SOFTWARE</code> 来关闭硬件加速以及一个 <code>LAYER_TYPE_HARDWARE</code> 来打开硬件加速这么两个参数，而是三个参数，在 <code>SOFTWARE</code> 和 <code>HARDWARE</code> 之外还有一个 <code>LAYER_TYPE_NONE</code>？难道还能既不用软件绘制，也不用硬件绘制吗？</p>
+<p>事实上，这个方法的本来作用并不是用来开关硬件加速的，只是当它的参数为 <code>LAYER_TYPE_SOFTWARE</code> 的时候，可以「顺便」把硬件加速关掉而已；并且除了这个方法之外，<code>Android</code> 并没有提供专门的 <code>View</code> 级别的硬件加速开关，所以它就「顺便」成了一个开关硬件加速的方法。</p>
+<p><code>setLayerType()</code> 这个方法，它的作用其实就是名字里的意思：设置 <code>View Layer</code> 的类型。所谓 <code>View Layer</code>，又称为离屏缓冲（Off-screen Buffer），<strong>它的作用是单独启用一块地方来绘制这个 <code>View</code> ，而</strong>不是<strong>使用软件绘制的 <code>Bitmap</code> 或者通过硬件加速的 <code>GPU</code>。这块「地方」可能是一块单独的 <code>Bitmap</code>，也可能是一块 <code>OpenGL</code> 的纹理（texture，OpenGL 的纹理可以简单理解为图像的意思），具体取决于硬件加速是否开启</strong>。采用什么来绘制 <code>View</code> 不是关键，关键在于当设置了 <code>View Layer</code> 的时候，<strong>它的绘制会被缓存下来，而且缓存的是最终的绘制结果，而不是像硬件加速那样只是把 <code>GPU</code> 的操作保存下来再交给 <code>GPU</code> 去计算</strong>。通过这样更进一步的缓存方式，<code>View</code> 的重绘效率进一步提高了：只要绘制的内容没有变，那么不论是 <code>CPU</code> 绘制还是 <code>GPU</code> 绘制，它们都不用重新计算，而只要只用之前缓存的绘制结果就可以了。</p>
+<p>基于这样的原理，在进行移动、旋转等（无需调用 <code>invalidate()</code>）的属性动画的时候开启 <code>Hardware Layer</code> 将会极大地提升动画的效率，因为在动画过程中 <code>View</code> 本身并没有发生改变，只是它的位置或角度改变了，而这种改变是可以由 <code>GPU</code> 通过简单计算就完成的，并不需要重绘整个 <code>View</code>。所以在这种动画的过程中开启 <code>Hardware Layer</code>，可以让本来就依靠硬件加速而变流畅了的动画变得更加流畅。实现方式大概是这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">view.setLayerType(LAYER_TYPE_HARDWARE, null);  </span><br><span class="line">ObjectAnimator animator = ObjectAnimator.ofFloat(view, &quot;rotationY&quot;, 180);</span><br><span class="line"></span><br><span class="line">animator.addListener(new AnimatorListenerAdapter() &#123;  </span><br><span class="line">    @Override</span><br><span class="line">    public void onAnimationEnd(Animator animation) &#123;</span><br><span class="line">        view.setLayerType(LAYER_TYPE_NONE, null);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">animator.start();</span><br></pre></td></tr></table></figure>
+
+<p>或者如果是使用 ViewPropertyAnimator，那么更简单：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// withLayer() 可以自动完成上面这段代码的复杂操作</span><br><span class="line">view.animate()  </span><br><span class="line">        .rotationY(90)</span><br><span class="line">        .withLayer();</span><br></pre></td></tr></table></figure>
+
+<p>不过一定要注意，只有你在对 <code>translationX</code> <code>translationY</code> <code>rotation</code> <code>alpha</code> 等无需调用 <code>invalidate()</code> 的属性做动画的时候，这种方法才适用，因为这种方法本身利用的就是当界面不发生改变时，缓存未更新所带来的时间的节省。所以简单地说——<strong>这种方式不适用于基于自定义属性绘制的动画</strong>，一定记得这句话。</p>
+<p>由于设置了 <code>View Layer</code> 后，<code>View</code> 在初次绘制时以及每次 <code>invalidate()</code> 后重绘时，需要进行两次的绘制工作（一次绘制到 <code>Layer</code>，一次从 <code>Layer</code> 绘制到显示屏），所以其实它的每次绘制的效率是被降低了的。所以一定要慎重使用 <code>View Layer</code>，在需要用到它的时候再去使用。</p>
+<p>每当你要让View执行一个Alpha动画，或者仅仅只是对其设置一个不同的Alpha值时，都可以考虑使用View.LAYER_TYPE_HARDWARE。这点非常重要，以至于Google改写了View.setAlpha()方法，从Android 6.0 开始，自动应用硬件层。所以，如果你的应用程序目标SDK大于等于23的话，就没有必要这样做了。</p>
+<p><strong>最后，希望开发者能理解，硬件加速与离屏缓冲他们不是同一个东西，但是在API上又有一定的联系。两者都能加快渲染速度，一个缓存的是绘制操作，减少计算量，一个缓存的是绘制结果，只用绘制一次。</strong>同时开始硬件加速与硬件离屏缓存就能达到最好的效果，当然要注意View的内容不能改变。</p>
+<h3 id="参考文档："><a href="#参考文档：" class="headerlink" title="参考文档："></a>参考文档：</h3><ol>
+<li><a href="https://www.mtyun.com/library/hardware-accelerate" target="_blank" rel="noopener">https://www.mtyun.com/library/hardware-accelerate</a></li>
+<li><a href="https://hencoder.com/ui-1-8/" target="_blank" rel="noopener">https://hencoder.com/ui-1-8/</a></li>
+<li><a href="https://juejin.im/post/5a1f7b3e6fb9a0451b0451bb" target="_blank" rel="noopener">https://juejin.im/post/5a1f7b3e6fb9a0451b0451bb</a></li>
+<li><a href="https://developer.android.com/guide/topics/graphics/hardware-accel" target="_blank" rel="noopener">https://developer.android.com/guide/topics/graphics/hardware-accel</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章推荐</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Android-高级/FileProvider/" rel="bookmark">FileProvider</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/04/blog_bak/Blog/Android-高级/Android V1 V2 签名机制/" rel="bookmark">Android V1 V2 签名机制</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Android-高级/多渠道打包/" rel="bookmark">多渠道打包</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/" rel="bookmark">Gradle Transform API ：直接修改 class 文件</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Android-高级/混合编译器/" rel="bookmark">混合编译器</a></div>
+      
+    </li>
+  
+  </ul>
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/04/02/blog_bak/Blog/Android-高级/硬件加速了解一下/" title="硬件加速了解一下">http://aprz512.github.io/2020/04/02/blog_bak/Blog/Android-高级/硬件加速了解一下/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-高级/" rel="tag"># Android-高级</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/04/02/blog_bak/Blog/Android-View/动画原理/" rel="next" title="动画原理">
+                  <i class="fa fa-chevron-left"></i> 动画原理
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/04/03/blog_bak/Blog/Android-思考/动态代理与InvocationHandler/" rel="prev" title="动态代理与InvocationHandler">
+                  动态代理与InvocationHandler <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">164</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#系统变化"><span class="nav-number">1.</span> <span class="nav-text">系统变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#硬件加速的主要原理"><span class="nav-number">2.</span> <span class="nav-text">硬件加速的主要原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从例子开始"><span class="nav-number">3.</span> <span class="nav-text">从例子开始</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于软件的绘制模型"><span class="nav-number">4.</span> <span class="nav-text">基于软件的绘制模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于软件的绘制模型主要由以下两步构成："><span class="nav-number">4.1.</span> <span class="nav-text">基于软件的绘制模型主要由以下两步构成：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于软件的绘制模型缺点分析："><span class="nav-number">4.2.</span> <span class="nav-text">基于软件的绘制模型缺点分析：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于软件绘制模型中调用-invalidate-所发生的事情"><span class="nav-number">4.3.</span> <span class="nav-text">基于软件绘制模型中调用 invalidate() 所发生的事情:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于硬件加速绘制模型"><span class="nav-number">5.</span> <span class="nav-text">基于硬件加速绘制模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于硬件加速绘制模型主要由以下三步构成："><span class="nav-number">5.1.</span> <span class="nav-text">基于硬件加速绘制模型主要由以下三步构成：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两个模型的View绘制流程图对比"><span class="nav-number">6.</span> <span class="nav-text">两个模型的View绘制流程图对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结："><span class="nav-number">7.</span> <span class="nav-text">总结：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#补充知识点"><span class="nav-number">8.</span> <span class="nav-text">补充知识点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#离屏缓冲"><span class="nav-number">8.1.</span> <span class="nav-text">离屏缓冲</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档："><span class="nav-number">9.</span> <span class="nav-text">参考文档：</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">613k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">9:17</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

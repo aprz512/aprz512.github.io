@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="看下面的一个例子：12345678910111213141516171819202122232425262728293031class LoginViewModel constructor(    val loginRepository: LoginRepository,    val loginChecker: LoginChecker) &amp;#123;    fun login(username">
+<meta name="keywords" content="Android-单元测试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="004_如何测试一个没有返回值的函数？">
+<meta property="og:url" content="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="看下面的一个例子：12345678910111213141516171819202122232425262728293031class LoginViewModel constructor(    val loginRepository: LoginRepository,    val loginChecker: LoginChecker) &amp;#123;    fun login(username">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-04-04T14:52:07.373Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="004_如何测试一个没有返回值的函数？">
+<meta name="twitter:description" content="看下面的一个例子：12345678910111213141516171819202122232425262728293031class LoginViewModel constructor(    val loginRepository: LoginRepository,    val loginChecker: LoginChecker) &amp;#123;    fun login(username">
+  <link rel="canonical" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>004_如何测试一个没有返回值的函数？ | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">10</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">164</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">004_如何测试一个没有返回值的函数？
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>6.9k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>6 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>看下面的一个例子：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">class LoginViewModel constructor(</span><br><span class="line">    val loginRepository: LoginRepository,</span><br><span class="line">    val loginChecker: LoginChecker</span><br><span class="line">) &#123;</span><br><span class="line"></span><br><span class="line">    fun login(username: String, password: String) &#123;</span><br><span class="line">        // .... 其他代码</span><br><span class="line">        if (loginChecker.check(username, password)) &#123;</span><br><span class="line">            loginRepository.login(password, username)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class LoginRepository &#123;</span><br><span class="line">	fun login(username: String, password: String) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class LoginChecker &#123;</span><br><span class="line">    fun check(username: String, password: String): Boolean &#123;</span><br><span class="line">        return checkUsername(username) &amp;&amp; checkPassword(password)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private fun checkUsername(username: String): Boolean &#123;</span><br><span class="line">        return true</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private fun checkPassword(password: String): Boolean &#123;</span><br><span class="line">        return true</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+<p>这是一个很简单例子！</p>
+<p>现在，我们想测试：</p>
+<ol>
+<li>当 LoginViewModel 的 login 方法被调用的时候，loginChekc.check 是否执行了，且参数是否正确？</li>
+<li>当 loginChekc.check 返回 true 的时候，loginRepository.login 是否执行了，且参数是否正确？</li>
+</ol>
+<p>让你写测试代码，你该如何做呢？</p>
+<p>可以看到，login 方法没有返回值，我们没法使用 assert 等语句。</p>
+<p>那，啥玩意可以知道方法被调用了几次，还能检查参数呢？？？</p>
+<h3 id="Mockito"><a href="#Mockito" class="headerlink" title="Mockito"></a>Mockito</h3><p>我们先看看代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">testViewModelLogin</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> loginRepository = mock(LoginRepository::<span class="class"><span class="keyword">class</span>.<span class="title">java</span>)</span></span><br><span class="line">    <span class="keyword">val</span> loginChecker = mock(LoginChecker::<span class="class"><span class="keyword">class</span>.<span class="title">java</span>)</span></span><br><span class="line">    <span class="keyword">val</span> loginViewModel = LoginViewModel(loginRepository, loginChecker)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 让 loginChecker#check 返回 true</span></span><br><span class="line">    `<span class="keyword">when</span>`(loginChecker.check(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>)).thenReturn(<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">    loginViewModel.login(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 校验 loginChecker 的 check 方法是否执行了，且参数是否与之前的一致</span></span><br><span class="line">    verify(loginChecker).check(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>)</span><br><span class="line">    <span class="comment">// 校验 loginRepository 的 login 方法是否执行了，且参数是否与之前的一致</span></span><br><span class="line">    verify(loginRepository).login(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们首先使用 mock 方法创建了一个 mock 对象，注意这个参数接收的是一个 class！<strong>这个mock对象里面的方法都是空实现，返回值都是默认值</strong>。</p>
+<p>其他的API可以去查一下文档，还是蛮简单的，这里就不说了，我要说的是其他东西。</p>
+<p>当你运行这个单元测试的时候，会发现，报错了！！！</p>
+<p>原因是 kotlin 的类默认是 final 的，而 Mockito 是无法 mock final 类的。</p>
+<p>当我们给类加上 open 修饰符时，发现又出了另外一个错误，原因是 kotlin 类里面的方法也是 final 的，也没法mock，我们还要给方法加上 open 才能正常进行测试，那这样的话，我们用 Kotlin 写的代码基本就没法使用 Mockito 测试了，该怎么办呢？</p>
+<p>###PowerMockito </p>
+<p>powerMockito 是一个对 Mockito 增强的库，可以测试私有方法，final类等等，可以 配合Mockito 使用。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(PowerMockRunner::class)</span></span><br><span class="line"><span class="meta">@PowerMockRunnerDelegate(RobolectricTestRunner::class)</span></span><br><span class="line"><span class="meta">@Config(sdk = [28])</span></span><br><span class="line"><span class="meta">@PowerMockIgnore(<span class="meta-string">"org.mockito.*"</span>, <span class="meta-string">"org.robolectric.*"</span>, <span class="meta-string">"android.*"</span>)</span></span><br><span class="line"><span class="meta">@PrepareForTest(Server::class)</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ServerTest</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>powerMockito 的使用需要写多一点配置，具体可看官方文档。</p>
+<p>@PowerMockIgnore 是用来忽略哪些类是不用处理的，因为 PowerMockito 使用了自己的类加载来加载所有类，而某些包里面的类也使用了别的类加载器，如果不忽略的话，就会出现 ClassCastException。</p>
+<p>但是，使用 PowerMockito 还有一个更蛋疼的问题，当我们的代码中有 Android 代码的时候，就需要向上面的代码一样配置 PowerMockRunnerDelegate，但是我配置了之后，还是有问题（照着官方文档配置的，也不知道哪里出了问题），所以我就暂时放弃研究 PowerMockito 了。</p>
+<h3 id="MOCKK"><a href="#MOCKK" class="headerlink" title="MOCKK"></a>MOCKK</h3><p>这个是我在搜索 kotlin 应该如何使用 Mockito 时发现的一个库，看起来比上面两个都好用，所以就研究记录一下。</p>
+<p>我们仍然是测试LoginViewModel，看看应该如何做。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">testViewModelLogin</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> loginRepository = mockk&lt;LoginRepository&gt;()</span><br><span class="line">    <span class="keyword">val</span> loginChecker = mockk&lt;LoginChecker&gt;()</span><br><span class="line">    <span class="keyword">val</span> loginViewModel = LoginViewModel(loginRepository, loginChecker)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 无论参数是啥，让 loginChecker#check 返回 true</span></span><br><span class="line">    every &#123;</span><br><span class="line">        loginChecker.check(any(), any())</span><br><span class="line">    &#125;.returns(<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 因為在 MockK 裡面，預設情況下 Mock 這個動作是很嚴謹的，你必須要指定所有的行為操作才行</span></span><br><span class="line">    <span class="comment">// 因为 com.aprz.daggerexamples.ex04.LoginViewModel.login 这个操作调用到了 loginRepository 的方法</span></span><br><span class="line">    <span class="comment">// 所以，我们必须指定该方法在什么情况下返回什么，不然会出现如下错误 ：</span></span><br><span class="line">    <span class="comment">// io.mockk.MockKException: no answer found for: LoginRepository(#1).login(aprz512, niubi)</span></span><br><span class="line">    every &#123; loginRepository.login(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>) &#125; just Runs</span><br><span class="line"></span><br><span class="line">    loginViewModel.login(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 校验 loginChecker 的 check 方法是否执行了，且参数是否与之前的一致</span></span><br><span class="line">    verify &#123; loginChecker.check(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>) &#125;</span><br><span class="line">    <span class="comment">// 校验 loginRepository 的 login 方法是否执行了，且参数是否与之前的一致</span></span><br><span class="line">    verify &#123; loginRepository.login(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，基本的使用还是差不多，就是语法变化了，更加 kotlin。</p>
+<p>运行没有出现任何问题，也不用将 class 与 方法 特地改为 open 的，但是唯一的缺点就是，我们需要手动的指定每个方法应该返回什么值。</p>
+<p>假設今天 Class 的方法有 100 個，那豈不是要指定到天荒地老了嗎？有沒有辦法跟 Mockito 一樣不用指定行為也能做後續的 <code>verify</code> ？</p>
+<ol>
+<li><p>只要在 Mock 時，後面加上 <code>relaxed = true</code> 即可：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> mother = mockk&lt;LoginChecker&gt;(relaxed = <span class="literal">true</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>也可以使用注解的方式：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RelaxedMockK</span></span><br><span class="line"><span class="keyword">lateinit</span> <span class="keyword">var</span> loginChecker: LoginChecker</span><br></pre></td></tr></table></figure>
+
+<p>与 RelaxedMockK 对应的有 MockK，显然 MockK 注解不具有 （relaxed = true） 的功能。</p>
+</li>
+</ol>
+<p>还有一种更细粒度的指定：对于没有返回值的函数无需显示指定，对于有返回值的函数需要手动指定。</p>
+<ol>
+<li><p>单个指定</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@MockK(relaxUnitFun = true)</span></span><br><span class="line"><span class="keyword">lateinit</span> <span class="keyword">var</span> loginChecker: LoginChecker</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>全局指定</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@MockK</span></span><br><span class="line"><span class="keyword">lateinit</span> <span class="keyword">var</span> loginChecker: LoginChecker</span><br><span class="line"></span><br><span class="line"><span class="meta">@Before</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">setUp</span><span class="params">()</span></span> &#123;</span><br><span class="line">    MockKAnnotations.<span class="keyword">init</span>(<span class="keyword">this</span>, relaxUnitFun = <span class="literal">true</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>那，我们使用 relaxed = true 来试一下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">testViewModelLogin</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> loginRepository = mockk&lt;LoginRepository&gt;(relaxed = <span class="literal">true</span>)</span><br><span class="line">    <span class="keyword">val</span> loginChecker = mockk&lt;LoginChecker&gt;(relaxed = <span class="literal">true</span>)</span><br><span class="line">    <span class="keyword">val</span> loginViewModel = LoginViewModel(loginRepository, loginChecker)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 无论参数是啥，让 loginChecker#check 返回 true</span></span><br><span class="line">    every &#123;</span><br><span class="line">        loginChecker.check(any(), any())</span><br><span class="line">    &#125;.returns(<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">    loginViewModel.login(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 校验 loginChecker 的 check 方法是否执行了，且参数是否与之前的一致</span></span><br><span class="line">    verify &#123; loginChecker.check(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>) &#125;</span><br><span class="line">    <span class="comment">// 校验 loginRepository 的 login 方法是否执行了，且参数是否与之前的一致</span></span><br><span class="line">    verify &#123; loginRepository.login(<span class="string">"aprz512"</span>, <span class="string">"niubi"</span>) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行代码，通过了测试！！！</p>
+<h4 id="verify"><a href="#verify" class="headerlink" title="verify"></a>verify</h4><p>如果，我们<strong>想验证某个方法执行了多少次</strong>，可以这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">verify(exactly = <span class="number">0</span>) &#123; xxx &#125;</span><br><span class="line">verify(exactly = <span class="number">10</span>) &#123; xxx &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>exactly = 0</code> 代表這段方法不會被调用，<code>exactly = 10</code> 代表會被调用 10 次，其他以此類推⋯⋯</p>
+<p>verify 代码块里面也可以放入多个语句，表示它们分别执行了 exactly 次。</p>
+<p>还可以<strong>验证方法被调用的顺序</strong>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">verifySequence &#123;</span><br><span class="line">    fun1()</span><br><span class="line">    fun2()</span><br><span class="line">&#125;</span><br><span class="line">verifyOrder &#123;</span><br><span class="line">    fun1()</span><br><span class="line">    fun2()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>verifySequence 表示，fun2() 一定是接着 fun1()的。</p>
+<p>verifyOrder 比较宽松，只要 fun2() 在 fun1() 后面调用就行。</p>
+<h3 id="Capture"><a href="#Capture" class="headerlink" title="Capture"></a>Capture</h3><p>可以捕获方法的参数值。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Kid</span></span>(<span class="keyword">private</span> <span class="keyword">val</span> mother: Mother) &#123;</span><br><span class="line">   <span class="keyword">var</span> money = <span class="number">0</span></span><br><span class="line">       <span class="keyword">private</span> <span class="keyword">set</span></span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">fun</span> <span class="title">wantMoney</span><span class="params">()</span></span> &#123;</span><br><span class="line">       mother.inform(money)</span><br><span class="line">       money += mother.giveMoney()</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Mother</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">inform</span><span class="params">(money: <span class="type">Int</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">"媽媽我現在有 <span class="variable">$money</span> 元，我要跟你拿錢！"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">fun</span> <span class="title">giveMoney</span><span class="params">()</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="number">100</span></span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MotherTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RelaxedMockK</span></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> mother: Mother</span><br><span class="line"></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> kid: Kid</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Before</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">setUp</span><span class="params">()</span></span> &#123;</span><br><span class="line">        MockKAnnotations.<span class="keyword">init</span>(<span class="keyword">this</span>)</span><br><span class="line">        kid = Kid(mother)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">testMother</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="comment">// Given</span></span><br><span class="line">        <span class="keyword">val</span> slot = slot&lt;<span class="built_in">Int</span>&gt;()</span><br><span class="line">        every &#123; mother.inform(capture(slot)) &#125; just Runs</span><br><span class="line">        <span class="comment">// When</span></span><br><span class="line">        kid.wantMoney()</span><br><span class="line">        <span class="comment">// Then</span></span><br><span class="line">        assertEquals(<span class="number">0</span>, slot.captured)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，我们在 mother.inform(capture(slot)) 里面捕获了调用该方法的参数值，想要使用的时候，直接取就好了。</p>
+<p>还有其他的用法，这里就不说了，请移步<a href="https://mockk.io/" target="_blank" rel="noopener">官网</a>。</p>
+<p>我们再测试，MockK配合Robolectric的使用情况。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Kid</span></span>(<span class="keyword">private</span> <span class="keyword">val</span> mother: Mother) &#123;</span><br><span class="line">    <span class="keyword">var</span> money = <span class="number">0</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">set</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">wantMoney</span><span class="params">()</span></span> &#123;</span><br><span class="line">        mother.inform(money)</span><br><span class="line">        money += mother.giveMoney()</span><br><span class="line">        Log.e(<span class="string">"Kid"</span>, <span class="string">"------"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>添加一个 Android 特有的 Log.e 方法，再运行发现保住了，因为 Log 没有 mock。</p>
+<p>我们在测试类上添加代码：</p>
+<figure class="highlight k"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">@RunWith(RobolectricTestRunner::class)</span><br><span class="line">@Config(sdk = [<span class="number">28</span>])</span><br></pre></td></tr></table></figure>
+
+<p>再次运行，会发现测试通过了！！！所以 MockK 与 Robolectric 配合是没有问题的。</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章推荐</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/" rel="bookmark">002_Dagger2使用及原理（1）</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/04/blog_bak/Blog/Android-单元测试/000-Android单元测试系列文章/" rel="bookmark">000_Android单元测试系列文章介绍</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/04/blog_bak/Blog/Android-单元测试/003_单元测试中如何使用Android相关的类？/" rel="bookmark">003_单元测试中如何使用Android相关的类?</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/" rel="bookmark">001-做单元测试为何要使用Dagger2？</a></div>
+      
+    </li>
+  
+  </ul>
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/" title="004_如何测试一个没有返回值的函数？">http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android-单元测试/" rel="tag"># Android-单元测试</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/04/04/blog_bak/Blog/Android-Bugs/在 Activity 的 onDestroy 方法里面调用 finish 会发生什么/" rel="next" title="在 Activity 的 onDestroy 方法里面调用 finish 会发生什么">
+                  <i class="fa fa-chevron-left"></i> 在 Activity 的 onDestroy 方法里面调用 finish 会发生什么
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/" rel="prev" title="001-做单元测试为何要使用Dagger2？">
+                  001-做单元测试为何要使用Dagger2？ <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">164</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mockito"><span class="nav-number">1.</span> <span class="nav-text">Mockito</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MOCKK"><span class="nav-number">2.</span> <span class="nav-text">MOCKK</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#verify"><span class="nav-number">2.1.</span> <span class="nav-text">verify</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Capture"><span class="nav-number">3.</span> <span class="nav-text">Capture</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">613k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">9:17</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="mathjax: true对于平衡二叉树来说，它的查询速度是没什么问题的，但是却有一个问题，每次插入元素之后，都需要保证树的平衡，而维持平衡的代价有点过于昂贵。 而为了解决查询效率同时有兼顾插入效率，于是提出了2-3树。 2-3树的定义2-3树的每个节点可以保存1个和2个元素值。保存1个元素值的就叫 2 节点，保存2个元素值的就叫3节点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="二手程序员">
+<meta property="og:url" content="http://aprz512.github.io/2020/04/04/blog_bak/Blog/算法/大话数据结构/2-3树/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="mathjax: true对于平衡二叉树来说，它的查询速度是没什么问题的，但是却有一个问题，每次插入元素之后，都需要保证树的平衡，而维持平衡的代价有点过于昂贵。 而为了解决查询效率同时有兼顾插入效率，于是提出了2-3树。 2-3树的定义2-3树的每个节点可以保存1个和2个元素值。保存1个元素值的就叫 2 节点，保存2个元素值的就叫3节点。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_1.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_2.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_3.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_4.png?raw=true">
+<meta property="og:image" content="http://img.mp.sohu.com/upload/20170713/358025867be14bb99bf8806b98e774d9_th.png">
+<meta property="og:image" content="http://img.mp.sohu.com/upload/20170713/0611ff5a5103461e843ab627f8821419_th.png">
+<meta property="og:image" content="http://img.mp.sohu.com/upload/20170713/6808907785b84be09d8c6b7c8acb5d2a_th.png">
+<meta property="og:image" content="http://img.mp.sohu.com/upload/20170713/0193eedf3a5b47129340e2b6c654ef72_th.png">
+<meta property="og:image" content="http://img.mp.sohu.com/upload/20170713/68553d369a304d798116f432247c6e3f_th.png">
+<meta property="og:updated_time" content="2020-04-04T14:52:07.377Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="二手程序员">
+<meta name="twitter:description" content="mathjax: true对于平衡二叉树来说，它的查询速度是没什么问题的，但是却有一个问题，每次插入元素之后，都需要保证树的平衡，而维持平衡的代价有点过于昂贵。 而为了解决查询效率同时有兼顾插入效率，于是提出了2-3树。 2-3树的定义2-3树的每个节点可以保存1个和2个元素值。保存1个元素值的就叫 2 节点，保存2个元素值的就叫3节点。">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_1.png?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/算法/大话数据结构/2-3树/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title> | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">10</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">164</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/算法/大话数据结构/2-3树/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/2-3树/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/算法/大话数据结构/2-3树/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>2k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>2 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>mathjax: true</p><p>对于平衡二叉树来说，它的查询速度是没什么问题的，但是却有一个问题，每次插入元素之后，都需要保证树的平衡，而维持平衡的代价有点过于昂贵。 而为了<strong>解决查询效率同时有兼顾插入效率</strong>，于是提出了2-3树。 </p><h2 id="2-3树的定义"><a href="#2-3树的定义" class="headerlink" title="2-3树的定义"></a>2-3树的定义</h2><p>2-3树的每个节点可以保存1个和2个元素值。保存1个元素值的就叫 2 节点，保存2个元素值的就叫3节点。</p><a id="more"></a>
+
+
+<p>2节点的只能有0个或2个孩子，3节点只能有0个或者3个孩子。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_1.png?raw=true" alt></p>
+<p>上图中，红色为2节点，绿色为3节点。</p>
+<p><strong>2-3树所有的叶子节点在同一层</strong>。这个特性比较关键。</p>
+<p>2-3树也是排序树。2节点不用说，3节点的左子树小于节点左边元素值，中间子树介于节点两个元素之间，右子树大于节点右边的元素值。</p>
+<h2 id="2-3树之插入节点"><a href="#2-3树之插入节点" class="headerlink" title="2-3树之插入节点"></a>2-3树之插入节点</h2><p>我们从一个空树讲起。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_2.png?raw=true" alt></p>
+<p>可以看到，一个2节点变成了3节点，再升级为4节点，但是由于节点限制，必须要将4节点分裂成2节点。有没有像生命的循环一样。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_3.png?raw=true" alt></p>
+<p>这个过程与上面的其实差不多，只不过上面的一开始是一个空树，所以可以直接分裂，但是这里不是空树，直接分裂是不可行的，需要将一个元素往父节点浮动，如果父节点也是一个3节点，那就继续往上浮动。</p>
+<p>再看一个例子：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/2_3_tree_4.png?raw=true" alt></p>
+<p>这几个图看懂了之后，插入应该就没问题了（要用4节点做辅助思考，会更容易理解，也不容易忘记）。</p>
+<h2 id="2-3树之删除节点"><a href="#2-3树之删除节点" class="headerlink" title="2-3树之删除节点"></a>2-3树之删除节点</h2><p>2-3树的删除很麻烦，就没找到一个能说的清除的，都是有多少中情况，一个一个的给你列出来，让你自己去体会去。</p>
+<p>维基百科上也只说了插入与查找。</p>
+<p>在一个网站上找了有删除逻辑的，用文字描述的，但是没看懂：</p>
+<p> <a href="https://pages.cs.wisc.edu/~deppeler/cs400/readings/23Trees/" target="_blank" rel="noopener">https://pages.cs.wisc.edu/~deppeler/cs400/readings/23Trees/</a> </p>
+<p>似乎是以待删除节点的父节点为参考对象，分几种情况。</p>
+<h2 id="B树的性质"><a href="#B树的性质" class="headerlink" title="B树的性质"></a>B树的性质</h2><p> B-tree树即B树，B即Balanced，平衡的意思。因为B树的原英文名称为B-tree，而国内很多人喜欢把B-tree译作B-树，其实，这是个非常不好的直译，很容易让人产生误解。如人们可能会以为B-树是一种树，而B树又是另一种树。而事实上是，B-树就是指的B树。特此说明。</p>
+<p>下面来具体介绍一下B-树（Balance Tree），一个m阶的B树具有如下几个特征：</p>
+<ol>
+<li><p>根结点至少有两个子女。</p>
+</li>
+<li><p>每个中间节点都包含k-1个元素和k个孩子，其中 m/2 &lt;= k &lt;= m</p>
+</li>
+<li><p>每一个叶子节点都包含k-1个元素，其中 m/2 &lt;= k &lt;= m</p>
+</li>
+<li><p>所有的叶子结点都位于同一层。</p>
+</li>
+<li><p>每个节点中的元素从小到大排列，节点当中k-1个元素正好是k个孩子包含的元素的值域分划。</p>
+</li>
+</ol>
+<h2 id="B树的高度"><a href="#B树的高度" class="headerlink" title="B树的高度"></a>B树的高度</h2><p> 一棵含有n个关键字数的m阶的B树的最大高度是多少? </p>
+<p>有 n 个关键字的B树，有n+1个叶子节点（可以回想一下二叉树的性质）。</p>
+<p>由于我们计算的是最坏情况，所以让每个节点的关键字最少即可，这样B树的高度会更大。</p>
+<p>第一层只有一个根节点。</p>
+<p>第二层最少可以只有两个节点。</p>
+<p>第三层最少可以有 $2 * \frac{m}{2} $ 个节点（B树的性质，除根节点外，每个分支节点至少有m/2个子树）。</p>
+<p>第 k 层最少可以有 $ 2 * (\frac{m}{2})^{k - 2}$ 个节点。</p>
+<p>第 k+1 层 （叶子节点层，在原来的B树上再扩展一层，即为叶子节点）</p>
+<p>即 n +1 = $ 2 * (\frac{m}{2})^{k - 1}$，</p>
+<p>所，k = $log_{\frac{m}{2}} (\frac{n+1}{2}) + 1 $</p>
+<h2 id="B-树的性质"><a href="#B-树的性质" class="headerlink" title="B+树的性质"></a>B+树的性质</h2><ol>
+<li><p>有k个子树的中间节点包含有k个元素（B树中是k-1个元素），每个元素不保存数据，只用来索引，所有数据都保存在叶子节点。</p>
+</li>
+<li><p>所有的叶子结点中包含了全部元素的信息，及指向含这些元素记录的指针，且叶子结点本身依关键字的大小自小而大顺序链接。</p>
+</li>
+<li><p>所有的中间节点元素都同时存在于子节点，在子节点元素中是最大（或最小）元素。</p>
+</li>
+</ol>
+<h2 id="B-树介绍"><a href="#B-树介绍" class="headerlink" title="B+树介绍"></a>B+树介绍</h2><p><img src="http://img.mp.sohu.com/upload/20170713/358025867be14bb99bf8806b98e774d9_th.png" alt></p>
+<p>B+树看起来很奇怪：</p>
+<ul>
+<li>它的节点之间有重复的元素</li>
+<li>它的叶子节点之间还有指针</li>
+</ul>
+<p>看它的重复元素的规律：</p>
+<p><img src="http://img.mp.sohu.com/upload/20170713/0611ff5a5103461e843ab627f8821419_th.png" alt></p>
+<p>每个父节点的元素都出现在子节点中。</p>
+<p>我们拿数据库来距离说明它的作用：假设上图中的数字是数据库中的行号（行中有我们想要查询的数据）。</p>
+<p>当我们想要查询第 5 行的数据时，查询过程是这样的：</p>
+<p>第一次磁盘IO：</p>
+<p><img src="http://img.mp.sohu.com/upload/20170713/6808907785b84be09d8c6b7c8acb5d2a_th.png" alt></p>
+<p>第二次磁盘IO：</p>
+<p><img src="http://img.mp.sohu.com/upload/20170713/0193eedf3a5b47129340e2b6c654ef72_th.png" alt></p>
+<p>这里虽然，我们查询到了 5，但是这里只有一个索引记录，没有行中的数据，想要行中的数据，我们需要找到叶子节点，所以继续往下查询。</p>
+<p>第三次磁盘IO：</p>
+<p><img src="http://img.mp.sohu.com/upload/20170713/68553d369a304d798116f432247c6e3f_th.png" alt></p>
+<p>这里，我们才能可以从这个节点中拿到卫星数据，卫星数据就是该行号对应的行数据。</p>
+<p>除了随机查询外，B+树最大的优势在于范围查询，也就是子节点的要用指针链接起来的原因。</p>
+<p>比如，我想查第 5-11行的数据，如果是B树的话，需要先查到5，然后使用中序遍历到6到11。而B+树的话，先查询到5之后，直接在指针上往后查询就好了，非常的方便。</p>
+<p>参考链接： </p>
+<p><a href="https://www.jishuwen.com/d/2VPs" target="_blank" rel="noopener">漫画：什么是B-树？</a></p>
+<p><a href="https://blog.csdn.net/qq_26222859/article/details/80631121" target="_blank" rel="noopener">漫画：什么是b+树</a></p>
+<p> <a href="https://www.youtube.com/watch?v=qlH4-oHnBb8" target="_blank" rel="noopener">https://www.youtube.com/watch?v=qlH4-oHnBb8</a> </p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/算法/大话数据结构/2-3树/">http://aprz512.github.io/2020/04/04/blog_bak/Blog/算法/大话数据结构/2-3树/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0002-逻辑结构与物理结构/" rel="next" title="0002-逻辑结构与物理结构">
+                  <i class="fa fa-chevron-left"></i> 0002-逻辑结构与物理结构
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/04/04/blog_bak/Blog/计算机原理/TCP/滑动窗口/" rel="prev" title="">
+                   <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">164</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3树的定义"><span class="nav-number">1.</span> <span class="nav-text">2-3树的定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3树之插入节点"><span class="nav-number">2.</span> <span class="nav-text">2-3树之插入节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3树之删除节点"><span class="nav-number">3.</span> <span class="nav-text">2-3树之删除节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B树的性质"><span class="nav-number">4.</span> <span class="nav-text">B树的性质</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B树的高度"><span class="nav-number">5.</span> <span class="nav-text">B树的高度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B-树的性质"><span class="nav-number">6.</span> <span class="nav-text">B+树的性质</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B-树介绍"><span class="nav-number">7.</span> <span class="nav-text">B+树介绍</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">613k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">9:17</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
