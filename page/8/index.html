@@ -1088,7 +1088,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（二）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1102,7 +1102,146 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/" class="post-title-link" itemprop="url">Gradle Transform API ：直接修改 class 文件</a>
+            <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（二）/" class="post-title-link" itemprop="url">RxJava2 源码分析（二）</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-29 19:30:50" itemprop="dateModified" datetime="2019-08-29T19:30:50+08:00">2019-08-29</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/RxJava2/" itemprop="url" rel="index"><span itemprop="name">RxJava2</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（二）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（二）/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>9.8k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>9 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>这篇文章的主要目的就是弄清楚链式调用与线程切换。</p><p>如果你读懂了第一篇文章，这篇文章阅读起来还是非常简单的。因为链式调用和线程切换无非就是多了些 “数据源-观察者” 对。</p><p>线程切换还涉及到线程池相关的东西，由于篇幅问题，线程池相关的东西会放到下一篇。</p><h3 id="从一个例子开始："><a href="#从一个例子开始：" class="headerlink" title="从一个例子开始："></a>从一个例子开始：</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">    <span class="comment">// 观察者 -- 蝙蝠侠</span></span><br><span class="line">    <span class="keyword">val</span> observerBatMan = <span class="keyword">object</span> : Observer&lt;<span class="built_in">Int</span>&gt; &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onComplete</span><span class="params">()</span></span> &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onNext</span><span class="params">(t: <span class="type">Int</span>)</span></span> &#123;</span><br><span class="line">            System.<span class="keyword">out</span>.println(Thread.currentThread().name + <span class="string">"--observer"</span>)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onError</span><span class="params">(e: <span class="type">Throwable</span>)</span></span> &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onSubscribe</span><span class="params">(d: <span class="type">Disposable</span>)</span></span> &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 数据源 -- 小丑</span></span><br><span class="line">    <span class="keyword">val</span> sourceClown = ObservableOnSubscribe&lt;<span class="built_in">Int</span>&gt; &#123;</span><br><span class="line">        it.onNext(<span class="number">1</span>)</span><br><span class="line">        it.onComplete()</span><br><span class="line">        System.<span class="keyword">out</span>.println(Thread.currentThread().name + <span class="string">"--source"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 开始观察</span></span><br><span class="line">    Observable</span><br><span class="line">            <span class="comment">// ①</span></span><br><span class="line">            .create&lt;<span class="built_in">Int</span>&gt;(sourceClown)</span><br><span class="line">            <span class="comment">// ② 指定数据源执行的线程</span></span><br><span class="line">            .subscribeOn(Schedulers.computation())</span><br><span class="line">            <span class="comment">// ③ 指定观察者执行的线程</span></span><br><span class="line">            .observeOn(Schedulers.io())</span><br><span class="line">            <span class="comment">// ④</span></span><br><span class="line">            .subscribe(observerBatMan)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（二）/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/" class="post-title-link" itemprop="url">CompletableFuture 的使用</a>
           
         </h1>
 
@@ -1144,7 +1283,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1156,133 +1295,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>16k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>15 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>首先，我要说的是，我没想到写这篇文章会遇到那么多的难点。其次在写这篇文章的时候，我还是处于一个半吊子的状态，但是我想应该还是会比现有的大部分blog要好的多。我几乎将Google到的索引到的前几页文章全部看了一遍，但是大部分都是相同的内容，就只有一篇我印象比较深，写的比较全面，但是我仍然还有很多疑问。</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-高级/Gradle Transform API ：直接处理 class 文件/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Java/IO阻塞/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/10/blog_bak/Blog/Java/IO阻塞/" class="post-title-link" itemprop="url">IO 阻塞</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-08-19 22:34:50" itemprop="dateModified" datetime="2019-08-19T22:34:50+08:00">2019-08-19</time>
-              </span>
-            
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/09/10/blog_bak/Blog/Java/IO阻塞/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Java/IO阻塞/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>1.7k</span>
+              <span>1.8k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1305,13 +1318,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>昨天在整理自己的博客的时候，想到的一个问题：进程在从磁盘中读取内容的时候，CPU 在干什么？？？</p><p>之所以会这样问，是因为，CPU的速度比磁盘要快很多，具体有多块，看<a href="https://zhuanlan.zhihu.com/p/24726196" target="_blank" rel="noopener">这篇文章。</a></p><blockquote>
-<p>磁盘寻址时间为 10ms，换算成人类时间是 10个月，刚好够人类创造一个新的生命了。如果 CPU 需要让磁盘泡杯咖啡，在它眼里，磁盘去生了个孩子，回来告诉它你让我泡的咖啡好了。</p>
-</blockquote>
+          <p>遇到这样的一个实际问题：</p><p>写一个任务控制器，支持添加多个任务异步执行，任务间可以设置依赖，没有依赖的任务并行，有依赖的串行。</p><p>我刚开始一想，发现这个不是很简单么，写了包装类包装一下 Runnable，然后给它加一个添加依赖的功能不就好了么。后来发现没有我想的这么简单，首先循环依赖没有解决，这个问题这里就不深入了，就假设它没有循环依赖。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/10/blog_bak/Blog/Java/IO阻塞/#more" rel="contents">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
