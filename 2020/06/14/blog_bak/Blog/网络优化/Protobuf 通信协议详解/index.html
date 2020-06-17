@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="Protobuf 通信协议详解在移动互联网时代，手机流量、电量是最为有限的资源，而移动端的即时通讯应用无疑必须得直面这两点。解决流量过大的基本方法就是使用高度压缩的通信协议，而数据压缩后流量减小带来的自然结果也就是省电：因为大数据量的传输必然需要更久的网络操作、数据序列化及反序列化操作，这些都是电量消耗过快的根源。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Protobuf 通信协议详解">
+<meta property="og:url" content="http://aprz512.github.io/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="Protobuf 通信协议详解在移动互联网时代，手机流量、电量是最为有限的资源，而移动端的即时通讯应用无疑必须得直面这两点。解决流量过大的基本方法就是使用高度压缩的通信协议，而数据压缩后流量减小带来的自然结果也就是省电：因为大数据量的传输必然需要更久的网络操作、数据序列化及反序列化操作，这些都是电量消耗过快的根源。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image006.jpg">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image007.jpg">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image008.jpg">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image009.jpg">
+<meta property="og:updated_time" content="2020-06-17T02:06:09.910Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Protobuf 通信协议详解">
+<meta name="twitter:description" content="Protobuf 通信协议详解在移动互联网时代，手机流量、电量是最为有限的资源，而移动端的即时通讯应用无疑必须得直面这两点。解决流量过大的基本方法就是使用高度压缩的通信协议，而数据压缩后流量减小带来的自然结果也就是省电：因为大数据量的传输必然需要更久的网络操作、数据序列化及反序列化操作，这些都是电量消耗过快的根源。">
+<meta name="twitter:image" content="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image006.jpg">
+  <link rel="canonical" href="http://aprz512.github.io/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>Protobuf 通信协议详解 | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">11</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">173</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Protobuf 通信协议详解
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-14 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-14T00:00:00+08:00">2020-06-14</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>10k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>10 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Protobuf-通信协议详解"><a href="#Protobuf-通信协议详解" class="headerlink" title="Protobuf 通信协议详解"></a>Protobuf 通信协议详解</h2><p>在移动互联网时代，手机流量、电量是最为有限的资源，而移动端的即时通讯应用无疑必须得直面这两点。</p><p>解决流量过大的基本方法就是<strong>使用高度压缩的通信协议</strong>，而数据压缩后流量减小带来的自然结果也就是省电：因为大数据量的传输必然需要更久的网络操作、数据序列化及反序列化操作，这些都是电量消耗过快的根源。</p><a id="more"></a>
+
+<p>当前即时通讯应用中最热门的通信协议无疑就是Google的Protobuf了。本文将详细介绍Protobuf的使用、原理等。</p>
+<h3 id="protobuf-简介"><a href="#protobuf-简介" class="headerlink" title="protobuf 简介"></a>protobuf 简介</h3><p>github地址：<a href="https://github.com/protocolbuffers/protobuf" target="_blank" rel="noopener">https://github.com/protocolbuffers/protobuf</a></p>
+<p>Protocol Buffers 是一种轻便高效的结构化数据存储格式，可以用于结构化数据串行化，或者说序列化。它很适合做数据存储或 RPC 数据交换格式。可用于通讯协议、数据存储等领域的语言无关、平台无关、可扩展的序列化结构数据格式。目前提供了 C++、Java、Python 三种语言的 API。</p>
+<p>看了这些介绍，可能你和我一样刚开始都是一脸懵逼，不过不要紧，我们写一个小例子来帮助我们理解。</p>
+<h3 id="一个简单的例子"><a href="#一个简单的例子" class="headerlink" title="一个简单的例子"></a>一个简单的例子</h3><h4 id="安装-Google-Protocol-Buffer"><a href="#安装-Google-Protocol-Buffer" class="headerlink" title="安装 Google Protocol Buffer"></a>安装 Google Protocol Buffer</h4><p>首先，我们去Github地址，里面有  Protobuf 的源码，你可以 clone 下来自己编译。当然，Google 也提供已经编译好了的程序供我们直接使用。这里就不说如何自己编译了，有兴趣的搜索一下。我们直接去 release 页面，下载对应平台的编译器，我的是  windows 系统，所以我选择下载 protoc-3.12.3-win64.zip 文件。</p>
+<p>下载完成之后，打开，里面有如下文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">-bin</span><br><span class="line">-include</span><br><span class="line">-readme.txt</span><br></pre></td></tr></table></figure>
+
+<p>bin 里面就是存放的编译器了，专门编译 .proto 文件，类似于 javac。</p>
+<p>include 里面是 Google 提供的一些标准 proto 文件，你可以把它当作 sample 看待。</p>
+<p>这里，我们只需要使用 bin 里面的 protoc.exe 程序。你可以把它放到一个特定的目录，然后添加到 path，因为之后需要在 terminal 中使用，或者你直接拷贝到你的工程目录下。</p>
+<h4 id="关于例子的简单描述"><a href="#关于例子的简单描述" class="headerlink" title="关于例子的简单描述"></a>关于例子的简单描述</h4><p>这里我是用 java 来写这个简单的程序，程序分为两部份，一个 Writer，一个 Reader。</p>
+<p>Writer 负责将一些结构化的数据写入一个磁盘文件，Reader 则负责从该磁盘文件中读取结构化数据并打印到屏幕上。</p>
+<p>准备用于演示的结构化数据是 HelloWorld，它包含两个基本数据：</p>
+<ul>
+<li>ID，为一个整数类型的数据</li>
+<li>Str，这是一个字符串</li>
+</ul>
+<h4 id="写-proto-文件"><a href="#写-proto-文件" class="headerlink" title="写 .proto 文件"></a>写 .proto 文件</h4><figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">syntax = &quot;proto3&quot;; //文件的第一行指定了你正在使用proto3语法：如果你没有指定这个，编译器会使用proto2。</span><br><span class="line"></span><br><span class="line">option java_package = &quot;com.aprz.proto&quot;; // 生成的类的包名</span><br><span class="line">option java_outer_classname = &quot;HelloWorldProto&quot;; // 生成的外部类的名字，该文件定义的消息体都是这个类的内部类</span><br><span class="line"></span><br><span class="line">// 如果我们使用 java，这个消息体的类名就是：com.aprz.proto.HelloWorldProto.HelloWord</span><br><span class="line">message HelloWorld &#123;</span><br><span class="line">    int32 number = 1; // proto3 不用写 required 修饰符了</span><br><span class="line">    string text = 2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloWorld2 &#123;</span><br><span class="line">    float money = 1;</span><br><span class="line">    string text = 2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>里面的 option 只针对 java 才生效。</p>
+<p>在消息定义中，每个字段都有唯一的一个数字标识符。这些标识符是用来在消息的二进制格式中识别各个字段的，一旦开始使用就不能够再改变。注：[1,15]之内的标识号在编码的时候会占用一个字节。[16,2047]之内的标识号则占用2个字节。所以应该为那些频繁出现的消息元素保留 [1,15]之内的标识号。切记：要为将来有可能添加的、频繁出现的标识号预留一些标识号。</p>
+<h4 id="编译-proto-文件"><a href="#编译-proto-文件" class="headerlink" title="编译 .proto 文件"></a>编译 .proto 文件</h4><p>这个就很简单了，会 javac 的肯定会这个。</p>
+<p>假设您的 proto 文件存放在 $SRC_DIR 下面，您也想把生成的文件放在同一个目录下，则可以使用如下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">protoc -I=$SRC_DIR --java_out=$DST_DIR addressbook.proto</span><br><span class="line"></span><br><span class="line">-I 后面是 proto 文件所在目录</span><br><span class="line">--java_out 后面是生成的 java 文件存放的地址</span><br><span class="line">最后是 proto 文件名称</span><br></pre></td></tr></table></figure>
+
+<h4 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h4><p>执行编译命令之后，发现生成了 HelloWorldProto.java 文件，但是却有很多地方报错，这里因为该类里面引用到了很多 protobuf 库里面的类，所以我们需要在工程里面导入该依赖库。</p>
+<p>这里，我导入的是 ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.google.protobuf:protobuf-java:3.12.2</span><br></pre></td></tr></table></figure>
+
+<p>导入完成后，发现类中没有了错误。有兴趣的可以自己看一下生成的消息类，由于生成的消息类的代码太多（一个600多行），所以这里就不贴代码了。</p>
+<h4 id="编写-Writer-与-Reader"><a href="#编写-Writer-与-Reader" class="headerlink" title="编写 Writer 与 Reader"></a>编写 Writer 与 Reader</h4><p>在编写 Writer 与 Reader 之前，我们先看看如何使用生成的消息体。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">HelloWorldProto.HelloWorld helloWorld = HelloWorldProto.HelloWorld.newBuilder()</span><br><span class="line">    .setNumber(<span class="number">10</span>)</span><br><span class="line">    .setText(<span class="string">"123"</span>)</span><br><span class="line">    .build();</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，protobuf 为我们定义的每一个消息体都生成了一个 builder 类，所以使用起来是很方便的。</p>
+<p>编写 Writer：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">File dst = <span class="keyword">new</span> File(<span class="string">"protobuf-text"</span>);</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    BufferedOutputStream bos = <span class="keyword">new</span> BufferedOutputStream(<span class="keyword">new</span> FileOutputStream(dst));</span><br><span class="line">    helloWorld.writeTo(bos);</span><br><span class="line">    bos.close();</span><br><span class="line">&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>生成的类提供了 writeTo 方法，可以直接写进输出流，当然你也可以自己做处理，里面有很多方法可以使用。</p>
+<p>编写 Reader：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">File tar = <span class="keyword">new</span> File(<span class="string">"protobuf-text"</span>);</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    HelloWorldProto.HelloWorld helloWorld1 = HelloWorldProto.HelloWorld.parseFrom(<span class="keyword">new</span> FileInputStream(tar));</span><br><span class="line">    System.out.println(helloWorld1.getNumber());</span><br><span class="line">    System.out.println(helloWorld1.getText());</span><br><span class="line">&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>直接从输入流中解析出 java 对象，也很方便。其实这就是一个反序列化的过程，将二进制流转成一个对象的字段。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> tag = input.readTag();</span><br><span class="line"><span class="keyword">switch</span> (tag) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">        done = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">8</span>: &#123;</span><br><span class="line"></span><br><span class="line">        number_ = input.readInt32();</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">18</span>: &#123;</span><br><span class="line">        java.lang.String s = input.readStringRequireUtf8();</span><br><span class="line"></span><br><span class="line">        text_ = s;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">default</span>: &#123;</span><br><span class="line">        <span class="keyword">if</span> (!parseUnknownField(</span><br><span class="line">            input, unknownFields, extensionRegistry, tag)) &#123;</span><br><span class="line">            done = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从这段代码应该可以看出一点东西，不过这里面涉及到 protobuf 序列化的规则，后面会介绍到。</p>
+<p>这个例子本身并无意义，但只要您稍加修改就可以将它变成更加有用的程序。比如将磁盘替换为网络 socket，那么就可以实现基于网络的数据交换任务。而存储和交换正是 Protobuf 最有效的应用领域。</p>
+<h3 id="Protobuf-的优点"><a href="#Protobuf-的优点" class="headerlink" title="Protobuf 的优点"></a>Protobuf 的优点</h3><p>Protobuf 有如 XML，不过它更小、更快、也更简单。你可以定义自己的数据结构，然后使用代码生成器生成的代码来读写这个数据结构。你甚至可以在无需重新部署程序的情况下更新数据结构。只需使用 Protobuf 对数据结构进行一次描述，即可利用各种不同语言或从各种不同数据流中对你的结构化数据轻松读写。</p>
+<p>它有一个非常棒的特性，即“向后”兼容性好，人们不必破坏已部署的、依靠“老”数据格式的程序就可以对数据结构进行升级。这样您的程序就可以不必担心因为消息结构的改变而造成的大规模的代码重构或者迁移的问题。因为添加新的消息中的 field 并不会引起已经发布的程序的任何改变。</p>
+<p>Protobuf 语义更清晰，无需类似 XML 解析器的东西（因为 Protobuf 编译器会将 .proto 文件编译生成对应的数据访问类以对 Protobuf 数据进行序列化、反序列化操作）。</p>
+<p>使用 Protobuf 无需学习复杂的文档对象模型，Protobuf 的编程模式比较友好，简单易学，同时它拥有良好的文档和示例，对于喜欢简单事物的人们而言，Protobuf 比其他的技术更加有吸引力。</p>
+<h3 id="Protobuf-的不足"><a href="#Protobuf-的不足" class="headerlink" title="Protobuf 的不足"></a>Protobuf 的不足</h3><p>Protbuf 与 XML 相比也有不足之处。它功能简单，无法用来表示复杂的概念。</p>
+<p>XML 已经成为多种行业标准的编写工具，Protobuf 只是 Google 公司内部使用的工具，在通用性上还差很多。</p>
+<p>由于文本并不适合用来描述数据结构，所以 Protobuf 也不适合用来对基于文本的标记文档（如 HTML）建模。另外，由于 XML 具有某种程度上的自解释性，它可以被人直接读取编辑，在这一点上 Protobuf 不行，它以二进制的方式存储，除非你有 .proto 定义，否则你没法直接读出 Protobuf 的任何内容。</p>
+<h3 id="高级应用"><a href="#高级应用" class="headerlink" title="高级应用"></a>高级应用</h3><h4 id="导入"><a href="#导入" class="headerlink" title="导入"></a>导入</h4><p>如果想要使用的消息类型已经在其他.proto文件中已经定义过了呢？<br>你可以通过导入（import）其他.proto文件中的定义来使用它们。要导入其他.proto文件的定义，你需要在你的文件中添加一个导入声明，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">import &quot;myproject/other_protos.proto&quot;;</span><br></pre></td></tr></table></figure>
+
+<h4 id="嵌套类型"><a href="#嵌套类型" class="headerlink" title="嵌套类型"></a>嵌套类型</h4><p>你可以在其他消息类型中定义、使用消息类型，在下面的例子中，Result消息就定义在SearchResponse消息内，如：</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">message SearchResponse &#123;</span><br><span class="line">  message Result &#123;</span><br><span class="line">    string url = 1;</span><br><span class="line">    string title = 2;</span><br><span class="line">    // repeated 在一个格式良好的消息中，这种字段可以重复任意多次（包括0次）,一般对应数组或者List</span><br><span class="line">    repeated string snippets = 3;</span><br><span class="line">  &#125;</span><br><span class="line">  repeated Result results = 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="细节问题"><a href="#细节问题" class="headerlink" title="细节问题"></a>细节问题</h3><p>同 XML 相比， Protobuf 的主要优点在于性能高。它以高效的二进制方式存储，比 XML 小 3 到 10 倍，快 20 到 100 倍。</p>
+<p>对于这样的说法，严格的程序员需要一个解释。因此在本文的最后，让我们稍微深入 Protobuf 的内部实现吧。</p>
+<p>有两项技术保证了采用 Protobuf 的程序能获得相对于 XML 极大的性能提高。</p>
+<p>第一点，我们可以考察 Protobuf 序列化后的信息内容。您可以看到 Protocol Buffer 信息的表示非常紧凑，这意味着消息的体积减少，自然需要更少的资源。比如网络上传输的字节数更少，需要的 IO 更少等，从而提高性能。</p>
+<p>第二点我们需要理解 Protobuf 封解包的大致过程，从而理解为什么会比 XML 快很多。</p>
+<h4 id="Google-Protocol-Buffer-的-Encoding"><a href="#Google-Protocol-Buffer-的-Encoding" class="headerlink" title="Google Protocol Buffer 的 Encoding"></a>Google Protocol Buffer 的 Encoding</h4><p>Protobuf 序列化后所生成的二进制消息非常紧凑，这得益于 Protobuf 采用的非常巧妙的 Encoding 方法。</p>
+<p>考察消息结构之前，让我首先要介绍一个叫做 Varint 的术语。</p>
+<p>Varint 说的通俗一点，就是“<strong>变长</strong>”。它用一个或多个字节来表示一个数字，值越小的数字使用越少的字节数。这能减少用来表示数字的字节数。（那么问个问题，让你设计一个变长类型，你如何设计？？？）</p>
+<p>比如对于 int32 类型的数字，一般需要 4 个 byte 来表示。但是采用 Varint，对于很小的 int32 类型的数字，则可以用 1 个 byte 来表示。当然凡事都有好的也有不好的一面，采用 Varint 表示法，大的数字则需要 5 个 byte 来表示。从统计的角度来说，一般不会所有的消息中的数字都是大数，因此大多数情况下，采用 Varint 后，可以用更少的字节数来表示数字信息。下面就详细介绍一下 Varint。</p>
+<p>变长类型还是挺常见的，比如描述 dex 的结构里面，就会有很多类型都是变长的，为了节省空间。</p>
+<p>Varint 中的<strong>每个 byte 的最高位</strong> bit 有特殊的含义，<strong>如果该位为 1，表示后续的 byte 也是该数字的一部分，如果该位为 0，则结束</strong>。其他的 7 个 bit 都用来表示数字。因此小于 128 的数字都可以用一个 byte 表示。大于 128 的数字，比如 300，会用两个字节来表示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1010 1100 0000 0010</span><br><span class="line">我们用计算器看一下 300 的二进制表示：‭</span><br><span class="line">0001 0010 1100‬ -&gt; </span><br><span class="line">0000010 0101100 -&gt; </span><br><span class="line">00000010 10101100 -&gt; </span><br><span class="line">10101100 00000010</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image006.jpg" alt="图 6. Varint 编码"></p>
+<p>看这张图应该会比较好理解，它将300的二进制表示分成了两段（7 bit 为一段，不足的补0），由于Google Protocol Buffer 字节序采用 little-endian 的表示方式，所以需要将字节倒过来看。</p>
+<p>消息经过序列化后会成为一个二进制数据流，该流中的数据为一系列的 Key-Value 对。如下图所示：</p>
+<p><img src="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image007.jpg" alt="图 7. Message Buffer"></p>
+<p>采用这种 Key-Pair 结构<strong>无需使用分隔符来分割不同的 Field</strong>。对于可选的 Field，如果消息中不存在该 field，那么在最终的 Message Buffer 中就没有该 field，这些特性都有助于节约消息本身的大小。</p>
+<p>假设我们的消息体中有两个字段：</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">message HelloWorld &#123;</span><br><span class="line">    int32 number = 1;</span><br><span class="line">    string text = 2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么 number 的 key 为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(field_number &lt;&lt; <span class="number">3</span>) | wire_type</span><br></pre></td></tr></table></figure>
+
+<p>field_number 就是我们定义的数字标识符了，这里 number 的为 1。 那么 wire_type 是什么呢？wire_type 需要查表才能得到：</p>
+<table>
+<thead>
+<tr>
+<th><strong>Type</strong></th>
+<th><strong>Meaning</strong></th>
+<th><strong>Used For</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>Varint</td>
+<td>int32, int64, uint32, uint64, sint32, sint64, bool, enum</td>
+</tr>
+<tr>
+<td>1</td>
+<td>64-bit</td>
+<td>fixed64, sfixed64, double</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Length-delimi</td>
+<td>string, bytes, embedded messages, packed repeated fields</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Start group</td>
+<td>Groups (deprecated)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>End group</td>
+<td>Groups (deprecated)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>32-bit</td>
+<td>fixed32, sfixed32, float</td>
+</tr>
+</tbody></table>
+<p>可以看到 int32 的 wire_type 为 0 。</p>
+<p>所以 number 的 key 为 (1 &lt;&lt; 3 | 0) = 8，text 的 key 为 （2 &lt;&lt; 3 | 2） = 18，这两个数是不是有点熟悉，是的！就是上面生成的代码里面，我们见过的。那部分代码其实就是反序列话，根据 key 读取 value，然后给创建的对象赋值。</p>
+<p>看到这里，你是不是觉得变长类型就已经很吊了呢？那么我有一个问题，表示正数 1 可以只需要一个字节，那么表示负数 -1，需要几个字节呢？</p>
+<p>我们看一下 -1 的二进制代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">‭11111111 11111111 11111111 11111111</span><br></pre></td></tr></table></figure>
+
+<p>一共有32位，这显然没法用一个字节表示，需要 5 个字节，那怎么办呢？</p>
+<p>为此 Google Protocol Buffer 定义了 sint32 这种类型，采用 zigzag 编码。</p>
+<p>Zigzag 编码用无符号数来表示有符号数字，正数和负数交错，这就是 zigzag 这个词的含义了。</p>
+<p><img src="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image008.jpg" alt="图 8. ZigZag 编码"></p>
+<p>使用 zigzag 编码，绝对值小的数字，无论正负都可以采用较少的 byte 来表示，充分利用了 Varint 这种技术。</p>
+<p>我们运行程序来看一下是不是这样吧：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HelloWorldProto.HelloWorld helloWorld = HelloWorldProto.HelloWorld.newBuilder()</span><br><span class="line">    .setNumber(<span class="number">10</span>)</span><br><span class="line">    .setText(<span class="string">"1123"</span>).build();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">byte</span> b : helloWorld.toByteArray()) &#123;</span><br><span class="line">    System.out.println(b + <span class="string">" = "</span> + Integer.toBinaryString((b &amp; <span class="number">0xFF</span>) + <span class="number">0x100</span>).substring(<span class="number">1</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看一下输出的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">8 = 00001000 // number 的 key</span><br><span class="line">10 = 00001010 // number 的 value</span><br><span class="line">18 = 00010010 // text 的 key</span><br><span class="line">4 = 00000100  // text 的 value 的长度</span><br><span class="line">49 = 00110001 // 1</span><br><span class="line">49 = 00110001 // 1</span><br><span class="line">50 = 00110010 // 2</span><br><span class="line">51 = 00110011 // 3</span><br></pre></td></tr></table></figure>
+
+<p>这里需要知道的一点是<strong>：字符串等则采用类似数据库中的 varchar 的表示方法</strong>，即用一个 varint 表示长度，然后将其余部分紧跟在这个长度部分之后即可。</p>
+<p>text 的 value 是 4 个长度，每个字节可以查 ascii 码得到。这里的编码不太清楚，可能是 utf8。</p>
+<p>我们设置一个负数来看看结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HelloWorldProto.HelloWorld helloWorld = HelloWorldProto.HelloWorld.newBuilder()</span><br><span class="line">    .setNumber(-<span class="number">1</span>)</span><br><span class="line">    .setText(<span class="string">"李"</span>).build();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">byte</span> b : helloWorld.toByteArray()) &#123;</span><br><span class="line">    System.out.println(b + <span class="string">" = "</span> + Integer.toBinaryString((b &amp; <span class="number">0xFF</span>) + <span class="number">0x100</span>).substring(<span class="number">1</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">8 = 00001000</span><br><span class="line">-1 = 11111111</span><br><span class="line">-1 = 11111111</span><br><span class="line">-1 = 11111111</span><br><span class="line">-1 = 11111111</span><br><span class="line">-1 = 11111111</span><br><span class="line">-1 = 11111111</span><br><span class="line">-1 = 11111111</span><br><span class="line">-1 = 11111111</span><br><span class="line">-1 = 11111111</span><br><span class="line">1 = 00000001</span><br><span class="line">18 = 00010010</span><br><span class="line">3 = 00000011</span><br><span class="line">-26 = 11100110</span><br><span class="line">-99 = 10011101</span><br><span class="line">-114 = 10001110</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，-1 的表示非常的长，用了 10 个字节。那么问题就来了，我们不是声明的 int32 吗，为啥实际上是 int64，还有王法吗，还有法律吗！！！</p>
+<p>我查了些资料：</p>
+<p><a href="https://developers.google.com/protocol-buffers/docs/encoding" target="_blank" rel="noopener">https://developers.google.com/protocol-buffers/docs/encoding</a></p>
+<blockquote>
+<p> If you use int32 or int64 as the type for a negative number, the resulting varint is always ten bytes long – it is, effectively, treated like a very large unsigned integer.</p>
+</blockquote>
+<p>这个我是没想到为啥要这样搞！！！</p>
+<p>我们改一下 proto 中消息体的定义，使用 sint32 重新生成一下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">===== Byte 开始 =====</span><br><span class="line">8 = 00001000</span><br><span class="line">1 = 00000001</span><br><span class="line">18 = 00010010</span><br><span class="line">1 = 00000001</span><br><span class="line">49 = 00110001</span><br><span class="line">===== Byte 结束 =====</span><br></pre></td></tr></table></figure>
+
+<p>看到，生成的二进制是短了很多。</p>
+<p>那么为啥这个就能生成的短些呢？难道 number 字段在源代码里面不是 int 吗？我们可以分析源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> number_; <span class="comment">// 是 int 类型没变</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 但是它序列化与反序列化的时候使用的是不同的方法</span></span><br><span class="line">output.writeSInt32(<span class="number">1</span>, number_);</span><br><span class="line">number_ = input.readSInt32();</span><br></pre></td></tr></table></figure>
+
+<p>更细节的部分，可以自行查看。</p>
+<h3 id="封解包的速度"><a href="#封解包的速度" class="headerlink" title="封解包的速度"></a>封解包的速度</h3><p>首先我们来了解一下 XML 的封解包过程。XML 需要从文件中读取出字符串，再转换为 XML 文档对象结构模型。之后，再从 XML 文档对象结构模型中读取指定节点的字符串，最后再将这个字符串转换成指定类型的变量。这个过程非常复杂，其中将 XML 文件转换为文档对象结构模型的过程通常需要完成词法文法分析等大量消耗 CPU 的复杂计算。</p>
+<p>反观 Protobuf，它只需要简单地将一个二进制序列，按照指定的格式读取到 Java 对应的结构类型中就可以了。从上一节的描述可以看到消息的 decoding 过程也可以通过几个位移操作组成的表达式计算即可完成。速度非常快。</p>
+<p>述可以看到消息的 decoding 过程也可以通过几个位移操作组成的表达式计算即可完成。速度非常快。</p>
+<p>为了说明这并不是我拍脑袋随意想出来的说法，下面让我们简单分析一下 Protobuf 解包的代码流程吧。</p>
+<p>以代码清单 3 中的 Reader 为例，该程序首先调用 msg1 的 ParseFromIstream 方法，这个方法解析从文件读入的二进制数据流，并将解析出来的数据赋予 helloworld 类的相应数据成员。</p>
+<p>该过程可以用下图表示：</p>
+<p><img src="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/image009.jpg" alt="图 9. 解包流程图"></p>
+<p>整个解析过程需要 Protobuf 本身的框架代码和由 Protobuf 编译器生成的代码共同完成。Protobuf 提供了基类 Message 以及 Message_lite 作为通用的 Framework，，CodedInputStream 类，WireFormatLite 类等提供了对二进制数据的 decode 功能，从 5.1 节的分析来看，Protobuf 的解码可以通过几个简单的数学运算完成，无需复杂的词法语法分析，因此 ReadTag() 等方法都非常快。 在这个调用路径上的其他类和方法都非常简单，感兴趣的读者可以自行阅读。 相对于 XML 的解析过程，以上的流程图实在是非常简单吧？这也就是 Protobuf 效率高的第二个原因了。</p>
+<h3 id="编解码性能测试"><a href="#编解码性能测试" class="headerlink" title="编解码性能测试"></a>编解码性能测试</h3><p>建议看看这篇文章，有从各个方面对比。</p>
+<p>得出的结论是，protobuf <strong>在整形与浮点型</strong> 编解码方面具有很大的优势。但是在<strong>字符串与对象</strong>的编解码方面性能不如 <a href="https://github.com/ngs-doo/dsl-json" target="_blank" rel="noopener">DSL-JSON</a>。</p>
+<p><a href="http://www.52im.net/thread-772-1-1.html" target="_blank" rel="noopener">http://www.52im.net/thread-772-1-1.html</a></p>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a href="http://blog.csdn.net/u011518120/article/details/54604615" target="_blank" rel="noopener">http://blog.csdn.net/u011518120/article/details/54604615</a></p>
+<p><a href="https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/index.html" target="_blank" rel="noopener">https://www.ibm.com/developerworks/cn/linux/l-cn-gpb/index.html</a></p>
+<p><a href="https://developers.google.com/protocol-buffers/docs/overview" target="_blank" rel="noopener">https://developers.google.com/protocol-buffers/docs/overview</a></p>
+<p><a href="https://www.jianshu.com/p/bb3ac7e5834e" target="_blank" rel="noopener">https://www.jianshu.com/p/bb3ac7e5834e</a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/" title="Protobuf 通信协议详解">http://aprz512.github.io/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/04/20/blog_bak/Blog/Android-知识点/本地广播/" rel="next" title="本地广播">
+                  <i class="fa fa-chevron-left"></i> 本地广播
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/06/14/blog_bak/Blog/网络优化/网络编程001：快速理解网络通信协议（上）/" rel="prev" title="网络编程001:快速理解网络通信协议">
+                  网络编程001:快速理解网络通信协议 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">173</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Protobuf-通信协议详解"><span class="nav-number">1.</span> <span class="nav-text">Protobuf 通信协议详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#protobuf-简介"><span class="nav-number">1.1.</span> <span class="nav-text">protobuf 简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一个简单的例子"><span class="nav-number">1.2.</span> <span class="nav-text">一个简单的例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装-Google-Protocol-Buffer"><span class="nav-number">1.2.1.</span> <span class="nav-text">安装 Google Protocol Buffer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关于例子的简单描述"><span class="nav-number">1.2.2.</span> <span class="nav-text">关于例子的简单描述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#写-proto-文件"><span class="nav-number">1.2.3.</span> <span class="nav-text">写 .proto 文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编译-proto-文件"><span class="nav-number">1.2.4.</span> <span class="nav-text">编译 .proto 文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#引入依赖"><span class="nav-number">1.2.5.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编写-Writer-与-Reader"><span class="nav-number">1.2.6.</span> <span class="nav-text">编写 Writer 与 Reader</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Protobuf-的优点"><span class="nav-number">1.3.</span> <span class="nav-text">Protobuf 的优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Protobuf-的不足"><span class="nav-number">1.4.</span> <span class="nav-text">Protobuf 的不足</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#高级应用"><span class="nav-number">1.5.</span> <span class="nav-text">高级应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#导入"><span class="nav-number">1.5.1.</span> <span class="nav-text">导入</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#嵌套类型"><span class="nav-number">1.5.2.</span> <span class="nav-text">嵌套类型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#细节问题"><span class="nav-number">1.6.</span> <span class="nav-text">细节问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Google-Protocol-Buffer-的-Encoding"><span class="nav-number">1.6.1.</span> <span class="nav-text">Google Protocol Buffer 的 Encoding</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#封解包的速度"><span class="nav-number">1.7.</span> <span class="nav-text">封解包的速度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编解码性能测试"><span class="nav-number">1.8.</span> <span class="nav-text">编解码性能测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">1.9.</span> <span class="nav-text">参考文档</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">661k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">10:01</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

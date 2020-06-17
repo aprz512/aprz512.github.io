@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="寻找储存的位置将一个键值对放到HashMap里面的时候，需要计算这个键值对存放到哪个位置，该位置的计算方式如下： 计算 key 的 hashCode   1234567// 使用 key 的 hashCode 方法来计算static final int hash(Object key) &amp;#123;    int h;    // 当key = null时，hash值 = 0，所以HashMap的">
+<meta name="keywords" content="Java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HashMap的扩容原理(基于JDK1.8)">
+<meta property="og:url" content="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="寻找储存的位置将一个键值对放到HashMap里面的时候，需要计算这个键值对存放到哪个位置，该位置的计算方式如下： 计算 key 的 hashCode   1234567// 使用 key 的 hashCode 方法来计算static final int hash(Object key) &amp;#123;    int h;    // 当key = null时，hash值 = 0，所以HashMap的">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/hashmap/find_pos.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/hashmap/cap_init.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/hashmap/loadfactor.jpg?raw=true">
+<meta property="og:updated_time" content="2020-06-17T02:06:09.910Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HashMap的扩容原理(基于JDK1.8)">
+<meta name="twitter:description" content="寻找储存的位置将一个键值对放到HashMap里面的时候，需要计算这个键值对存放到哪个位置，该位置的计算方式如下： 计算 key 的 hashCode   1234567// 使用 key 的 hashCode 方法来计算static final int hash(Object key) &amp;#123;    int h;    // 当key = null时，hash值 = 0，所以HashMap的">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/hashmap/find_pos.png?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>HashMap的扩容原理(基于JDK1.8) | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">11</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">173</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">HashMap的扩容原理(基于JDK1.8)
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-11 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-11T00:00:00+08:00">2020-04-11</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>4.7k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>4 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="寻找储存的位置"><a href="#寻找储存的位置" class="headerlink" title="寻找储存的位置"></a>寻找储存的位置</h2><p>将一个键值对放到HashMap里面的时候，需要计算这个键值对存放到哪个位置，该位置的计算方式如下：</p><ul>
+<li><p>计算 key 的 hashCode</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用 key 的 hashCode 方法来计算</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">hash</span><span class="params">(Object key)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> h;</span><br><span class="line">    <span class="comment">// 当key = null时，hash值 = 0，所以HashMap的key 可为null      </span></span><br><span class="line">    <span class="comment">// 注：对比HashTable，HashTable对key直接hashCode（），若key为null时，会抛出异常，所以HashTable的key不可为null</span></span><br><span class="line">    <span class="keyword">return</span> (key == <span class="keyword">null</span>) ? <span class="number">0</span> : (h = key.hashCode()) ^ (h &gt;&gt;&gt; <span class="number">16</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>根据容量大小与key的hashCode来算出位置</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里 i 就是计算出来的位置，hash 就是上面 hash() 函数返回的值。</span></span><br><span class="line">i = (n - <span class="number">1</span>) &amp; hash</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul><a id="more"></a>
+
+<p><strong>代码解析：</strong><br>因为 n 始终是2的幂次方，所以结果就是 hash &amp; （二进制位数全部为1的数），效果就相当于截取hash的最后几位，如果n=32，那么就是截取最后5位。</p>
+<p>唯一的疑问就是为什么要将 key 的 hashCode 异或自己的高16位？其实计算hashCode的那段代码叫“<strong>扰动函数</strong>”。那它有什么作用呢？</p>
+<p>假设我们没有这段代码，直接使用 key 的 hashCode 来计算 table 中的位置，由于 key 可以是任意对象，这里再次假设它是一个自定义的对象，并且它的 hashCode 方法实现的非常糟糕，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> i &lt;&lt; <span class="number">4</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出来，无论i的值是多少，计算出来的 hashCode 的值，它的低 4 位全是 0 。那么使用这个 hashCode 去计算 table 的位置会发生什么呢？我们先认为这个HashMap 的容量是默认的 16，那么使用上面的 hashCode 计算出来的结果就全部是 0，所有的数据都会放在同一个位置，那么散列表就变成了链表。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/hashmap/find_pos.png?raw=true" alt></p>
+<p>可以看到，无论 hashCode 的高位是多少，&amp; 计算出来的结果，全都是0，所以就会导致非常高的碰撞几率。</p>
+<p>其实，这都由于只取了散列值的最后几位引起的，就算散列值分布再松散，要是只取最后几位的话，碰撞也会很严重。更要命的是如果散列本身做得不好，分布上成等差数列的漏洞，恰好使最后几个低位呈现规律性重复，就无比蛋疼。</p>
+<p>那么为了减少这种情况，扰动函数的作用就出来了，就是让 hashCode 的每一位都参与的计算中去，使用异或的方式，让结果保留一点高位的影子，这样它的低位值就是随机的了，即使 key 的 hashCode 实现的很糟糕。</p>
+<h2 id="2次方与扩容"><a href="#2次方与扩容" class="headerlink" title="2次方与扩容"></a>2次方与扩容</h2><ul>
+<li><p><strong>为什么HashMap的容量要设计成2的幂次方呢？</strong><br>  默认情况下HashMap的容量是16，但是，如果用户通过构造函数指定了一个数字作为容量，那么HashMap会选择大于该数字的第一个2的幂作为容量。(3-&gt;4、7-&gt;8、9-&gt;16)</p>
+<p>  因为HashMap的底层结构是数组，要将key的hashCode映射到这个数组中，最方便的办法就是取余，用<code>hashCode % 容量大小</code>就ok了。将容量设计为2的幂次方时，计算位置时，<code>(n-1)&amp;hash 相当于 hash%n</code>，而计算机里面位运算是基本运算，位运算的效率是远远高于取余%运算的。这是第一个考虑，还有一个好处，后面再说。</p>
+</li>
+<li><p><strong>容量初始化算法</strong></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns a power of two size for the given target capacity.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">tableSizeFor</span><span class="params">(<span class="keyword">int</span> cap)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n = cap - <span class="number">1</span>;</span><br><span class="line">    <span class="comment">// 右移1位，第一个为1的位的后面的位也变成了1，就有了两个连续的1</span></span><br><span class="line">    n |= n &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">    <span class="comment">// 因为有两个为1的位，所以右移2位，将那两个连续的1扩展为4个连续的1</span></span><br><span class="line">    n |= n &gt;&gt;&gt; <span class="number">2</span>;</span><br><span class="line">    <span class="comment">// 扩展为 8 位</span></span><br><span class="line">    n |= n &gt;&gt;&gt; <span class="number">4</span>;</span><br><span class="line">    <span class="comment">// 扩展为 16 位</span></span><br><span class="line">    n |= n &gt;&gt;&gt; <span class="number">8</span>;</span><br><span class="line">    <span class="comment">// 扩展为 32 位，正所谓星星之火可以燎原。</span></span><br><span class="line">    n |= n &gt;&gt;&gt; <span class="number">16</span>;</span><br><span class="line">    <span class="keyword">return</span> (n &lt; <span class="number">0</span>) ? <span class="number">1</span> : (n &gt;= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>  这里其实是很简单的一个思想：<strong>对于一个数字的二进制，从第一个不为0的位开始，把后面的所有位都设置成1</strong>。比如说一个数为1000,0000,0000，它的变化过程如下：</p>
+  <figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1000,0000,0000</span><br><span class="line">1100,0000,0000</span><br><span class="line">1111,0000,0000</span><br><span class="line">1111,1111,0000</span><br><span class="line">1111,1111,1111</span><br></pre></td></tr></table></figure>
+
+<p>  <img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/hashmap/cap_init.png?raw=true" alt></p>
+</li>
+<li><p>扩容的小技巧</p>
+<p>  扩容每次都是在原来的基础上变为2倍，这个比较简单，需要注意的是一个叫做<strong>负载因子</strong>的东西。HashMap扩容时，并不是装满容量了之后才扩容，而是有一个阈值：<code>容量的大小 * 负载因子</code>。那么负载因子的取值会有什么影响呢？<br>  <img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/hashmap/loadfactor.jpg?raw=true" alt="从网上copy过来的一个图"></p>
+</li>
+</ul>
+<pre><code>上面说了这么多，都不是我们的目标，我们这次的目的是探究一下，每一个entry里面的元素是扩容之后是如何分配的？这要从hash碰撞说起。
+
+无论Hash函数设计的多么精妙，总免不了hash碰撞，所以HashMap的结构才是数组加上链表加上红黑树，我们现在探究的就是如果一个entry是链表的时候，这个entry里面的数据是如何分配到扩容之后的HashMap中的。
+
+看看源码的算法：
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> Node&lt;K,V&gt;[] resize() &#123;</span><br><span class="line">    ...</span><br><span class="line">    Node&lt;K,V&gt; loHead = <span class="keyword">null</span>, loTail = <span class="keyword">null</span>;</span><br><span class="line">    Node&lt;K,V&gt; hiHead = <span class="keyword">null</span>, hiTail = <span class="keyword">null</span>;</span><br><span class="line">    Node&lt;K,V&gt; next;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        next = e.next;</span><br><span class="line">        <span class="comment">// 注意：不是(e.hash &amp; (oldCap-1));而是(e.hash &amp; oldCap)</span></span><br><span class="line">        <span class="comment">// (e.hash &amp; oldCap) 得到的是元素的在数组中的位置是否需要移动</span></span><br><span class="line">        <span class="comment">// 这里是一个非常巧妙的地方，计算位置用的是 e.hash &amp; oldCap -1</span></span><br><span class="line">        <span class="comment">// oldCap -1 的二进制位全部位1，比如32：1,1111，有5位</span></span><br><span class="line">        <span class="comment">// oldCap 的二进制位只有第一位为1，后面的全部为0，比如32：10,0000，有6位</span></span><br><span class="line">        <span class="comment">// 所以利用高出来的一位来计算新数组中的位置（这样就可以认为是随机分散的）</span></span><br><span class="line">        <span class="keyword">if</span> ((e.hash &amp; oldCap) == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (loTail == <span class="keyword">null</span>)</span><br><span class="line">                loHead = e;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                loTail.next = e;</span><br><span class="line">            loTail = e;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (hiTail == <span class="keyword">null</span>)</span><br><span class="line">                hiHead = e;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                hiTail.next = e;</span><br><span class="line">            hiTail = e;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">while</span> ((e = next) != <span class="keyword">null</span>);</span><br><span class="line">    <span class="comment">// 高位为0，则位置不变</span></span><br><span class="line">    <span class="keyword">if</span> (loTail != <span class="keyword">null</span>) &#123;</span><br><span class="line">        loTail.next = <span class="keyword">null</span>;</span><br><span class="line">        newTab[j] = loHead;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 高位为1，则位置变化</span></span><br><span class="line">    <span class="keyword">if</span> (hiTail != <span class="keyword">null</span>) &#123;</span><br><span class="line">        hiTail.next = <span class="keyword">null</span>;</span><br><span class="line">        newTab[j + oldCap] = hiHead;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+这是JDK1.8的算法，e就是entry的头节点。可以看出来，它将原来的一个链表分成了两个链表loHead与hiHead，分割的条件就是`(e.hash &amp; oldCap) == 0`，e的hash其实就是上面分析的hash函数的值。因为代码中给了详尽的注释，所以这里不在赘述这行代码的意思。
+
+容量为2的幂次方的第二个好处在`newTab[j + oldCap] = hiHead;`这行代码里面体现了出来，计算新的位置时，只需要在原来的基础上加上oldCap就行了。由于新分配的空间是原来的2倍，所以有一般还没有利用起来，这个时候，随机的（因为不知道hash值的高位是0还是1，所以可以认为是随机的）将原来的entry分为2个，一个放在原位置，一个放在新分配的位置，就完美的分散了原来的数据，并且将新的空间利用了起来。
+
+上图说话：
+![](https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/hashmap/resize.png?raw=true)</code></pre><h2 id="初始化时，强烈建议给定容量大小"><a href="#初始化时，强烈建议给定容量大小" class="headerlink" title="初始化时，强烈建议给定容量大小"></a>初始化时，强烈建议给定容量大小</h2><ul>
+<li><p>这个容量如何确定呢？<br>在《阿里巴巴Java开发手册》有以下建议：<br>initialCapacity = (需要储存的元素个数 / 负载因子) + 1。负载因子默认是0.75，如果实在是无法确定大小，可以给出默认值16。</p>
+</li>
+<li><p>为何需要给定大小？<br>是因为如果需要put的数据非常多，而默认值是16的话，就需要进行很多次扩容操作，而扩容操作需要先申请新的内存，将原数据copy过去，再分配，比较耗时。</p>
+</li>
+</ul>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ul>
+<li><a href="https://blog.csdn.net/carson_ho/article/details/79373134" target="_blank" rel="noopener">https://blog.csdn.net/carson_ho/article/details/79373134</a></li>
+<li><a href="https://www.zhihu.com/question/20733617" target="_blank" rel="noopener">https://www.zhihu.com/question/20733617</a></li>
+<li><a href="http://www.hollischuang.com/archives/2431" target="_blank" rel="noopener">http://www.hollischuang.com/archives/2431</a></li>
+<li><a href="https://blog.csdn.net/u013494765/article/details/77837338" target="_blank" rel="noopener">https://blog.csdn.net/u013494765/article/details/77837338</a></li>
+<li><a href="https://blog.csdn.net/witsmakemen/article/details/78820410" target="_blank" rel="noopener">https://blog.csdn.net/witsmakemen/article/details/78820410</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章推荐</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Java/IO阻塞/" rel="bookmark">IO 阻塞</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/" rel="bookmark">CompletableFuture 的使用</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/" rel="bookmark">LinkedHashMap与LruCache</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/06/blog_bak/Blog/Java/线程池/" rel="bookmark">线程池</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/04/blog_bak/Blog/Java/Java Final 关键字/" rel="bookmark">Java Final 关键字</a></div>
+      
+    </li>
+  
+  </ul>
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/" title="HashMap的扩容原理(基于JDK1.8)">http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Java/" rel="tag"># Java</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/04/08/blog_bak/Blog/Android-View/多指触控/" rel="next" title="多指触控">
+                  <i class="fa fa-chevron-left"></i> 多指触控
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/" rel="prev" title="LinkedHashMap与LruCache">
+                  LinkedHashMap与LruCache <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">173</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#寻找储存的位置"><span class="nav-number">1.</span> <span class="nav-text">寻找储存的位置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2次方与扩容"><span class="nav-number">2.</span> <span class="nav-text">2次方与扩容</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#初始化时，强烈建议给定容量大小"><span class="nav-number">3.</span> <span class="nav-text">初始化时，强烈建议给定容量大小</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文档"><span class="nav-number">4.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">661k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">10:01</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

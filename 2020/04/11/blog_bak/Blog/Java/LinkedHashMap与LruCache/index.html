@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="与HashMap的关系123public class LinkedHashMap&amp;lt;K,V&amp;gt; extends HashMap&amp;lt;K,V&amp;gt; implements Map&amp;lt;K,V&amp;gt; &amp;#123;    ...&amp;#125;accessOrder 字段1234567/** * The iteration ordering method for this linked has">
+<meta name="keywords" content="Java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LinkedHashMap与LruCache">
+<meta property="og:url" content="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="与HashMap的关系123public class LinkedHashMap&amp;lt;K,V&amp;gt; extends HashMap&amp;lt;K,V&amp;gt; implements Map&amp;lt;K,V&amp;gt; &amp;#123;    ...&amp;#125;accessOrder 字段1234567/** * The iteration ordering method for this linked has">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/access_order.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/structure.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/LruCache_class_uml.png?raw=true">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/LruCache_flow.png?raw=true">
+<meta property="og:updated_time" content="2020-06-17T02:06:09.910Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LinkedHashMap与LruCache">
+<meta name="twitter:description" content="与HashMap的关系123public class LinkedHashMap&amp;lt;K,V&amp;gt; extends HashMap&amp;lt;K,V&amp;gt; implements Map&amp;lt;K,V&amp;gt; &amp;#123;    ...&amp;#125;accessOrder 字段1234567/** * The iteration ordering method for this linked has">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/access_order.png?raw=true">
+  <link rel="canonical" href="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>LinkedHashMap与LruCache | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">11</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">173</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">LinkedHashMap与LruCache
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-11 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-11T00:00:00+08:00">2020-04-11</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
+              </span>
+            
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>13k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>12 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="与HashMap的关系"><a href="#与HashMap的关系" class="headerlink" title="与HashMap的关系"></a>与HashMap的关系</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public class LinkedHashMap&lt;K,V&gt; extends HashMap&lt;K,V&gt; implements Map&lt;K,V&gt; &#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="accessOrder-字段"><a href="#accessOrder-字段" class="headerlink" title="accessOrder 字段"></a>accessOrder 字段</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * The iteration ordering method for this linked hash map: &lt;tt&gt;true&lt;/tt&gt;</span><br><span class="line"> * for access-order, &lt;tt&gt;false&lt;/tt&gt; for insertion-order.</span><br><span class="line"> *</span><br><span class="line"> * @serial</span><br><span class="line"> */</span><br><span class="line">final boolean accessOrder;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<p>当这个字段为true的时候，迭代器的顺序是按照访问的顺序来输出的，为false的时候，是按照插入的顺序来输出的。</p>
+<p>看几个例子：</p>
+<ul>
+<li><p><strong>当使用默认的构造函数，accessOrder为false</strong></p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">        LinkedHashMap&lt;Integer, Integer&gt; map = new LinkedHashMap&lt;Integer, Integer&gt;();</span><br><span class="line">        for (int i = 0; i &lt; 10; i++) &#123;//按顺序放入0~9</span><br><span class="line">            map.put(i, i);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(&quot;原数据：&quot;+map.toString());</span><br><span class="line">        map.get(3);</span><br><span class="line">        System.out.println(&quot;查询存在的某一个：&quot;+map.toString());</span><br><span class="line">        map.put(4, 4);</span><br><span class="line">        System.out.println(&quot;插入已存在的某一个：&quot;+map.toString()); //直接调用已存在的toString方法，不然自己需要用迭代器实现</span><br><span class="line">        map.put(10, 10);</span><br><span class="line">        System.out.println(&quot;插入一个原本没存在的：&quot;+map.toString());</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>  <strong>输出</strong>：</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//  输出结果</span><br><span class="line">//  原数据：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9&#125;</span><br><span class="line">//  查询存在的某一个：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9&#125;</span><br><span class="line">//  插入已存在的某一个：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9&#125;</span><br><span class="line">//  插入一个原本没存在的：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, 10=10&#125;</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<ul>
+<li><p><strong>使用带参数的构造函数</strong></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    LinkedHashMap&lt;Integer, Integer&gt; map = <span class="keyword">new</span> LinkedHashMap&lt;Integer, Integer&gt;(<span class="number">20</span>, <span class="number">0.75f</span>, <span class="keyword">true</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;<span class="comment">//按顺序放入1~9</span></span><br><span class="line">        map.put(i, i);</span><br><span class="line">    &#125;</span><br><span class="line">    System.out.println(<span class="string">"原数据："</span>+map.toString());</span><br><span class="line">    map.get(<span class="number">3</span>);</span><br><span class="line">    System.out.println(<span class="string">"查询存在的某一个："</span>+map.toString());</span><br><span class="line">    map.put(<span class="number">4</span>, <span class="number">4</span>);</span><br><span class="line">    System.out.println(<span class="string">"插入已存在的某一个："</span>+map.toString()); <span class="comment">//直接调用已存在的toString方法，不然自己需要用迭代器实现</span></span><br><span class="line">    map.put(<span class="number">10</span>, <span class="number">10</span>);</span><br><span class="line">    System.out.println(<span class="string">"插入一个原本没存在的："</span>+map.toString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<pre><code>**输出**：
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  输出结果</span></span><br><span class="line"><span class="comment">//  原数据：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9&#125;</span></span><br><span class="line"><span class="comment">//  查询存在的某一个：&#123;0=0, 1=1, 2=2, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, 3=3&#125;，被访问（get）的3放到了最后面</span></span><br><span class="line"><span class="comment">//  插入已存在的某一个：&#123;0=0, 1=1, 2=2, 5=5, 6=6, 7=7, 8=8, 9=9, 3=3, 4=4&#125;，被访问（put）的4放到了最后面</span></span><br><span class="line"><span class="comment">//  插入一个原本没存在的：&#123;0=0, 1=1, 2=2, 5=5, 6=6, 7=7, 8=8, 9=9, 3=3, 4=4, 10=10&#125;，新增一个放到最后面</span></span><br></pre></td></tr></table></figure></code></pre><p>迭代顺序正如注释所说。那么为何会这样呢？让我们慢慢来揭开LinkedHashMap神秘的面纱。</p>
+<h2 id="头尾指针"><a href="#头尾指针" class="headerlink" title="头尾指针"></a>头尾指针</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * The head (eldest) of the doubly linked list.</span><br><span class="line"> */</span><br><span class="line">transient LinkedHashMapEntry&lt;K,V&gt; head;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * The tail (youngest) of the doubly linked list.</span><br><span class="line"> */</span><br><span class="line">transient LinkedHashMapEntry&lt;K,V&gt; tail;</span><br></pre></td></tr></table></figure>
+
+<p>head是双链表的头节点，tail自然是双链表的尾节点。那么这两个变量有什么用呢？他们与accesOrder有啥关系？</p>
+<p>我们先来分析，上面例子的行为。在第二个例子中，设置了 accessOrder 为 true，当我们调用 get() 方法之后，发现被访问的那个元素移动到了最后面。顺着get()方法来分析，为何为出现这种情况。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> V <span class="title">get</span><span class="params">(Object key)</span> </span>&#123;</span><br><span class="line">    Node&lt;K,V&gt; e;</span><br><span class="line">    <span class="keyword">if</span> ((e = getNode(hash(key), key)) == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (accessOrder)</span><br><span class="line">        afterNodeAccess(e);</span><br><span class="line">    <span class="keyword">return</span> e.value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getNode 是父类的方法，没有什么可以说的，值得深入的地方是最后的那个判断语句</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (accessOrder)</span><br><span class="line">    afterNodeAccess(e);</span><br></pre></td></tr></table></figure>
+
+<p>只有 accessOrder 为 true 的时候，才会执行 afterNodeAccess 这个判断似乎比较符合上面的行为。看来一切玄机都在这个方法里面。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">afterNodeAccess</span><span class="params">(Node&lt;K,V&gt; e)</span> </span>&#123; <span class="comment">// move node to last</span></span><br><span class="line">    LinkedHashMapEntry&lt;K,V&gt; last;</span><br><span class="line">    <span class="keyword">if</span> (accessOrder &amp;&amp; (last = tail) != e) &#123;</span><br><span class="line">        LinkedHashMapEntry&lt;K,V&gt; p =</span><br><span class="line">            (LinkedHashMapEntry&lt;K,V&gt;)e, b = p.before, a = p.after;</span><br><span class="line">        p.after = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (b == <span class="keyword">null</span>)</span><br><span class="line">            head = a;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            b.after = a;</span><br><span class="line">        <span class="keyword">if</span> (a != <span class="keyword">null</span>)</span><br><span class="line">            a.before = b;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            last = b;</span><br><span class="line">        <span class="keyword">if</span> (last == <span class="keyword">null</span>)</span><br><span class="line">            head = p;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            p.before = last;</span><br><span class="line">            last.after = p;</span><br><span class="line">        &#125;</span><br><span class="line">        tail = p;</span><br><span class="line">        ++modCount;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>方法名后面的注释解释了这个方法的作用：将参数节点移动到双向链表的最后面去，即让 tail 节点指向 e。<br>下面用一幅图来解释这个方法运作的原理：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/access_order.png?raw=true" alt></p>
+<p>如此这般，就将访问的节点e，移动到了双链表的尾节点。</p>
+<p>同样的，我们在看看put()方法，由于LinkedHashMap没有覆盖put()方法，我们就去HashMap的源码中找找源头：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123; <span class="comment">// existing mapping for key</span></span><br><span class="line">    V oldValue = e.value;</span><br><span class="line">    <span class="keyword">if</span> (!onlyIfAbsent || oldValue == <span class="keyword">null</span>)</span><br><span class="line">        e.value = value;</span><br><span class="line">    afterNodeAccess(e);</span><br><span class="line">    <span class="keyword">return</span> oldValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里有个陷阱，你突然猛地一看，感觉是那么回事，调用了 afterNodeAccess 方法，但是调用这个方法的前提条件是 e != null，用普通话说就是 如果key已经在map里面存在的时候，才会调用这个方法，那么当 e == null 的时候呢，源码里面调用了 newNode 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// tab[i] 为null的时候</span></span><br><span class="line">tab[i] = newNode(hash, key, value, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 红黑树上添加一个</span></span><br><span class="line">TreeNode&lt;K,V&gt; x = map.newTreeNode(h, k, v, xpn);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 链表上添加一个</span></span><br><span class="line">p.next = newNode(hash, key, value, <span class="keyword">null</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这里又有一个坑，当我天真的查看 newNode 与 newTreeNode 的时候，发现根本就只是调用了一个构造方法，突然就懵逼了，这根本说不通啊，按照之前的例子的行为，每次添加一个新的元素，也应该要放到双链表的最后才对。在我翻了几篇博客的时候突然想到，这两个方法会不会被LinkedHashMap重写了，查看源码，果然：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Node&lt;K,V&gt; <span class="title">newNode</span><span class="params">(<span class="keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; e)</span> </span>&#123;</span><br><span class="line">    LinkedHashMapEntry&lt;K,V&gt; p =</span><br><span class="line">        <span class="keyword">new</span> LinkedHashMapEntry&lt;K,V&gt;(hash, key, value, e);</span><br><span class="line">    linkNodeLast(p);</span><br><span class="line">    <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">TreeNode&lt;K,V&gt; <span class="title">newTreeNode</span><span class="params">(<span class="keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; next)</span> </span>&#123;</span><br><span class="line">    TreeNode&lt;K,V&gt; p = <span class="keyword">new</span> TreeNode&lt;K,V&gt;(hash, key, value, next);</span><br><span class="line">    linkNodeLast(p);</span><br><span class="line">    <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这两个货都调用了 linkNodeLast 方法，这个方法看名字就知道是将节点放到最后面，虽然它没有调用 afterNodeAccess，但是他们的作用确是一样的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// link at the end of list</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">linkNodeLast</span><span class="params">(LinkedHashMapEntry&lt;K,V&gt; p)</span> </span>&#123;</span><br><span class="line">    LinkedHashMapEntry&lt;K,V&gt; last = tail;</span><br><span class="line">    tail = p;</span><br><span class="line">    <span class="keyword">if</span> (last == <span class="keyword">null</span>)</span><br><span class="line">        head = p;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        p.before = last;</span><br><span class="line">        last.after = p;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个很简单，就不多说了。稍微提一下，按照源码的逻辑，每次新增的元素都是放在迭代器最后的，无论有没有开启 accessOrder，因为这里没有判断 accessOrder 字段，可以写demo验证一下。</p>
+<p>还有一个忽略的地方，就是 LinkedHashMapEntry 这个 Entry 里面有两个变量 before，after，他们是前后指针，有了他们才能形成双链表。</p>
+<h2 id="LinkedHashMap的结构"><a href="#LinkedHashMap的结构" class="headerlink" title="LinkedHashMap的结构"></a>LinkedHashMap的结构</h2><p>上面也说到过，LinkedHashMap是继承HashMap的，所以底层的数据结构与HashMap一样，不过它有自己的成员变量：head与tail。也就是说它增强了HashMap，在HashMap的基础上又维护了一个双链表。上图便于理解：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/structure.png?raw=true" alt></p>
+<p>红色的箭头就是LinkedHashMap自己维护的双链表，其他的还是HashMap自己的东西。</p>
+<h2 id="LruCache-原理"><a href="#LruCache-原理" class="headerlink" title="LruCache 原理"></a>LruCache 原理</h2><p>LruCache 解释：LRU是Least Recently Used的缩写，即最近最少使用。</p>
+<p><strong>为什么会有这个算法？</strong></p>
+<p>LRU算法的提出，是基于这样一个事实：之前使用过的数据，很可能在后面会频繁的使用到。反过来说，已经很久没有使用的数据很可能在未来较长的一段时间内不会被用到。这个，就是著名的局部性原理。因此，我们只需要在每次缓存满了的时候，移除最长时间没有使用的元素就好了。</p>
+<p>其实看了这段解释，你应该能够想到LinkedHashMap，因为这个货设置 accessOrder 为 true的时候，每次都会将访问的元素放在双链表的最后面，那么当存放的数据满了之后，我们只需要移除head指向的元素就好了，这样的行为非常符合Lru的原理。</p>
+<p>先上类图，搞清楚关系：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/LruCache_class_uml.png?raw=true" alt></p>
+<p>根据类图可以看出一个大概，LruCache的核心还是利用LinkedHashMap来实现的。LruCache的代码并不多，而且不难，300行不到，我们一点一点来看。</p>
+<h3 id="LruCache-构造函数"><a href="#LruCache-构造函数" class="headerlink" title="LruCache 构造函数"></a>LruCache 构造函数</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> maxSize for caches that do not override &#123;<span class="doctag">@link</span> #sizeOf&#125;, this is</span></span><br><span class="line"><span class="comment"> *     the maximum number of entries in the cache. For all other caches,</span></span><br><span class="line"><span class="comment"> *     this is the maximum sum of the sizes of the entries in this cache.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">LruCache</span><span class="params">(<span class="keyword">int</span> maxSize)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (maxSize &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"maxSize &lt;= 0"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">this</span>.maxSize = maxSize;</span><br><span class="line">    <span class="keyword">this</span>.map = <span class="keyword">new</span> LinkedHashMap&lt;K, V&gt;(<span class="number">0</span>, <span class="number">0.75f</span>, <span class="keyword">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>look，它将 accessOrder 字段设置为 true，负载因子使用推荐（默认）的0.75。</p>
+<h3 id="LruCache-get-方法"><a href="#LruCache-get-方法" class="headerlink" title="LruCache get 方法"></a>LruCache get 方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the value for &#123;<span class="doctag">@code</span> key&#125; if it exists in the cache or can be</span></span><br><span class="line"><span class="comment"> * created by &#123;<span class="doctag">@code</span> #create&#125;. If a value was returned, it is moved to the</span></span><br><span class="line"><span class="comment"> * head of the queue. This returns null if a value is not cached and cannot</span></span><br><span class="line"><span class="comment"> * be created.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> V <span class="title">get</span><span class="params">(K key)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (key == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"key == null"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    V mapValue;</span><br><span class="line">    <span class="comment">// 统计 hitCount 与 missCount</span></span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        mapValue = map.get(key);</span><br><span class="line">        <span class="keyword">if</span> (mapValue != <span class="keyword">null</span>) &#123;</span><br><span class="line">            hitCount++;</span><br><span class="line">            <span class="keyword">return</span> mapValue;</span><br><span class="line">        &#125;</span><br><span class="line">        missCount++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Attempt to create a value. This may take a long time, and the map</span></span><br><span class="line"><span class="comment">     * may be different when create() returns. If a conflicting value was</span></span><br><span class="line"><span class="comment">     * added to the map while create() was working, we leave that value in</span></span><br><span class="line"><span class="comment">     * the map and release the created value.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">// 如果key值不存在与map中，那么调用 create 方法创建一个，注意这个方法没有同步</span></span><br><span class="line">    V createdValue = create(key);</span><br><span class="line">    <span class="comment">// create 方法默认返回 </span></span><br><span class="line">    <span class="keyword">if</span> (createdValue == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// </span></span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        createCount++;</span><br><span class="line">        <span class="comment">// 将创建的值放入map中，如果map在前面的过程中有别的线程放入了这对key-value，那么会返回放入的value</span></span><br><span class="line">        mapValue = map.put(key, createdValue);</span><br><span class="line">        <span class="comment">// 不为空，说明不需要我们所创建的值，所以又把返回的值放进去</span></span><br><span class="line">        <span class="comment">// 将新创建的值丢弃</span></span><br><span class="line">        <span class="keyword">if</span> (mapValue != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// There was a conflict so undo that last put</span></span><br><span class="line">            map.put(key, mapValue);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//为空，说明我们更新了这个key的值，需要重新计算大小</span></span><br><span class="line">            size += safeSizeOf(key, createdValue);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mapValue != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 通知创建的值需要被移除，已经有别的线程创建了对应的key-value</span></span><br><span class="line">        entryRemoved(<span class="keyword">false</span>, key, createdValue, mapValue);</span><br><span class="line">        <span class="keyword">return</span> mapValue;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 没有冲突时，因为放入了新创建的值，大小已经有变化，所以需要修整大小</span></span><br><span class="line">        trimToSize(maxSize);</span><br><span class="line">        <span class="keyword">return</span> createdValue;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>本来是不想贴代码的，因为贴了之后自己记不住，别人也懒得看，但是这个类确实很简单，自己看看就明白了。不帖代码也不知道该怎么写。</p>
+<h2 id="LruCache-put-方法"><a href="#LruCache-put-方法" class="headerlink" title="LruCache put 方法"></a>LruCache put 方法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> V <span class="title">put</span><span class="params">(K key, V value)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (key == <span class="keyword">null</span> || value == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"key == null || value == null"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    V previous;</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        putCount++;</span><br><span class="line">        <span class="comment">// 计算该 value 占用的缓存大小</span></span><br><span class="line">        size += safeSizeOf(key, value);</span><br><span class="line">        previous = map.put(key, value);</span><br><span class="line">        <span class="comment">// 如果 key 存在，总的大小需要减去key对应的旧value的大小</span></span><br><span class="line">        <span class="keyword">if</span> (previous != <span class="keyword">null</span>) &#123;</span><br><span class="line">            size -= safeSizeOf(key, previous);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 调用钩子函数</span></span><br><span class="line">    <span class="keyword">if</span> (previous != <span class="keyword">null</span>) &#123;</span><br><span class="line">        entryRemoved(<span class="keyword">false</span>, key, previous, value);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 查看是否需要释放缓存空间</span></span><br><span class="line">    trimToSize(maxSize);</span><br><span class="line">    <span class="keyword">return</span> previous;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="LruCache-trimToSize-方法"><a href="#LruCache-trimToSize-方法" class="headerlink" title="LruCache trimToSize 方法"></a>LruCache trimToSize 方法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">trimToSize</span><span class="params">(<span class="keyword">int</span> maxSize)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            K key;</span><br><span class="line">            V value;</span><br><span class="line">            <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (size &lt; <span class="number">0</span> || (map.isEmpty() &amp;&amp; size != <span class="number">0</span>)) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(getClass().getName()</span><br><span class="line">                            + <span class="string">".sizeOf() is reporting inconsistent results!"</span>);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (size &lt;= maxSize) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// BEGIN LAYOUTLIB CHANGE</span></span><br><span class="line">                <span class="comment">// get the last item in the linked list.</span></span><br><span class="line">                <span class="comment">// This is not efficient, the goal here is to minimize the changes</span></span><br><span class="line">                <span class="comment">// compared to the platform version.</span></span><br><span class="line">                Map.Entry&lt;K, V&gt; toEvict = <span class="keyword">null</span>;</span><br><span class="line">                <span class="keyword">for</span> (Map.Entry&lt;K, V&gt; entry : map.entrySet()) &#123;</span><br><span class="line">                    toEvict = entry;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// END LAYOUTLIB CHANGE</span></span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (toEvict == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                key = toEvict.getKey();</span><br><span class="line">                value = toEvict.getValue();</span><br><span class="line">                map.remove(key);</span><br><span class="line">                size -= safeSizeOf(key, value);</span><br><span class="line">                evictionCount++;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            entryRemoved(<span class="keyword">true</span>, key, value, <span class="keyword">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>看起来很长，但是其实就是不断的删除Head节点，直到缓存大小小于我们设置的最大缓存大小。没啥说的。</p>
+<h2 id="LruCahe-使用例子"><a href="#LruCahe-使用例子" class="headerlink" title="LruCahe 使用例子"></a>LruCahe 使用例子</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">    mMemoryCache = <span class="keyword">new</span> LruCache&lt;String, BitmapDrawable&gt;(mCacheParams.memCacheSize) &#123;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * Notify the removed entry that is no longer being cached</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">entryRemoved</span><span class="params">(<span class="keyword">boolean</span> evicted, String key,</span></span></span><br><span class="line"><span class="function"><span class="params">                BitmapDrawable oldValue, BitmapDrawable newValue)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (RecyclingBitmapDrawable.class.isInstance(oldValue)) &#123;</span><br><span class="line">                <span class="comment">// The removed entry is a recycling drawable, so notify it</span></span><br><span class="line">                <span class="comment">// that it has been removed from the memory cache</span></span><br><span class="line">                ((RecyclingBitmapDrawable) oldValue).setIsCached(<span class="keyword">false</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// The removed entry is a standard BitmapDrawable</span></span><br><span class="line">                <span class="keyword">if</span> (Utils.hasHoneycomb()) &#123;</span><br><span class="line">                    <span class="comment">// We're running on Honeycomb or later, so add the bitmap</span></span><br><span class="line">                    <span class="comment">// to a SoftReference set for possible use with inBitmap later</span></span><br><span class="line">                    mReusableBitmaps.add(<span class="keyword">new</span> SoftReference&lt;Bitmap&gt;(oldValue.getBitmap()));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * Measure item size in kilobytes rather than units which is more practical</span></span><br><span class="line"><span class="comment">         * for a bitmap cache</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">int</span> <span class="title">sizeOf</span><span class="params">(String key, BitmapDrawable value)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="keyword">int</span> bitmapSize = getBitmapSize(value) / <span class="number">1024</span>;</span><br><span class="line">            <span class="keyword">return</span> bitmapSize == <span class="number">0</span> ? <span class="number">1</span> : bitmapSize;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码是Google很老的例子，因为Lru使用很简单，所以仍然用这个说明一下。</p>
+<p>构造函数传递一个值，是用来限制缓存的大小的，比如你存放 bitmap，那么就需要根据App的可用内存来动态计算这个缓存应该占据多少。</p>
+<p>entryRemoved 就是当资源被回收是会自动回调的一个钩子函数，如果你的缓存里面存放的资源被回收时，你还需要做一些别的操作，那么你需要实现这个方法。举个不恰当的例子，你想缓存一些连接，那么当这个连接被移除的时候，你肯定需要关闭这个连接，这个时候，在 entryRemoved 里面关闭就很容易了。</p>
+<p>sizeOf 就是用来计算每个元素占用空间的大小。比如，图片一般的计算方式是计算图片被读取到内存中的大小，但是有时候可能产品脑子被驴踢了（不恰当的例子），它就要缓存固定个数的图片，不论图片大小，这个时候，sizeOf 就需要返回 1，只有这样才能满足要求。</p>
+<h2 id="LruCache-工作流程图"><a href="#LruCache-工作流程图" class="headerlink" title="LruCache 工作流程图"></a>LruCache 工作流程图</h2><p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/LruCache_flow.png?raw=true" alt></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://blog.csdn.net/maosidiaoxian/article/details/51393753" target="_blank" rel="noopener">https://blog.csdn.net/maosidiaoxian/article/details/51393753</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章推荐</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/" rel="bookmark">HashMap的扩容原理(基于JDK1.8)</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Java/IO阻塞/" rel="bookmark">IO 阻塞</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/" rel="bookmark">CompletableFuture 的使用</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/06/blog_bak/Blog/Java/线程池/" rel="bookmark">线程池</a></div>
+      
+    </li>
+  
+    <li class="popular-posts-item">
+      
+      
+      <div class="popular-posts-title"><a href="/2020/04/04/blog_bak/Blog/Java/Java Final 关键字/" rel="bookmark">Java Final 关键字</a></div>
+      
+    </li>
+  
+  </ul>
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/" title="LinkedHashMap与LruCache">http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/LinkedHashMap与LruCache/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Java/" rel="tag"># Java</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/" rel="next" title="HashMap的扩容原理(基于JDK1.8)">
+                  <i class="fa fa-chevron-left"></i> HashMap的扩容原理(基于JDK1.8)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/04/20/blog_bak/Blog/Android-知识点/本地广播/" rel="prev" title="本地广播">
+                  本地广播 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">173</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#与HashMap的关系"><span class="nav-number">1.</span> <span class="nav-text">与HashMap的关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#accessOrder-字段"><span class="nav-number">2.</span> <span class="nav-text">accessOrder 字段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#头尾指针"><span class="nav-number">3.</span> <span class="nav-text">头尾指针</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LinkedHashMap的结构"><span class="nav-number">4.</span> <span class="nav-text">LinkedHashMap的结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruCache-原理"><span class="nav-number">5.</span> <span class="nav-text">LruCache 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LruCache-构造函数"><span class="nav-number">5.1.</span> <span class="nav-text">LruCache 构造函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LruCache-get-方法"><span class="nav-number">5.2.</span> <span class="nav-text">LruCache get 方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruCache-put-方法"><span class="nav-number">6.</span> <span class="nav-text">LruCache put 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruCache-trimToSize-方法"><span class="nav-number">7.</span> <span class="nav-text">LruCache trimToSize 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruCahe-使用例子"><span class="nav-number">8.</span> <span class="nav-text">LruCahe 使用例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruCache-工作流程图"><span class="nav-number">9.</span> <span class="nav-text">LruCache 工作流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">10.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">661k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">10:01</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
