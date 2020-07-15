@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="框架地址：https://github.com/CNSRE/HTTPDNSLib先从，框架的几个模块开始介绍。测速模块对于一个大型app来说，在全国会有多个服务器， 每个服务器的ip地址肯定也是不一致的，所以对于不同地区的用户，一般情况下与之最近的服务器肯定访问最快，测速模块就是找到访问最快的服务器。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HttpDnsLib分析">
+<meta property="og:url" content="http://aprz512.github.io/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="框架地址：https://github.com/CNSRE/HTTPDNSLib先从，框架的几个模块开始介绍。测速模块对于一个大型app来说，在全国会有多个服务器， 每个服务器的ip地址肯定也是不一致的，所以对于不同地区的用户，一般情况下与之最近的服务器肯定访问最快，测速模块就是找到访问最快的服务器。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-07-15T09:08:55.012Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HttpDnsLib分析">
+<meta name="twitter:description" content="框架地址：https://github.com/CNSRE/HTTPDNSLib先从，框架的几个模块开始介绍。测速模块对于一个大型app来说，在全国会有多个服务器， 每个服务器的ip地址肯定也是不一致的，所以对于不同地区的用户，一般情况下与之最近的服务器肯定访问最快，测速模块就是找到访问最快的服务器。">
+  <link rel="canonical" href="http://aprz512.github.io/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>HttpDnsLib分析 | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">12</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">186</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">HttpDnsLib分析
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-30 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-30T00:00:00+08:00">2020-06-30</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>17k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>16 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>框架地址：</p><p><a href="https://github.com/CNSRE/HTTPDNSLib" target="_blank" rel="noopener">https://github.com/CNSRE/HTTPDNSLib</a></p><p>先从，框架的几个模块开始介绍。</p><h3 id="测速模块"><a href="#测速模块" class="headerlink" title="测速模块"></a>测速模块</h3><p>对于一个大型app来说，在全国会有多个服务器， 每个服务器的ip地址肯定也是不一致的，所以对于不同地区的用户，一般情况下与之最近的服务器肯定访问最快，测速模块就是找到访问最快的服务器。</p><a id="more"></a>
+
+
+
+<p>测速有两种方法，第一种是使用 ping 命令，第二种是使用 socket。下面分别介绍：</p>
+<h4 id="Ping"><a href="#Ping" class="headerlink" title="Ping"></a>Ping</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Ping</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ping -c1 -s1 -w1 www.baidu.com //-w 超时单位是s</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG_BYTES_FROM = <span class="string">"bytes from "</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">runcmd</span><span class="params">(String cmd)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line">        Process proc = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> String command = cmd.trim();</span><br><span class="line">        <span class="comment">// 这里计算的是命令跑完的时间，而不是ping输出的时间</span></span><br><span class="line">        <span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line">        proc = runtime.exec(command);</span><br><span class="line">        proc.waitFor();</span><br><span class="line">        <span class="keyword">long</span> endTime = System.currentTimeMillis();</span><br><span class="line">        InputStream inputStream = proc.getInputStream();</span><br><span class="line">        String result = <span class="string">"unknown ip"</span>;</span><br><span class="line"></span><br><span class="line">        BufferedReader reader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(inputStream));</span><br><span class="line">        StringBuilder resultBuilder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        String line = <span class="string">""</span>;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">null</span> != (line = reader.readLine())) &#123;</span><br><span class="line">            resultBuilder.append(line);</span><br><span class="line">        &#125;</span><br><span class="line">        reader.close();</span><br><span class="line">        String responseStr = resultBuilder.toString();</span><br><span class="line">        result = responseStr.toLowerCase().trim();</span><br><span class="line">        <span class="keyword">if</span> (isValidResult(result)) &#123;</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">int</span>) (endTime - startTime);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> SpeedtestManager.OCUR_ERROR;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isValidResult</span><span class="params">(String result)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!TextUtils.isEmpty(result)) &#123;</span><br><span class="line">            <span class="keyword">if</span> (result.indexOf(TAG_BYTES_FROM) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码其实就是使用 Runtime 执行了一个 ping 命令，但是它测的时间是这个命令同步执行耗费的时间，而不是命令返回的结果里面的时间。</p>
+<h4 id="Socket"><a href="#Socket" class="headerlink" title="Socket"></a>Socket</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">speedTest</span><span class="params">(String ip, String host)</span> </span>&#123;</span><br><span class="line">    Socket socket = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 计算的是 socket 的 connect 连接时间</span></span><br><span class="line">        <span class="keyword">long</span> begin = System.currentTimeMillis();</span><br><span class="line">        Socket s1 = <span class="keyword">new</span> Socket();</span><br><span class="line">        s1.connect(<span class="keyword">new</span> InetSocketAddress(ip, <span class="number">80</span>), TIMEOUT);</span><br><span class="line">        <span class="keyword">long</span> end = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">int</span> rtt = (<span class="keyword">int</span>) (end - begin);</span><br><span class="line">        <span class="keyword">return</span> rtt;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> != socket) &#123;</span><br><span class="line">                socket.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> SpeedtestManager.OCUR_ERROR;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用的 Socket 的 connect 方法来测量访问速度。</p>
+<p>在进行测速的时候，会优先使用 Socket 来测速，如果 Socket 测通了，那么就不会再使用 Ping 来测速了。</p>
+<h3 id="评分模块"><a href="#评分模块" class="headerlink" title="评分模块"></a>评分模块</h3><p>框架里面虽然缓存了各个域名的IP地址，但是有效期只有1分钟，所以开了一个任务来不断的更新过期的域名IP。</p>
+<p>更新了IP之后，也会对新IP进行测速，在测速后会统计该IP测试通过– 成功的次数，失败的次数，最后成功的时间，以及RTT值，另外还有一个HttpDns服务器返回IP的时候会带一个优先级，这个也计入评分项。</p>
+<blockquote>
+<p>RTT 的概念可以自己搜索一下。</p>
+</blockquote>
+<h4 id="成功的次数"><a href="#成功的次数" class="headerlink" title="成功的次数"></a>成功的次数</h4><p>使用上面的测速模块对IP进行测速之后，我们记录一下测速状态：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (IpModel ipModel : ipArray) &#123;</span><br><span class="line">    <span class="keyword">int</span> rtt = speedtestManager.speedTest(ipModel.ip, domainModel.domain);</span><br><span class="line">    <span class="keyword">boolean</span> succ = rtt &gt; SpeedtestManager.OCUR_ERROR;</span><br><span class="line">    <span class="keyword">if</span> (succ) &#123;</span><br><span class="line">        ipModel.rtt = String.valueOf(rtt);</span><br><span class="line">        ipModel.success_num = String.valueOf((Integer.parseInt(ipModel.success_num) + <span class="number">1</span>));</span><br><span class="line">        ipModel.finally_success_time = String.valueOf(System.currentTimeMillis());</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        ipModel.rtt = String.valueOf(SpeedtestManager.MAX_OVERTIME_RTT);</span><br><span class="line">        ipModel.err_num = String.valueOf((Integer.valueOf(ipModel.err_num) + <span class="number">1</span>));</span><br><span class="line">        ipModel.finally_fail_time = String.valueOf(System.currentTimeMillis());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码逻辑很简单：</p>
+<p>如果成功了，记录RTT值，成功次数加一，记录成功时间。</p>
+<p>如果失败了，RTT记为9999，失败次数加一，记录失败时间。</p>
+<p>我们看一下成功次数这一项对评分的影响：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(ArrayList&lt;IpModel&gt; list)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 查找到最大历史成功次数</span></span><br><span class="line">    <span class="keyword">float</span> MAX_SUCCESSNUM = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (IpModel temp : list) &#123;</span><br><span class="line">        <span class="keyword">if</span> (temp.success_num == <span class="keyword">null</span> || temp.success_num.equals(<span class="string">""</span>))</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">float</span> successNum = Float.parseFloat(temp.success_num);</span><br><span class="line">        MAX_SUCCESSNUM = Math.max(MAX_SUCCESSNUM, successNum);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 计算比值</span></span><br><span class="line">    <span class="keyword">if</span> (MAX_SUCCESSNUM == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">float</span> bi = getWeight() / MAX_SUCCESSNUM;</span><br><span class="line">    <span class="comment">// 计算得分</span></span><br><span class="line">    <span class="keyword">for</span> (IpModel temp : list) &#123;</span><br><span class="line">        <span class="keyword">if</span> (temp.success_num == <span class="keyword">null</span> || temp.success_num.equals(<span class="string">""</span>))&#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">float</span> successNum = Float.parseFloat(temp.success_num);</span><br><span class="line">        temp.grade += (successNum * bi);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getWeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> PlugInManager.SuccessNumPluginNum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>逻辑不负责，使用的是比较简单的评分算法，找到所有IP的最大成功次数，然后按照自己的成功次数计算出一个比例，在诚意一个固定的值。</p>
+<p>这种算法最神奇的地方就是参数了，没人知道为什么是这个参数，但是它就是可以工作。所以调参是个技术活。</p>
+<p>其他项的评分算法其实是一样的逻辑，就不过多的介绍了，再拿RTT举个例子吧。</p>
+<h4 id="RTT"><a href="#RTT" class="headerlink" title="RTT"></a>RTT</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(ArrayList&lt;IpModel&gt; list)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 查找到最大速度</span></span><br><span class="line">    <span class="keyword">float</span> MAX_SPEED = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (IpModel temp : list) &#123;</span><br><span class="line">        <span class="keyword">if</span> (temp.rtt == <span class="keyword">null</span> || temp.rtt.equals(<span class="string">""</span>))</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">float</span> finallySpeed = Float.parseFloat(temp.rtt);</span><br><span class="line">        MAX_SPEED = Math.max(MAX_SPEED, finallySpeed);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 计算比值</span></span><br><span class="line">    <span class="keyword">if</span> (MAX_SPEED == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">float</span> bi = getWeight() / MAX_SPEED;</span><br><span class="line">    <span class="comment">// 计算得分</span></span><br><span class="line">    <span class="keyword">for</span> (IpModel temp : list) &#123;</span><br><span class="line">        <span class="keyword">if</span> (temp.rtt == <span class="keyword">null</span> || temp.rtt.equals(<span class="string">""</span>))&#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">float</span> finallySpeed = Float.parseFloat(temp.rtt);</span><br><span class="line">        temp.grade += (getWeight() - (finallySpeed * bi));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getWeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> PlugInManager.SpeedTestPluginNum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>唯一不同点就是，RTT越小，评分应该越高，所以采用的是减法。</p>
+<h3 id="DNS服务器模块"><a href="#DNS服务器模块" class="headerlink" title="DNS服务器模块"></a>DNS服务器模块</h3><p>我一直以为HttpDns服务器要一个就够用了，没想到真是开了眼界了。这个库里面有4个DNS服务器，其中有一个是本地服务器。</p>
+<h4 id="PodDns"><a href="#PodDns" class="headerlink" title="PodDns"></a>PodDns</h4><p>这个是一个免费的HttpDns。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> HttpDnsPack <span class="title">requestDns</span><span class="params">(String domain)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如果新浪自家的服务器没有拿到数据，或者数据有问题，则使用 dnspod 提供的接口获取数据</span></span><br><span class="line">    String jsonDataStr = <span class="keyword">null</span>;</span><br><span class="line">    HttpDnsPack dnsPack = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    String dnspod_httpdns_api_url = DnsConfig.DNSPOD_SERVER_API + DNSPodCipher.Encryption(domain);</span><br><span class="line">    jsonDataStr = netWork.requests(dnspod_httpdns_api_url);</span><br><span class="line">    <span class="keyword">if</span> (jsonDataStr == <span class="keyword">null</span> || jsonDataStr.equals(<span class="string">""</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>; <span class="comment">// 如果dnspod 也没提取到数据 则返回空</span></span><br><span class="line"></span><br><span class="line">    jsonDataStr = DNSPodCipher.Decryption(jsonDataStr);</span><br><span class="line"></span><br><span class="line">    dnsPack = <span class="keyword">new</span> HttpDnsPack();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String IP_TTL[] = jsonDataStr.split(<span class="string">","</span>);</span><br><span class="line">        String IPArr[] = IP_TTL[<span class="number">0</span>].split(<span class="string">";"</span>);</span><br><span class="line">        String TTL = IP_TTL[<span class="number">1</span>];</span><br><span class="line">        dnsPack.rawResult = jsonDataStr;</span><br><span class="line">        dnsPack.domain = domain;</span><br><span class="line">        dnsPack.device_ip = NetworkManager.Util.getLocalIpAddress();</span><br><span class="line">        dnsPack.device_sp = NetworkManager.getInstance().getSPID() ; </span><br><span class="line"></span><br><span class="line">        dnsPack.dns = <span class="keyword">new</span> HttpDnsPack.IP[IPArr.length];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; IPArr.length; i++) &#123;</span><br><span class="line">            dnsPack.dns[i] = <span class="keyword">new</span> HttpDnsPack.IP();</span><br><span class="line">            dnsPack.dns[i].ip = IPArr[i];</span><br><span class="line">            dnsPack.dns[i].ttl = TTL;</span><br><span class="line">            dnsPack.dns[i].priority = <span class="string">"0"</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        dnsPack = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> dnsPack;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个就没啥好说的了，就是按照文档里面的来就好了。值得一提的是，因为这个免费的返回数据里面并没有提供Model里面的各个字段（比自身的HttpDns服务器返回的字段少了一些，所以有些字段需要自己拼一下）。</p>
+<p>比如，设备的ip与运营商。关于运营商还有个小知识点需要说一下：</p>
+<blockquote>
+<p>在客户端内如果是手机网络可以知道网络类型（2G、3G、4G）也可以知道当前SP（移动、联通、电信）.</p>
+<p>如果是Wifi网络环境可以知道SSID，但是无法知道当前SP.</p>
+</blockquote>
+<h4 id="LocalDns"><a href="#LocalDns" class="headerlink" title="LocalDns"></a>LocalDns</h4><p>这个是本地的Dns，使用的是 InetAddress 来获取对应的域名 IP。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> HttpDnsPack <span class="title">requestDns</span><span class="params">(String domain)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        InetAddress[] addresses = InetAddress.getAllByName(domain);</span><br><span class="line">        String[] ipList = <span class="keyword">new</span> String[addresses.length];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; addresses.length; i++) &#123;</span><br><span class="line">            ipList[i] = addresses[i].getHostAddress();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != ipList &amp;&amp; ipList.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            HttpDnsPack dnsPack = <span class="keyword">new</span> HttpDnsPack();</span><br><span class="line">            String IPArr[] = ipList;</span><br><span class="line">            String TTL = <span class="string">"60"</span>;</span><br><span class="line">            dnsPack.domain = domain;</span><br><span class="line">            dnsPack.device_ip = NetworkManager.Util.getLocalIpAddress();</span><br><span class="line">            dnsPack.device_sp = NetworkManager.getInstance().getSPID() ;</span><br><span class="line">            dnsPack.rawResult = <span class="string">"domain:"</span> + domain + <span class="string">";\nipArray:"</span>;</span><br><span class="line">            dnsPack.dns = <span class="keyword">new</span> HttpDnsPack.IP[IPArr.length];</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; IPArr.length; i++) &#123;</span><br><span class="line">                String ip = IPArr[i];</span><br><span class="line">                <span class="keyword">if</span> (i == IPArr.length - <span class="number">1</span>) &#123;</span><br><span class="line">                    <span class="comment">//去掉最后的逗号</span></span><br><span class="line">                    dnsPack.rawResult += (ip);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    dnsPack.rawResult += (ip + <span class="string">","</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                dnsPack.dns[i] = <span class="keyword">new</span> HttpDnsPack.IP();</span><br><span class="line">                dnsPack.dns[i].ip = ip;</span><br><span class="line">                dnsPack.dns[i].ttl = TTL;</span><br><span class="line">                dnsPack.dns[i].priority = <span class="string">"0"</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> dnsPack;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个也很简单，就是利用一些信息，在本地自己拼出来一个HttpDnsPack对象。</p>
+<h4 id="SinaHttpDns"><a href="#SinaHttpDns" class="headerlink" title="SinaHttpDns"></a>SinaHttpDns</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> HttpDnsPack <span class="title">requestDns</span><span class="params">(String domain)</span> </span>&#123;</span><br><span class="line">    String jsonDataStr = <span class="keyword">null</span>;</span><br><span class="line">    HttpDnsPack dnsPack = <span class="keyword">null</span>;</span><br><span class="line">    ArrayList&lt;String&gt; serverApis = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line">    serverApis.addAll(DnsConfig.SINA_HTTPDNS_SERVER_API);</span><br><span class="line">    <span class="keyword">while</span> (<span class="keyword">null</span> == dnsPack &amp;&amp; serverApis.size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String api = <span class="string">""</span>;</span><br><span class="line">            <span class="keyword">int</span> index = serverApis.indexOf(usingServerApi);</span><br><span class="line">            <span class="keyword">if</span> (index != -<span class="number">1</span>) &#123;</span><br><span class="line">                api = serverApis.remove(index);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                api = serverApis.remove(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            String sina_httpdns_api_url = api + domain;</span><br><span class="line">            jsonDataStr = netWork.requests(sina_httpdns_api_url);</span><br><span class="line">            dnsPack = jsonObj.JsonStrToObj(jsonDataStr);</span><br><span class="line">            usingServerApi = api;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            usingServerApi = <span class="string">""</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> dnsPack;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>自身的服务器，返回的数据直接使用 Json 转对象了，没啥好说的。</p>
+<p>里面的逻辑有做一个循环，是因为它的请求地址有多个，一个不行再试另外一个。</p>
+<h4 id="UdpDns"><a href="#UdpDns" class="headerlink" title="UdpDns"></a>UdpDns</h4><p>这个应该是访问的公共的DNS服务器。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> HttpDnsPack <span class="title">requestDns</span><span class="params">(String domain)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        UdpDnsInfo info = UdnDnsClient.query(DnsConfig.UDPDNS_SERVER_API, domain);</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != info &amp;&amp; info.ips.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            HttpDnsPack dnsPack = <span class="keyword">new</span> HttpDnsPack();</span><br><span class="line">            String IPArr[] = info.ips;</span><br><span class="line">            String TTL = String.valueOf(info.ttl);</span><br><span class="line">            dnsPack.rawResult = <span class="string">"domain : "</span> + domain + <span class="string">"\n"</span> + info.toString();</span><br><span class="line">            dnsPack.domain = domain;</span><br><span class="line">            dnsPack.device_ip = NetworkManager.Util.getLocalIpAddress();</span><br><span class="line">            dnsPack.device_sp = NetworkManager.getInstance().getSPID();</span><br><span class="line"></span><br><span class="line">            dnsPack.dns = <span class="keyword">new</span> HttpDnsPack.IP[IPArr.length];</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; IPArr.length; i++) &#123;</span><br><span class="line">                dnsPack.dns[i] = <span class="keyword">new</span> HttpDnsPack.IP();</span><br><span class="line">                dnsPack.dns[i].ip = IPArr[i];</span><br><span class="line">                dnsPack.dns[i].ttl = TTL;</span><br><span class="line">                dnsPack.dns[i].priority = <span class="string">"0"</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> dnsPack;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一共有4个服务器，他们也是有优先级的，与测速一样，优先级高的跑通了，后面的就不再跑了。</p>
+<p>我们总结一下上面的3个模块：</p>
+<p>DNS模块是获取域名对应的IP地址</p>
+<p>测速模块是对IP地址进行测速</p>
+<p>评分模块是对IP地址的访问状况做评分，选出最好的</p>
+<p>基本上，经过这3个模块后，我们就可以拿到表现最好的IP地址了。但是这还不够，接下来还有几个模块需要介绍。</p>
+<h3 id="缓存模块"><a href="#缓存模块" class="headerlink" title="缓存模块"></a>缓存模块</h3><p>我们从 HttpDns 服务器里面请求下来了那么多数据，而且我们还设置了IP的有效期为一分钟，会不断的更新这些数据，所以将这些数据进行缓存是非常有必要的。</p>
+<p>缓存分为两部分，内存与数据库。</p>
+<p>内存就比较简单，就是一个ConcurrentHashMap。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 缓存链表，域名与 DomainModel 的键值对。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> ConcurrentHashMap&lt;String, DomainModel&gt; data = <span class="keyword">new</span> ConcurrentHashMap&lt;String, DomainModel&gt;(INIT_SIZE, MAX_CACHE_SIZE);</span><br></pre></td></tr></table></figure>
+
+<p>数据库是分为了三个表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.execSQL(CREATE_DOMAIN_TABLE_SQL);</span><br><span class="line">db.execSQL(CREATE_IP_TEBLE_SQL);</span><br><span class="line">db.execSQL(CREATE_CONNECT_FAIL_TABLE_SQL);</span><br></pre></td></tr></table></figure>
+
+<p>DOMAIN表 是域名。</p>
+<p>IP表 是域名对应的IP集合。</p>
+<p>DOMAIN 与 IP 是关联的。</p>
+<p>CONNECT_FAIL表 是用于上报，这里不分析。</p>
+<p>我们先来看一下数据模型：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DomainModel</span> </span>&#123;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 自增id &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants &#125; DOMAIN_COLUMN_ID 字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">long</span> id = -<span class="number">1</span> ;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 域名 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants &#125; DOMAIN_COLUMN_DOMAIN 字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String domain = <span class="string">""</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 运营商 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants &#125; DOMAIN_COLUMN_SP 字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String sp = <span class="string">""</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 域名过期时间 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants &#125; DOMAIN_COLUMN_TTL 字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String ttl = <span class="string">"0"</span> ;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 域名最后查询时间 &lt;br&gt;</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants &#125; DOMAIN_COLUMN_TIME 字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> String time = <span class="string">"0"</span> ;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 域名关联的ip数组 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> ArrayList&lt;IpModel&gt; ipModelArr = <span class="keyword">null</span> ; </span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IpModel</span> </span>&#123;</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 自增id &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_ID &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">long</span> id = -<span class="number">1</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * domain id 关联id</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_DOMAIN_ID &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">long</span> d_id = -<span class="number">1</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 服务器ip地址</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_PORT &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String ip = <span class="string">""</span> ;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * ip服务器对应的端口</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_PORT &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">int</span> port = -<span class="number">1</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * ip服务器对应的sp运营商</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_SP &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String sp = <span class="string">""</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * ip过期时间</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_TTL &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String ttl = <span class="string">"0"</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * ip服务器优先级-排序算法策略使用</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_PRIORITY &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String priority = <span class="string">"0"</span> ; </span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 访问ip服务器的往返时延</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_PRIORITY &#125;&#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String rtt = <span class="string">"0"</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * ip服务器链接产生的成功数</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_SUCCESS_NUM &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String success_num = <span class="string">"0"</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * ip服务器链接产生的错误数</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_ERR_NUM &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String err_num = <span class="string">"0"</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * ip服务器最后成功链接时间</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_FINALLY_SUCCESS_TIME &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String finally_success_time = <span class="string">"0"</span> ; </span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * ip服务器最后失败链接时间</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * 该字段映射类 &#123;<span class="doctag">@link</span> com.sina.util.dnscache.cache.DBConstants#IP_COLUMN_FINALLY_FAIL_TIME &#125;字段 &lt;br&gt;</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> String finally_fail_time = <span class="string">"0"</span> ; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 评估体系 评分分值</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">float</span> grade = <span class="number">0</span> ; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出。数据库就是储存了这些对象的信息。</p>
+<p>我们看一下缓存对外暴露的接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取 domain 缓存</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> sp</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> domain</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> DomainModel <span class="title">getDnsCache</span><span class="params">(String sp, String domain)</span></span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 插入一条缓存记录</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> dnsPack</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> DomainModel <span class="title">insertDnsCache</span><span class="params">(HttpDnsPack dnsPack)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取缓存中全部的 DomainModel数据</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ArrayList&lt;DomainModel&gt; <span class="title">getAllMemoryCache</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这里我只列出了3个，还有很多，但是这3个可以说明缓存的大致作用，就是将服务器请求的数据缓存起来，然后用时可以查找取出。</p>
+<h4 id="定时器"><a href="#定时器" class="headerlink" title="定时器"></a>定时器</h4><p>定时器是属于缓存模块的，但是我个人是觉得很重要的，因为只有开了定时器，才会不断的去 HttpDns 服务器中去同步IP地址。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> TimerTask task = <span class="keyword">new</span> TimerTask() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        timerTaskOldRunTime = System.currentTimeMillis();</span><br><span class="line">        <span class="comment">//无网络情况下不执行任何后台任务操作</span></span><br><span class="line">        <span class="keyword">if</span> (NetworkManager.Util.getNetworkType() == Constants.NETWORK_TYPE_UNCONNECTED || NetworkManager.Util.getNetworkType() == Constants.MOBILE_UNKNOWN) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/************************* 更新过期数据 ********************************/</span></span><br><span class="line">        Thread.currentThread().setName(<span class="string">"HTTP DNS TimerTask"</span>);</span><br><span class="line">        <span class="keyword">final</span> ArrayList&lt;DomainModel&gt; list = dnsCacheManager.getExpireDnsCache();</span><br><span class="line">        <span class="keyword">for</span> (DomainModel model : list) &#123;</span><br><span class="line">            checkUpdates(model.domain, <span class="keyword">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">long</span> now = System.currentTimeMillis();</span><br><span class="line">        <span class="comment">/************************* 测速逻辑 ********************************/</span></span><br><span class="line">        <span class="keyword">if</span> (now - lastSpeedTime &gt; SpeedtestManager.time_interval - <span class="number">3</span>) &#123;</span><br><span class="line">            lastSpeedTime = now;</span><br><span class="line">            RealTimeThreadPool.getInstance().execute(<span class="keyword">new</span> SpeedTestTask());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/************************* 日志上报相关 ********************************/</span></span><br><span class="line">        now = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">if</span> (HttpDnsLogManager.LOG_UPLOAD_SWITCH &amp;&amp; now - lastLogTime &gt; HttpDnsLogManager.time_interval) &#123;</span><br><span class="line">            lastLogTime = now;</span><br><span class="line">            <span class="comment">// 判断当前是wifi网络才能上传</span></span><br><span class="line">            <span class="keyword">if</span> (NetworkManager.Util.getNetworkType() == Constants.NETWORK_TYPE_WIFI) &#123;</span><br><span class="line">                RealTimeThreadPool.getInstance().execute(<span class="keyword">new</span> LogUpLoadTask());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这个任务逻辑很清晰：</p>
+<p>先更新缓存中过期的数据，然后对缓存中所有的IP，重新进行测速。</p>
+<p>这样，一个完整的库就差不多写好了。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/" title="HttpDnsLib分析">http://aprz512.github.io/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/06/22/blog_bak/Blog/网络优化/网络编程007：QUIC协议/" rel="next" title="网络编程007：QUIC协议">
+                  <i class="fa fa-chevron-left"></i> 网络编程007：QUIC协议
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/06/30/blog_bak/Blog/Android-源码解析/Matrix/002-Matrix源码分析：UIThreadMonitor监测主线程/" rel="prev" title="002-Matrix源码分析：UIThreadMonitor监测主线程">
+                  002-Matrix源码分析：UIThreadMonitor监测主线程 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">186</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#测速模块"><span class="nav-number">1.</span> <span class="nav-text">测速模块</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Ping"><span class="nav-number">1.1.</span> <span class="nav-text">Ping</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Socket"><span class="nav-number">1.2.</span> <span class="nav-text">Socket</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#评分模块"><span class="nav-number">2.</span> <span class="nav-text">评分模块</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#成功的次数"><span class="nav-number">2.1.</span> <span class="nav-text">成功的次数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RTT"><span class="nav-number">2.2.</span> <span class="nav-text">RTT</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS服务器模块"><span class="nav-number">3.</span> <span class="nav-text">DNS服务器模块</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PodDns"><span class="nav-number">3.1.</span> <span class="nav-text">PodDns</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LocalDns"><span class="nav-number">3.2.</span> <span class="nav-text">LocalDns</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SinaHttpDns"><span class="nav-number">3.3.</span> <span class="nav-text">SinaHttpDns</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UdpDns"><span class="nav-number">3.4.</span> <span class="nav-text">UdpDns</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存模块"><span class="nav-number">4.</span> <span class="nav-text">缓存模块</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#定时器"><span class="nav-number">4.1.</span> <span class="nav-text">定时器</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">759k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">11:30</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

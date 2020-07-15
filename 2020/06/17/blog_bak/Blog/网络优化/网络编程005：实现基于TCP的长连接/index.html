@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="Socket 的基本用法Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信。先看服务端的使用：12345678910ServerSocket serverSocket = new ServerSocket(port);Socket client = serverSocket.accept();InputStream in = client.getInputStrea">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网络编程005：实现基于TCP的长连接">
+<meta property="og:url" content="http://aprz512.github.io/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="Socket 的基本用法Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信。先看服务端的使用：12345678910ServerSocket serverSocket = new ServerSocket(port);Socket client = serverSocket.accept();InputStream in = client.getInputStrea">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-07-15T09:33:21.170Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="网络编程005：实现基于TCP的长连接">
+<meta name="twitter:description" content="Socket 的基本用法Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信。先看服务端的使用：12345678910ServerSocket serverSocket = new ServerSocket(port);Socket client = serverSocket.accept();InputStream in = client.getInputStrea">
+  <link rel="canonical" href="http://aprz512.github.io/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>网络编程005：实现基于TCP的长连接 | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">12</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">186</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">网络编程005：实现基于TCP的长连接
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-17 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-17T00:00:00+08:00">2020-06-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-15 17:33:21" itemprop="dateModified" datetime="2020-07-15T17:33:21+08:00">2020-07-15</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>6.1k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>6 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="Socket-的基本用法"><a href="#Socket-的基本用法" class="headerlink" title="Socket 的基本用法"></a>Socket 的基本用法</h3><p>Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信。</p><p>先看服务端的使用：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ServerSocket serverSocket = <span class="keyword">new</span> ServerSocket(port);</span><br><span class="line">Socket client = serverSocket.accept();</span><br><span class="line">InputStream in = client.getInputStream();</span><br><span class="line">OutputStream out = client.getOutputStream();</span><br><span class="line"><span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line"><span class="keyword">int</span> n;</span><br><span class="line"><span class="comment">// 将客户端发送过来的数据原封不动的发送回去</span></span><br><span class="line"><span class="keyword">while</span> ((n = in.read(buffer)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    out.write(buffer, <span class="number">0</span>, n);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<p>再看客户端的使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">Socket socket = <span class="keyword">new</span> Socket(host, port);</span><br><span class="line"><span class="comment">// 发送数据</span></span><br><span class="line">OutputStream out = socket.getOutputStream();</span><br><span class="line"><span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line"><span class="keyword">int</span> n;</span><br><span class="line"><span class="keyword">while</span> ((n = System.in.read(buffer)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    out.write(buffer, <span class="number">0</span>, n);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 读取响应</span></span><br><span class="line">Thread readerThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    InputStream in = socket.getInputStream();</span><br><span class="line">                    <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">                    <span class="keyword">int</span> n;</span><br><span class="line">                    <span class="keyword">while</span> ((n = in.read(buffer)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                        System.out.write(buffer, <span class="number">0</span>, n);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">readerThread.start();</span><br></pre></td></tr></table></figure>
+
+<p>这里客户端的既要发送数据，又要展示接收到的响应数据，所以开了一个线程来处理。</p>
+<h3 id="Socket-与-ServerSocket"><a href="#Socket-与-ServerSocket" class="headerlink" title="Socket 与 ServerSocket"></a>Socket 与 ServerSocket</h3><p>先说 ServerSocket，我们在 IDE 里面查看一下它的构造方法，发现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">getImpl().bind(epoint.getAddress(), epoint.getPort());</span><br><span class="line">getImpl().listen(backlog);</span><br></pre></td></tr></table></figure>
+
+<p>它实际上是调用了 bind 与 listen 这两个方法。</p>
+<p>而 getImpl 是返回的一个成员变量，你可以理解为它是将 SocketImpl 对象给包装了一下，提供给我们使用。</p>
+<p>所以，一切最终走的是 SocketImpl 的方法。</p>
+<p>同样的，Socket 也是包装的 SocketImpl 的一些方法，所以我们可以理解为 Socket 与 ServerSocket 都是一个包装类，简化了 SocketImpl 的使用。</p>
+<p>还有一点需要注意：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Socket client = serverSocket.accept();</span><br></pre></td></tr></table></figure>
+
+<p>这行代码创建了一个新的 Socket。我们的 ServerSocket 包装的 Socket 是用来做监听的，它不处理别的事，所以每次有连接到来都会创建一个新的返回。</p>
+<p>所以实际上，连接成功之后，会产生3个 Socket。</p>
+<p>关于accept创建的这个 socket，还有一个很有意思的地方。它的端口号跟 ServerSocket 是一毛一样的。咦！！不是说，一个端口只能绑定一个 socket 吗？其实这个说法并不够准确。</p>
+<p>Socket 并不仅仅使用端口号来区别不同的 socket 实例，而是使用 (source_ip, source_port, destination_ip, destination_port) 这个四元组：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">1. 服务器的IP</span><br><span class="line">2. 服务器的Port</span><br><span class="line">3. 客户端的IP</span><br><span class="line">4. 客户端的Port</span><br><span class="line"></span><br><span class="line">假设，我们的 ServerSocket 长这样：&lt;*:*, *:9877&gt;。</span><br><span class="line">accept 返回的 Socket 则是这样：&lt;127.0.0.1:xxxx, 127.0.0.1:9877&gt;，xxxx 是客户端的端口号。</span><br><span class="line">如果是客户端要发起连接，这时候只有 &lt;*:*, *:9877&gt; 会匹配成功。</span><br><span class="line">如果数据是发送给一个已连接的 socket，内核会找到一个完全匹配的实例，所以数据准确发送给了对端。</span><br></pre></td></tr></table></figure>
+
+<h3 id="实现长连接"><a href="#实现长连接" class="headerlink" title="实现长连接"></a>实现长连接</h3><p>Socket 长连接，指的是在客户和服务端之间保持一个 socket 连接长时间不断开。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">socket.setKeepAlive(<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+
+<p>我们要实现一个 socket 的长连接，只需要这一个调用即可。Socket 的这个 keep alive 选项如果打开并且两个小时内没有通信，那么底层会发一个心跳，看看对方是不是还活着。</p>
+<p><strong>注意：</strong>两个小时才会发一次。也就是说，在没有实际数据通信的时候，我把网线拔了，你的应用程序要经过两个小时才会知道。</p>
+<p>我们自己实现长连接，实际上就是隔一段时间发送一个数据包：就是不断地给对方写数据，然后读取对方的数据，也就是所谓的<strong>心跳</strong>。只要心还在跳，socket 就是活的。写数据的间隔，需要根据实际的应用需求来决定。</p>
+<p>这里有一个简单的例子：<a href="https://github.com/Jekton/Echo" target="_blank" rel="noopener">https://github.com/Jekton/Echo</a></p>
+<p>我们来分析一下这个例子是如何做的：</p>
+<blockquote>
+<p>首先，Socket 自带的方法肯定是无法满足我们的要求的，那么只能对 Socket 进行增强。</p>
+<p>这里我们使用包装类来完成这个功能。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">KeepAliveSocket</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> Socket mSocket;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先我们一样的建立连接：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">connect</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Socket socket = <span class="keyword">new</span> Socket(mHost, mPort);</span><br><span class="line">    mSocket = socket;</span><br><span class="line">    <span class="comment">// 每次创建新的 socket，会开一个线程来读数据</span></span><br><span class="line">    Thread reader = <span class="keyword">new</span> Thread(<span class="keyword">new</span> ReaderTask(socket), <span class="string">"socket-reader"</span>);</span><br><span class="line">    reader.start();</span><br><span class="line">    <span class="comment">// 发送心跳包</span></span><br><span class="line">    mWriterHandler.post(mHeartBeatTask);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>连接建立起来之后，我们会开启一个线程去读取回应。</p>
+<p>这里发送心跳包是通过 HandlerThread 来做的，所以也是运行在一个线程里面，所以需要考虑同步问题，为了理清逻辑，这里省去同步代码。</p>
+<p>我们看看是如何发送心跳包的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Runnable mHeartBeatTask = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">byte</span>[] mHeartBeat = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ++mSeqNumHeartBeatSent;</span><br><span class="line">        <span class="comment">// 我们使用长度为 0 的数据作为 heart beat</span></span><br><span class="line">        write(mHeartBeat, <span class="keyword">new</span> WritingCallback() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSuccess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="comment">// 每隔 HEART_BEAT_INTERVAL_MILLIS 发送一次</span></span><br><span class="line">                mWriterHandler.postDelayed(mHeartBeatTask, HEART_BEAT_INTERVAL_MILLIS);</span><br><span class="line">                <span class="comment">// At this point, the heart-beat might be received and handled</span></span><br><span class="line">                <span class="keyword">if</span> (mSeqNumHeartBeatRecv &lt; mSeqNumHeartBeatSent) &#123;</span><br><span class="line">                    <span class="comment">// 没收到服务端的回应，超时判断</span></span><br><span class="line">                    mUIHandler.postDelayed(mHeartBeatTimeoutTask, HEART_BEAT_TIMEOUT_MILLIS);</span><br><span class="line">                    <span class="comment">// double check</span></span><br><span class="line">                    <span class="keyword">if</span> (mSeqNumHeartBeatRecv == mSeqNumHeartBeatSent) &#123;</span><br><span class="line">                        mUIHandler.removeCallbacks(mHeartBeatTimeoutTask);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFail</span><span class="params">(<span class="keyword">byte</span>[] data, <span class="keyword">int</span> offset, <span class="keyword">int</span> len)</span> </span>&#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>其实就是发送了一个空的数据过去，然后客户端还记录了心跳包的编号。</p>
+<p>这里是一个常见的循环代码，就不多说了。里面处理了心跳包超时等情况。</p>
+<p>我们再看看心跳包编号的相关代码，上面说到我们单独开了一个线程去读取响应：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">readResponse</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="comment">// For simplicity, assume that a msg will not exceed 1024-byte</span></span><br><span class="line">    <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">    InputStream inputStream = mSocket.getInputStream();</span><br><span class="line">    DataInputStream in = <span class="keyword">new</span> DataInputStream(inputStream);</span><br><span class="line">    <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> nbyte = in.readInt();</span><br><span class="line">        <span class="keyword">if</span> (nbyte == <span class="number">0</span>) &#123;</span><br><span class="line">            Log.i(TAG, <span class="string">"readResponse: heart beat received"</span>);</span><br><span class="line">            mUIHandler.removeCallbacks(mHeartBeatTimeoutTask);</span><br><span class="line">            mSeqNumHeartBeatRecv = mSeqNumHeartBeatSent;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (nbyte &gt; buffer.length) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Receive message with len "</span> + nbyte +</span><br><span class="line">                                            <span class="string">" which exceeds limit "</span> + buffer.length);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (readn(in, buffer, nbyte) != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// Socket might be closed twice but it does no harm</span></span><br><span class="line">            silentlyClose(mSocket);</span><br><span class="line">            <span class="comment">// Socket will be re-connected by writer-thread if you want</span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        mDataCallback.onData(buffer, <span class="number">0</span>, nbyte);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到对心跳包和其他数据做了一定程度的区分，如果是心跳包，则更新收到的编号，如果是数据会触发回调。</p>
+<p>对于心跳包的处理考虑这样的一种情况，假设服务端没有对心跳包做出回应，那么 mHeartBeatTask 就会进入心跳超时的逻辑代码中，如果在超时之前服务器回应了，那么当作啥都没有发生，如果在超时时间内没有回应，就会进入到 mHeartBeatTimeoutTask。</p>
+<p>此时会关闭 Socket：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Runnable mHeartBeatTimeoutTask = () -&gt; &#123;</span><br><span class="line">    Log.e(TAG, <span class="string">"mHeartBeatTimeoutTask#run: heart beat timeout"</span>);</span><br><span class="line">    closeSocket();</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>当然这只是一个例子，所以就做了最直接的处理。实际上不会这么做的。</p>
+<p>这个例子的主要内容就是这些了，有兴趣了下载下来自己运行一下看看。</p>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a href="http://www.52im.net/thread-1722-1-1.html" target="_blank" rel="noopener">http://www.52im.net/thread-1722-1-1.html</a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/" title="网络编程005：实现基于TCP的长连接">http://aprz512.github.io/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/06/16/blog_bak/Blog/网络优化/网络编程004：理解HTTP协议/" rel="next" title="网络编程004：理解HTTP协议">
+                  <i class="fa fa-chevron-left"></i> 网络编程004：理解HTTP协议
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/06/17/blog_bak/Blog/Android-View/RecyclerView 的缓存机制/" rel="prev" title="图解 RecyclerView 的缓存机制">
+                  图解 RecyclerView 的缓存机制 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">186</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Socket-的基本用法"><span class="nav-number">1.</span> <span class="nav-text">Socket 的基本用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Socket-与-ServerSocket"><span class="nav-number">2.</span> <span class="nav-text">Socket 与 ServerSocket</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现长连接"><span class="nav-number">3.</span> <span class="nav-text">实现长连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">4.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">759k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">11:30</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

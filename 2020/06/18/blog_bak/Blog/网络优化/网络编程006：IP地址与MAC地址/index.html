@@ -58,28 +58,26 @@
   };
 </script>
 
-  <meta name="description" content="滑动窗口是用于控制网络传输的流量的，说白了就是TCP在进行数据传输的时候，会有两个端，一个发送端，一个接收端。但是发送端与接收端它们是处于不同环境（应用、系统、硬件）的，所以它们的发送能力与接受能力肯定是不一样的，那么就很可能出现这样的问题：如果发送的速度过快，而接收端处理的较慢，就会出现接收端数据溢出的问题！！！">
-<meta name="keywords" content="计算机原理">
+  <meta name="description" content="经过前面几篇文章的洗礼，你应该知道IP地址与MAC地址各自的作用。我自己的理解就是：IP地址是用来连接子网的，MAC地址是用来处理子网内部的。但是这只是比较粗浅的理解，如果有人问到：12有了IP地址，为何还要用MAC地址？或者，有了MAC地址，为何还要IP地址？对于这些问题，你该如何给他解释清楚呢？我们先来探讨一下，没有IP地址的情况：">
 <meta property="og:type" content="article">
-<meta property="og:title" content="滑动窗口">
-<meta property="og:url" content="http://aprz512.github.io/2020/04/04/blog_bak/Blog/计算机原理/TCP/滑动窗口/index.html">
+<meta property="og:title" content="网络编程007：IP地址与MAC地址">
+<meta property="og:url" content="http://aprz512.github.io/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/index.html">
 <meta property="og:site_name" content="二手程序员">
-<meta property="og:description" content="滑动窗口是用于控制网络传输的流量的，说白了就是TCP在进行数据传输的时候，会有两个端，一个发送端，一个接收端。但是发送端与接收端它们是处于不同环境（应用、系统、硬件）的，所以它们的发送能力与接受能力肯定是不一样的，那么就很可能出现这样的问题：如果发送的速度过快，而接收端处理的较慢，就会出现接收端数据溢出的问题！！！">
+<meta property="og:description" content="经过前面几篇文章的洗礼，你应该知道IP地址与MAC地址各自的作用。我自己的理解就是：IP地址是用来连接子网的，MAC地址是用来处理子网内部的。但是这只是比较粗浅的理解，如果有人问到：12有了IP地址，为何还要用MAC地址？或者，有了MAC地址，为何还要IP地址？对于这些问题，你该如何给他解释清楚呢？我们先来探讨一下，没有IP地址的情况：">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://c1.staticflickr.com/1/955/42138740462_ed4ce64c1b_b.jpg">
-<meta property="og:image" content="https://c1.staticflickr.com/1/949/42138740402_dbbbf52c8c_b.jpg">
-<meta property="og:image" content="https://c1.staticflickr.com/1/904/27313728687_a5673da755_b.jpg">
-<meta property="og:image" content="https://c1.staticflickr.com/1/951/27313728577_04e0867716_b.jpg">
-<meta property="og:image" content="https://c1.staticflickr.com/1/952/27313728427_a5b7d4b107_b.jpg">
-<meta property="og:image" content="https://c1.staticflickr.com/1/944/27313728297_65698014e9_b.jpg">
-<meta property="og:image" content="https://c1.staticflickr.com/1/973/28312507728_96c5813bee_b.jpg">
-<meta property="og:image" content="https://c1.staticflickr.com/1/824/41284211495_31f906941b_b.jpg">
-<meta property="og:updated_time" content="2020-04-04T15:00:11.276Z">
+<meta property="og:image" content="http://www.52im.net/data/attachment/forum/201811/11/221435zigm2fjme1iiejjm.jpg">
+<meta property="og:image" content="http://www.52im.net/data/attachment/forum/201811/11/221516f7rlwl3l0l6wy072.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-816508f970cea1daf14f0610569c53db_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-6522b0e3e1b7e7058152e70953428c74_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-383f86e253b689d40ff20d648ce7afac_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-d234cb3ec99e072f16c7000358284641_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-f898793fd3a4f37272dfc31d2ecbaa55_720w.jpg">
+<meta property="og:updated_time" content="2020-07-15T09:08:55.012Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="滑动窗口">
-<meta name="twitter:description" content="滑动窗口是用于控制网络传输的流量的，说白了就是TCP在进行数据传输的时候，会有两个端，一个发送端，一个接收端。但是发送端与接收端它们是处于不同环境（应用、系统、硬件）的，所以它们的发送能力与接受能力肯定是不一样的，那么就很可能出现这样的问题：如果发送的速度过快，而接收端处理的较慢，就会出现接收端数据溢出的问题！！！">
-<meta name="twitter:image" content="https://c1.staticflickr.com/1/955/42138740462_ed4ce64c1b_b.jpg">
-  <link rel="canonical" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/计算机原理/TCP/滑动窗口/">
+<meta name="twitter:title" content="网络编程007：IP地址与MAC地址">
+<meta name="twitter:description" content="经过前面几篇文章的洗礼，你应该知道IP地址与MAC地址各自的作用。我自己的理解就是：IP地址是用来连接子网的，MAC地址是用来处理子网内部的。但是这只是比较粗浅的理解，如果有人问到：12有了IP地址，为何还要用MAC地址？或者，有了MAC地址，为何还要IP地址？对于这些问题，你该如何给他解释清楚呢？我们先来探讨一下，没有IP地址的情况：">
+<meta name="twitter:image" content="http://www.52im.net/data/attachment/forum/201811/11/221435zigm2fjme1iiejjm.jpg">
+  <link rel="canonical" href="http://aprz512.github.io/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/">
 
 
 <script id="page-configurations">
@@ -94,7 +92,7 @@
 </script>
 <link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
 
-  <title>滑动窗口 | 二手程序员</title>
+  <title>网络编程007：IP地址与MAC地址 | 二手程序员</title>
   
 
 
@@ -200,7 +198,7 @@
       
     
 
-    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">11</span></a>
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">12</span></a>
 
   </li>
       
@@ -226,7 +224,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">173</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">186</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -281,7 +279,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/计算机原理/TCP/滑动窗口/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -293,7 +291,7 @@
       <meta itemprop="name" content="二手程序员">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">滑动窗口
+        <h1 class="post-title" itemprop="name headline">网络编程007：IP地址与MAC地址
 
           
         </h1>
@@ -309,7 +307,32 @@
                 
               
 
-              <time title="创建时间：2020-04-04 23:00:11" itemprop="dateCreated datePublished" datetime="2020-04-04T23:00:11+08:00">2020-04-04</time>
+              <time title="创建时间：2020-06-18 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-18T00:00:00+08:00">2020-06-18</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
+
+                
+                
+              
             </span>
           
 
@@ -332,7 +355,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/计算机原理/TCP/滑动窗口/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/计算机原理/TCP/滑动窗口/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -344,7 +367,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>826</span>
+              <span>2.1k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -354,7 +377,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>1 分钟</span>
+              <span>2 分钟</span>
             </span>
           
 
@@ -367,39 +390,51 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>滑动窗口是用于控制网络传输的流量的，说白了就是TCP在进行数据传输的时候，会有两个端，一个发送端，一个接收端。但是发送端与接收端它们是处于不同环境（应用、系统、硬件）的，所以它们的发送能力与接受能力肯定是不一样的，那么就很可能出现这样的问题：如果发送的速度过快，而接收端处理的较慢，就会出现接收端数据溢出的问题！！！</p><a id="more"></a>
-<p>那么滑动窗口就是处理<strong>这些</strong>问题的，上面只是举了一个例子，实际上会有更多的问题，这里就不细说了，直接看看滑动窗口是如何工作的吧。</p>
-<h3 id="过程分析"><a href="#过程分析" class="headerlink" title="过程分析"></a>过程分析</h3><ol>
-<li><p>首先发送端发送A,B,C,D四个包，但是A,B丢失，只有C,D到达接收端。 </p>
-<p><img src="https://c1.staticflickr.com/1/955/42138740462_ed4ce64c1b_b.jpg" alt="img"></p>
-</li>
-<li><p>接收端没有收到A，所以不回复ACK包。发送端重传A,B,C,D四个包，这次全都到达了。</p>
-<p><img src="https://c1.staticflickr.com/1/949/42138740402_dbbbf52c8c_b.jpg" alt="img"></p>
-</li>
-<li><p>接收端先获得A，发ACK包A，但是中途丢失；根据<strong>累计确认</strong>的原则，发D的ACK包，然后窗口滑动。</p>
-<p><img src="https://c1.staticflickr.com/1/904/27313728687_a5673da755_b.jpg" alt="img"></p>
-<p>这里解释一下，什么是累计确认！！！</p>
-<p>累计确认可以理解为发送端与接收端做的一个<strong>特殊约定</strong>。当接收端成功收到了 A-D的所有包后，那么可以直接发一个D的确认包就OK了，然后发送端收到了D的确认包之后，就明白A-D已经全被接受了。</p>
-<p>根据上面的解释，我们可以推断出这样的一种情景：</p>
-<p>发送端发送了 A-D 包，但是 D 先到达了，那么接收端是不能发送 D 的确认包的！！！接收端只能按照顺序来发送确认包。</p>
-</li>
-<li><p>发送端收到D的ACK包，说明4个包对方都已收到，窗口滑动，发E,F,G,H包，其中G包丢失。</p>
-<p><img src="https://c1.staticflickr.com/1/951/27313728577_04e0867716_b.jpg" alt="img"></p>
-</li>
-<li><p>接收端先收到E，发ACK包；收到F后发F的ACK包；未收到G，还是<strong>发F的ACK包</strong>；收到H，还是<strong>发F的ACK包</strong>。不幸的是，三个ACK包全都丢失。 </p>
-<p><img src="https://c1.staticflickr.com/1/952/27313728427_a5b7d4b107_b.jpg" alt="img"></p>
-</li>
-<li><p>发送端收到E的ACK包，窗口向右滑动一位；然后再发送F,G,H,I，其中F丢失。 </p>
-<p><img src="https://c1.staticflickr.com/1/944/27313728297_65698014e9_b.jpg" alt="img"></p>
-</li>
-<li><p>接收端获得I，因为没有G，只好回复F的ACK包。之后又相继收到G,H包。 </p>
-<p><img src="https://c1.staticflickr.com/1/973/28312507728_96c5813bee_b.jpg" alt="img"></p>
-</li>
-<li><p>接收端根据累计确认，发I包，其中H对应的丢失。窗口向右滑动。 </p>
-<p><img src="https://c1.staticflickr.com/1/824/41284211495_31f906941b_b.jpg" alt="img"></p>
-</li>
-</ol>
-<p>后面的就不详细说了，原来的动画在 <a href="http://www.exa.unicen.edu.ar/catedras/comdat1/material/Filminas3_Practico3.swf" target="_blank" rel="noopener">这个地址</a>， 下载一个 adobe player 就可以自己设置参数运行了。</p>
+        <p>经过前面几篇文章的洗礼，你应该知道IP地址与MAC地址各自的作用。</p><p>我自己的理解就是：IP地址是用来连接子网的，MAC地址是用来处理子网内部的。</p><p>但是这只是比较粗浅的理解，如果有人问到：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">有了IP地址，为何还要用MAC地址？</span><br><span class="line">或者，有了MAC地址，为何还要IP地址？</span><br></pre></td></tr></table></figure><p>对于这些问题，你该如何给他解释清楚呢？</p><h4 id="我们先来探讨一下，没有IP地址的情况："><a href="#我们先来探讨一下，没有IP地址的情况：" class="headerlink" title="我们先来探讨一下，没有IP地址的情况："></a>我们先来探讨一下，没有IP地址的情况：</h4><a id="more"></a>
+
+
+
+
+
+<p>一开始时，网络中的机器并不多。大家都连到同一个集线器就可以了，就可以实现互通。这时，机器 A 发消息到机器 B ，消息头里附上机器 B 的MAC，集线器收到消息后就广播给所有连到集线器的机器。</p>
+<p>机器 C 收到消息，发现消息里的 MAC 地址和自己的不一样，就丢弃。机器B发现消息里的 MAC 地址和自己一样，就收到下并解析。</p>
+<p><img src="http://www.52im.net/data/attachment/forum/201811/11/221435zigm2fjme1iiejjm.jpg" alt="网络编程懒人入门(九)：通俗讲解，有了IP地址，为何还要用MAC地址？_1.jpg"></p>
+<p>这样机制带来问题很明显：首先每次广播，给所在网络带来不必要的浪费。所以，就出现了交换机。它能识别消息里的目标 MAC 地址后，直接就消息丢到机器 B 所连接的端口中。另一个角度，<strong>交换机必须记住所有的 MAC 地址和端口之间的关系</strong>。</p>
+<p>这样的机制在网络规规模小的时候是高效的。但是当网络规模扩大到全球的时候，不可能让一台交换机记录下全球这么多的网络设备，也不可能让全球的机器连接到一台交换机上。</p>
+<p>一个交换机无法解决，那么多个交换机可以解决吗？可以解决部分问题，如下图：</p>
+<p><img src="http://www.52im.net/data/attachment/forum/201811/11/221516f7rlwl3l0l6wy072.jpg" alt="网络编程懒人入门(九)：通俗讲解，有了IP地址，为何还要用MAC地址？_2.jpg"></p>
+<p>但是随着网络越来越大，交换机越来越多，那么交换机之间还是只能<strong>采用广播的方式来通信</strong>，显然是不可取的。</p>
+<p>也就是说，当两个网络互接时，MAC 地址 + 交换机还能解决问题广播问题，但是两个以上的网络互连时，MAC 地址 + 交换机就没有办法解决广播问题了。</p>
+<h4 id="我们再来探讨一下，没有MAC地址的情况："><a href="#我们再来探讨一下，没有MAC地址的情况：" class="headerlink" title="我们再来探讨一下，没有MAC地址的情况："></a>我们再来探讨一下，没有MAC地址的情况：</h4><p>我们知道OSI 7层模型，IP、TCP分别对应第三层和四层，因特网协议族并没有覆盖完整的7层 。</p>
+<p>因特网并不存粹，还包括以太网。因为因特网是第三层协议，是没有根基的“空中楼阁”，需要以太网这样的2层网具体落地实施，而MAC地址又是2层概念，所以MAC地址就这样进入了因特网的体系结构。</p>
+<p>当然了，如果因特网从开始制定之初，就定义了从物理层到传输层的协议，那么因特网就不再依赖于其它任何的网络，这个纯粹的因特网就只需要纯粹的IP地址，网线所插上的也不再是以太网卡，而是“因特网卡”，既然没有了以太网，也就不用什么MAC地址了。</p>
+<p>说了历史原因，我们再说一个现实的问题：</p>
+<p>因为 IP 地址是要设备上线以后，才能根据他进入了哪个子网来分配的，在设备还没有 IP 地址的时候（或者分配 IP 地址的过程中），我们还需要用 MAC 地址来区分不同的设备。</p>
+<p>所以说，在现在的这个模型体系下，MAC地址是不能被省去的。</p>
+<h4 id="ARP攻击"><a href="#ARP攻击" class="headerlink" title="ARP攻击"></a>ARP攻击</h4><p>ARP（Address Resolution Protocol），即地址解析协议，我们前面的文章说到过，是根据IP地址解析物理地址的一个TCP/IP协议。</p>
+<p>我们通过图解的方式来深入了解ARP攻击是如何实现的。</p>
+<p><img src="https://pic4.zhimg.com/80/v2-816508f970cea1daf14f0610569c53db_720w.jpg" alt="img"></p>
+<p>在这个局域网里面，PC1、PC2、PC3三台主机共同连接到交换机SW1上面，对应3个接口port1/2/3。假设PC3这台主机安装了ARP攻击软件或遭受ARP病毒，成为这个网络的攻击者（hacker），接下来，PC3是如何攻击的？先不急，先来回顾下PC1和PC2是如何通信的。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-6522b0e3e1b7e7058152e70953428c74_720w.jpg" alt="img"></p>
+<p>我们来看看PC3（Hacker）是如何发起ARP攻击的=&gt;</p>
+<p><img src="https://pic1.zhimg.com/80/v2-383f86e253b689d40ff20d648ce7afac_720w.jpg" alt="img"></p>
+<p>正常情况下，若收到的ARP请求不是给自己的，则直接丢弃；而这里PC3（Hacker）在监听之后，发起了ARP回应包：<strong>我就是PC2（IP2-MAC3）</strong>。</p>
+<p>从拓扑可以出现，PC3明明是IP3对应MAC3，很显然这就是一个ARP欺骗行为。于此同时，PC2正常的ARP回应包也交到了PC1手中，我们来看PC1接下来如何处理的：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-d234cb3ec99e072f16c7000358284641_720w.jpg" alt="img"></p>
+<p>PC1收到两个ARP回应包，内容分别如下：</p>
+<p>③我是PC2，我的IP地址是<strong>IP2</strong>，我的MAC地址是<strong>MAC2</strong>；</p>
+<p>③我是PC2，我的IP地址是<strong>IP2</strong>，我的MAC地址是<strong>MAC3</strong>；</p>
+<p>PC1一脸懵：<strong>咋回事？还有这操作？不管了，我选最新的！（后到优先）</strong></p>
+<p>那么问题来了，上面两个ARP回应包到底哪个先到哪个后到呢？</p>
+<p>作为初学者，可能还在纠结前后这种naive的问题；而作为hacker，只要持续不停发出ARP欺骗包，就一定能够覆盖掉正常的ARP回应包。<strong>稳健的ARP嗅探/渗透工具，能在短时间内高并发做网络扫描（例如1秒钟成千上百的数据包），能够持续对外发送欺骗包。</strong></p>
+<p>无论如何，当PC1和PC2这种”小白”用户遇到PC3（hacker）时，最终的结果一定是这样的：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-f898793fd3a4f37272dfc31d2ecbaa55_720w.jpg" alt="img"></p>
+<p>其实就是，不断和发送 ARP 回复包，包里面的是自己的 MAC 地址，这样，后续的通信内容就会发送到自己的PC上。</p>
+<p>就是利用 IP -&gt; MAC 的漏洞。</p>
+<p>这个漏洞被IPV6堵上了。</p>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a href="https://www.zhihu.com/question/21546408" target="_blank" rel="noopener">https://www.zhihu.com/question/21546408</a></p>
+<p><a href="http://www.52im.net/thread-2067-1-1.html" target="_blank" rel="noopener">http://www.52im.net/thread-2067-1-1.html</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/28818627" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/28818627</a></p>
 
     </div>
 
@@ -407,16 +442,6 @@
     
     
       
-  <div class="popular-posts-header">相关文章推荐</div>
-  <ul class="popular-posts">
-    <li class="popular-posts-item">
-      
-      
-      <div class="popular-posts-title"><a href="/2019/09/10/blog_bak/Blog/计算机原理/让 CPU 告诉你硬盘和网络到底有多慢/" rel="bookmark">让 CPU 告诉你硬盘和网络到底有多慢</a></div>
-      
-    </li>
-  
-  </ul>
 
         
       
@@ -451,7 +476,7 @@
     <strong>本文作者： </strong>aprz512</li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/计算机原理/TCP/滑动窗口/" title="滑动窗口">http://aprz512.github.io/2020/04/04/blog_bak/Blog/计算机原理/TCP/滑动窗口/</a>
+    <a href="http://aprz512.github.io/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/" title="网络编程007：IP地址与MAC地址">http://aprz512.github.io/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
@@ -461,23 +486,14 @@
       
 
       <footer class="post-footer">
-          
-            
-          
-          <div class="post-tags">
-            
-              <a href="/tags/计算机原理/" rel="tag"># 计算机原理</a>
-            
-          </div>
-        
 
         
 
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/面试中的算法/" rel="next" title="0053-面试中的算法">
-                  <i class="fa fa-chevron-left"></i> 0053-面试中的算法
+                <a href="/2020/06/17/blog_bak/Blog/Android-思考/Window 与 View的动态更改思考/" rel="next" title="Window 与 View的动态更改思考">
+                  <i class="fa fa-chevron-left"></i> Window 与 View的动态更改思考
                 </a>
               
             </div>
@@ -486,8 +502,8 @@
 
             <div class="post-nav-prev post-nav-item">
               
-                <a href="/2020/04/05/blog_bak/Blog/Android-高级/屏幕适配/" rel="prev" title="屏幕适配">
-                  屏幕适配 <i class="fa fa-chevron-right"></i>
+                <a href="/2020/06/22/blog_bak/Blog/网络优化/网络编程007：QUIC协议/" rel="prev" title="网络编程007：QUIC协议">
+                  网络编程007：QUIC协议 <i class="fa fa-chevron-right"></i>
                 </a>
               
             </div>
@@ -548,7 +564,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">173</span>
+          <span class="site-state-item-count">186</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -585,7 +601,9 @@
         
           
         
-        <span class="site-state-item-count">11</span>
+          
+        
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -684,7 +702,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#过程分析"><span class="nav-number">1.</span> <span class="nav-text">过程分析</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#我们先来探讨一下，没有IP地址的情况："><span class="nav-number">1.</span> <span class="nav-text">我们先来探讨一下，没有IP地址的情况：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#我们再来探讨一下，没有MAC地址的情况："><span class="nav-number">2.</span> <span class="nav-text">我们再来探讨一下，没有MAC地址的情况：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ARP攻击"><span class="nav-number">3.</span> <span class="nav-text">ARP攻击</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number"></span> <span class="nav-text">参考文档</span></a></div>
             
 
           </div>
@@ -713,14 +731,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">661k</span>
+    <span title="站点总字数">759k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">10:01</span>
+    <span title="站点阅读时长">11:30</span>
 </div>
 
         
