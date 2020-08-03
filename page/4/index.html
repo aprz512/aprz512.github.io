@@ -775,7 +775,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -789,7 +789,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/" class="post-title-link" itemprop="url">004_如何测试一个没有返回值的函数？</a>
+            <a href="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/" class="post-title-link" itemprop="url">002_Dagger2使用及原理（1）</a>
           
         </h1>
 
@@ -819,7 +819,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -831,7 +831,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>6.9k</span>
+              <span>6.5k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -854,11 +854,125 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>看下面的一个例子：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">class LoginViewModel constructor(</span><br><span class="line">    val loginRepository: LoginRepository,</span><br><span class="line">    val loginChecker: LoginChecker</span><br><span class="line">) &#123;</span><br><span class="line"></span><br><span class="line">    fun login(username: String, password: String) &#123;</span><br><span class="line">        // .... 其他代码</span><br><span class="line">        if (loginChecker.check(username, password)) &#123;</span><br><span class="line">            loginRepository.login(password, username)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class LoginRepository &#123;</span><br><span class="line">	fun login(username: String, password: String) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class LoginChecker &#123;</span><br><span class="line">    fun check(username: String, password: String): Boolean &#123;</span><br><span class="line">        return checkUsername(username) &amp;&amp; checkPassword(password)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private fun checkUsername(username: String): Boolean &#123;</span><br><span class="line">        return true</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private fun checkPassword(password: String): Boolean &#123;</span><br><span class="line">        return true</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <p>我们将上篇文章的例子用 dagger2 实现一下。</p><p>dagger2 的引入就不说了，<a href="https://github.com/google/dagger" target="_blank" rel="noopener">github</a>文档很详细了。</p><p>首先我们实现 Dragons 类：</p><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dragons</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">callForWar</span><span class="params">()</span></span> &#123;</span><br><span class="line">        Log.e(<span class="string">"EX01"</span>, <span class="string">"Dragons callForWar..."</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/#more" rel="contents">
+              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-源码解析/Fragment框架总览/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2020/04/04/blog_bak/Blog/Android-源码解析/Fragment框架总览/" class="post-title-link" itemprop="url">未命名</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-源码解析/Fragment框架总览/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-源码解析/Fragment框架总览/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>5.1k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>5 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在做一个图片尺寸检查框架的时候，需要研究Activity与Fragment相关的源码，之前每次都分析过，但是却没有一个总体的影响，每次想要找一个什么东西的时候，都不得不从头找起，很蛋疼。</p><p>这篇文章的作用就是整理出一个Fragment的轮廓，Fragment大概会涉及一些什么东西。</p><p>首先，我们使用Fragment的方式如下：</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-源码解析/Fragment框架总览/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1003,7 +1117,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1017,7 +1131,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/" class="post-title-link" itemprop="url">002_Dagger2使用及原理（1）</a>
+            <a href="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/" class="post-title-link" itemprop="url">004_如何测试一个没有返回值的函数？</a>
           
         </h1>
 
@@ -1047,7 +1161,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1059,7 +1173,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>6.5k</span>
+              <span>6.9k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1082,239 +1196,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>我们将上篇文章的例子用 dagger2 实现一下。</p><p>dagger2 的引入就不说了，<a href="https://github.com/google/dagger" target="_blank" rel="noopener">github</a>文档很详细了。</p><p>首先我们实现 Dragons 类：</p><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dragons</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">callForWar</span><span class="params">()</span></span> &#123;</span><br><span class="line">        Log.e(<span class="string">"EX01"</span>, <span class="string">"Dragons callForWar..."</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <p>看下面的一个例子：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">class LoginViewModel constructor(</span><br><span class="line">    val loginRepository: LoginRepository,</span><br><span class="line">    val loginChecker: LoginChecker</span><br><span class="line">) &#123;</span><br><span class="line"></span><br><span class="line">    fun login(username: String, password: String) &#123;</span><br><span class="line">        // .... 其他代码</span><br><span class="line">        if (loginChecker.check(username, password)) &#123;</span><br><span class="line">            loginRepository.login(password, username)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class LoginRepository &#123;</span><br><span class="line">	fun login(username: String, password: String) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class LoginChecker &#123;</span><br><span class="line">    fun check(username: String, password: String): Boolean &#123;</span><br><span class="line">        return checkUsername(username) &amp;&amp; checkPassword(password)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private fun checkUsername(username: String): Boolean &#123;</span><br><span class="line">        return true</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private fun checkPassword(password: String): Boolean &#123;</span><br><span class="line">        return true</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-单元测试/002_Dagger2使用及原理（1）/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/" class="post-title-link" itemprop="url">001-做单元测试为何要使用Dagger2？</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>3.9k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>4 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>首先，我们说一下依赖注入（Dependency Injection，以下简称DI）。</p><p>为了解释以下概念，我将使用“权力的游戏”作为类比。如果你没有听说过，可以将（Targaryens和Dragons）替换为A和B。</p><p>举个例子，我们有一个叫做Targaryens的类。这个类里面用到了另一个叫做 Dragons 的类。我们称 Targaryens 依赖 Dragons 。当我们要想使用 Targaryens 类，就必须也要一个 Dragons 类，Targaryens 不能单独存在。看下面的代码：</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-Bugs/在 Activity 的 onDestroy 方法里面调用 finish 会发生什么/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2020/04/04/blog_bak/Blog/Android-Bugs/在 Activity 的 onDestroy 方法里面调用 finish 会发生什么/" class="post-title-link" itemprop="url">在 Activity 的 onDestroy 方法里面调用 finish 会发生什么</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-Bugs/在 Activity 的 onDestroy 方法里面调用 finish 会发生什么/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-Bugs/在 Activity 的 onDestroy 方法里面调用 finish 会发生什么/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>4.5k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>4 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>发现这个奇怪问题的起因在于同事看了MVVM的相关文章，里面提到<strong>屏幕旋转时，Activity 销毁重建不会导致 ViewModel随着销毁而重建</strong>。</p><p>于是，就在项目中写了测试代码来验证。然后就发现了一个诡异的问题，<strong>打开的界面旋转后自动关闭了！！</strong>后来断点调试发现是因为 onDestroy 走了两次，分析逻辑之后，还原了执行流程，如下代码所示：</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-Bugs/在 Activity 的 onDestroy 方法里面调用 finish 会发生什么/#more" rel="contents">
+              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-单元测试/004_如何测试一个没有返回值的函数？/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1429,6 +1315,120 @@
           
             <div class="post-button text-center">
               <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-单元测试/003_单元测试中如何使用Android相关的类？/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/" class="post-title-link" itemprop="url">001-做单元测试为何要使用Dagger2？</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>3.9k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>4 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>首先，我们说一下依赖注入（Dependency Injection，以下简称DI）。</p><p>为了解释以下概念，我将使用“权力的游戏”作为类比。如果你没有听说过，可以将（Targaryens和Dragons）替换为A和B。</p><p>举个例子，我们有一个叫做Targaryens的类。这个类里面用到了另一个叫做 Dragons 的类。我们称 Targaryens 依赖 Dragons 。当我们要想使用 Targaryens 类，就必须也要一个 Dragons 类，Targaryens 不能单独存在。看下面的代码：</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-单元测试/001-做单元测试为何要使用Dagger2？/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
