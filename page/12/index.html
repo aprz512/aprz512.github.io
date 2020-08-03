@@ -215,7 +215,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">187</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">188</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -262,6 +262,290 @@
           <div id="content" class="content page-home">
             
   <section id="posts" class="posts-expand">
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（三）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（三）/" class="post-title-link" itemprop="url">RxJava2 源码分析（四）</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 19:01:30" itemprop="dateModified" datetime="2019-08-18T19:01:30+08:00">2019-08-18</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/RxJava2/" itemprop="url" rel="index"><span itemprop="name">RxJava2</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（三）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（三）/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>4.5k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>4 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>本篇主要分析 RxJava2 中的线程池与线程调度时的源码流程。</p><p>顺便介绍RxJava2中常用的几个线程池。</p><p>上一篇文章，我们的demo中，指定线程时，使用的是 Schedulers 这个类。那我们直接从这个类入手。</p><blockquote>
+<p>Schedulers.java</p>
+</blockquote><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Static factory methods for returning standard Scheduler instances.</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Schedulers</span> </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（三）/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/" class="post-title-link" itemprop="url">RxJava2 源码分析（五）</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-29 19:30:50" itemprop="dateModified" datetime="2019-08-29T19:30:50+08:00">2019-08-29</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/RxJava2/" itemprop="url" rel="index"><span itemprop="name">RxJava2</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>4.5k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>4 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>本文主要分析操作符的实现原理，关于操作符的使用不做讲解，想了解的可以参考<a href="https://github.com/amitshekhariitbhu/RxJava2-Android-Samples" target="_blank" rel="noopener">Github上的例子项目</a>以及<a href="http://reactivex.io/documentation/operators.html" target="_blank" rel="noopener">官方文档</a>。</p><h3 id="从一个例子开始"><a href="#从一个例子开始" class="headerlink" title="从一个例子开始"></a>从一个例子开始</h3><p>这里我们以最常用的 map 为例。首先我们写一个demo：</p><blockquote>
+<p>Demo</p>
+<p>这个demo演示了如何将一个int转成string。Kotlin 赛高！！！</p>
+<p>虽然看起来没有什么屌用，但是如果int值是一个图片的资源id，我们要将这个id转成一个Bitmap，那么也可以用map操作法，再配上前几篇文章说的线程切换，岂不美哉！~</p>
+</blockquote>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
       
 
   <article class="post" itemscope itemtype="http://schema.org/Article">
@@ -369,132 +653,6 @@
           
             <div class="post-button text-center">
               <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-知识点/Bitmap/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/" class="post-title-link" itemprop="url">CompletableFuture 的使用</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-08-18 12:48:54" itemprop="dateModified" datetime="2019-08-18T12:48:54+08:00">2019-08-18</time>
-              </span>
-            
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>1.8k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>2 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>遇到这样的一个实际问题：</p><p>写一个任务控制器，支持添加多个任务异步执行，任务间可以设置依赖，没有依赖的任务并行，有依赖的串行。</p><p>我刚开始一想，发现这个不是很简单么，写了包装类包装一下 Runnable，然后给它加一个添加依赖的功能不就好了么。后来发现没有我想的这么简单，首先循环依赖没有解决，这个问题这里就不深入了，就假设它没有循环依赖。</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/10/blog_bak/Blog/Java/CompletableFuture的使用/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1029,7 +1187,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Java/IO阻塞/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1043,7 +1201,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/" class="post-title-link" itemprop="url">RxJava2 源码分析（三）</a>
+            <a href="/2019/09/10/blog_bak/Blog/Java/IO阻塞/" class="post-title-link" itemprop="url">IO 阻塞</a>
           
         </h1>
 
@@ -1069,22 +1227,9 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-08-18 19:01:37" itemprop="dateModified" datetime="2019-08-18T19:01:37+08:00">2019-08-18</time>
+                <time title="修改时间：2019-08-19 22:34:50" itemprop="dateModified" datetime="2019-08-19T22:34:50+08:00">2019-08-19</time>
               </span>
             
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/RxJava2/" itemprop="url" rel="index"><span itemprop="name">RxJava2</span></a></span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -1098,7 +1243,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Java/IO阻塞/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Java/IO阻塞/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1110,7 +1255,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>23k</span>
+              <span>1.7k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1120,7 +1265,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>21 分钟</span>
+              <span>2 分钟</span>
             </span>
           
 
@@ -1133,11 +1278,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>分析 IoScheduler 类。</p><p>首先要说明的是，RxJava2 中虽然使用到了 Java 的线程池，但是还有很多其他的东西，比如，接下来你就会看到 IoScheduler 中自己实现一个简单的线程池。</p><h3 id="从使用说起"><a href="#从使用说起" class="headerlink" title="从使用说起"></a>从使用说起</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RxJava</span></span><br><span class="line">Scheduler.Worker worker = Schedulers.io().createWorker();</span><br><span class="line">worker.schedule();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Java</span></span><br><span class="line">ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(<span class="number">1</span>);</span><br><span class="line">scheduledExecutorService.schedule()</span><br></pre></td></tr></table></figure>
+          <p>昨天在整理自己的博客的时候，想到的一个问题：进程在从磁盘中读取内容的时候，CPU 在干什么？？？</p><p>之所以会这样问，是因为，CPU的速度比磁盘要快很多，具体有多块，看<a href="https://zhuanlan.zhihu.com/p/24726196" target="_blank" rel="noopener">这篇文章。</a></p><blockquote>
+<p>磁盘寻址时间为 10ms，换算成人类时间是 10个月，刚好够人类创造一个新的生命了。如果 CPU 需要让磁盘泡杯咖啡，在它眼里，磁盘去生了个孩子，回来告诉它你让我泡的咖啡好了。</p>
+</blockquote>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（2.5）/#more" rel="contents">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Java/IO阻塞/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1283,149 +1430,6 @@
           
             <div class="post-button text-center">
               <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-高级/混合编译器/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/" class="post-title-link" itemprop="url">RxJava2 源码分析（五）</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-08-29 19:30:50" itemprop="dateModified" datetime="2019-08-29T19:30:50+08:00">2019-08-29</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/RxJava2/" itemprop="url" rel="index"><span itemprop="name">RxJava2</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>4.5k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>4 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>本文主要分析操作符的实现原理，关于操作符的使用不做讲解，想了解的可以参考<a href="https://github.com/amitshekhariitbhu/RxJava2-Android-Samples" target="_blank" rel="noopener">Github上的例子项目</a>以及<a href="http://reactivex.io/documentation/operators.html" target="_blank" rel="noopener">官方文档</a>。</p><h3 id="从一个例子开始"><a href="#从一个例子开始" class="headerlink" title="从一个例子开始"></a>从一个例子开始</h3><p>这里我们以最常用的 map 为例。首先我们写一个demo：</p><blockquote>
-<p>Demo</p>
-<p>这个demo演示了如何将一个int转成string。Kotlin 赛高！！！</p>
-<p>虽然看起来没有什么屌用，但是如果int值是一个图片的资源id，我们要将这个id转成一个Bitmap，那么也可以用map操作法，再配上前几篇文章说的线程切换，岂不美哉！~</p>
-</blockquote>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-源码解析/RxJava2/RxJava2 源码分析（四）/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1630,7 +1634,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">187</span>
+          <span class="site-state-item-count">188</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1780,14 +1784,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">770k</span>
+    <span title="站点总字数">773k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">11:40</span>
+    <span title="站点阅读时长">11:43</span>
 </div>
 
         
