@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="本篇介绍一下 ApkChecker 里面的一些其他小工具，因为都比较简单，所以就合成一篇算了。CountClassTask用于计算 apk 里面所有 dex 文件包含的的 class 的数量。init 方法1234567891011121314151617181920212223242526272829303132333435@Overridepublic void init() throws T">
+<meta property="og:type" content="article">
+<meta property="og:title" content="011-Matrix源码分析：ApkChecker的其他小工具">
+<meta property="og:url" content="http://aprz512.github.io/2020/08/03/blog_bak/Blog/Android-源码解析/Matrix/011-Matrix源码分析：ApkChecker的其他小工具/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="本篇介绍一下 ApkChecker 里面的一些其他小工具，因为都比较简单，所以就合成一篇算了。CountClassTask用于计算 apk 里面所有 dex 文件包含的的 class 的数量。init 方法1234567891011121314151617181920212223242526272829303132333435@Overridepublic void init() throws T">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://img-blog.csdn.net/20170220085323266?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2luYXRfMTgyNjg4ODE=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/5/18/16acab9179e7b6a2?imageslim">
+<meta property="og:updated_time" content="2020-08-12T10:23:32.621Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="011-Matrix源码分析：ApkChecker的其他小工具">
+<meta name="twitter:description" content="本篇介绍一下 ApkChecker 里面的一些其他小工具，因为都比较简单，所以就合成一篇算了。CountClassTask用于计算 apk 里面所有 dex 文件包含的的 class 的数量。init 方法1234567891011121314151617181920212223242526272829303132333435@Overridepublic void init() throws T">
+<meta name="twitter:image" content="https://img-blog.csdn.net/20170220085323266?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2luYXRfMTgyNjg4ODE=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+  <link rel="canonical" href="http://aprz512.github.io/2020/08/03/blog_bak/Blog/Android-源码解析/Matrix/011-Matrix源码分析：ApkChecker的其他小工具/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>011-Matrix源码分析：ApkChecker的其他小工具 | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">14</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">199</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/08/03/blog_bak/Blog/Android-源码解析/Matrix/011-Matrix源码分析：ApkChecker的其他小工具/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">011-Matrix源码分析：ApkChecker的其他小工具
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2020-08-03T00:00:00+08:00">2020-08-03</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-12 18:23:32" itemprop="dateModified" datetime="2020-08-12T18:23:32+08:00">2020-08-12</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Matrix/" itemprop="url" rel="index"><span itemprop="name">Matrix</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/08/03/blog_bak/Blog/Android-源码解析/Matrix/011-Matrix源码分析：ApkChecker的其他小工具/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/08/03/blog_bak/Blog/Android-源码解析/Matrix/011-Matrix源码分析：ApkChecker的其他小工具/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>22k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>20 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本篇介绍一下 ApkChecker 里面的一些其他小工具，因为都比较简单，所以就合成一篇算了。</p><h3 id="CountClassTask"><a href="#CountClassTask" class="headerlink" title="CountClassTask"></a>CountClassTask</h3><p>用于计算 apk 里面所有 dex 文件包含的的 class 的数量。</p><h4 id="init-方法"><a href="#init-方法" class="headerlink" title="init 方法"></a>init 方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> <span class="keyword">throws</span> TaskInitException </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.init();</span><br><span class="line">    String inputPath = config.getUnzipPath();</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    inputFile = <span class="keyword">new</span> File(inputPath);</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    File[] files = inputFile.listFiles();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (files != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (File file : files) &#123;</span><br><span class="line">                <span class="keyword">if</span> (file.isFile() &amp;&amp; file.getName().endsWith(ApkConstants.DEX_FILE_SUFFIX)) &#123;</span><br><span class="line">                    dexFileNameList.add(file.getName());</span><br><span class="line">                    RandomAccessFile randomAccessFile = <span class="keyword">new</span> RandomAccessFile(file, <span class="string">"rw"</span>);</span><br><span class="line">                    dexFileList.add(randomAccessFile);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (FileNotFoundException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> TaskInitException(e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 命令支持 GROUP-BY 参数，将结果分组</span></span><br><span class="line">    <span class="keyword">if</span> (params.containsKey(JobConstants.PARAM_GROUP)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (JobConstants.GROUP_PACKAGE.equals(params.get(JobConstants.PARAM_GROUP))) &#123;</span><br><span class="line">            group = JobConstants.GROUP_PACKAGE;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Log.e(TAG, <span class="string">"GROUP-BY '"</span> + params.get(JobConstants.PARAM_GROUP) + <span class="string">"' is not correct!"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<p>init 方法里面，就是获取了所有 .dex 文件。注意，它使用了 RandomAccessFile。为啥呢？因为它读取的是 .dex 文件，它是有一定的结构的，所以读取的时候肯定需要跳来跳去。贴一张 dex 结构图，番外篇专门介绍，其实它与 class 文件的结构很像。</p>
+<p><img src="https://img-blog.csdn.net/20170220085323266?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2luYXRfMTgyNjg4ODE=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="img"></p>
+<p>上图比较简单，有详细点的：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/5/18/16acab9179e7b6a2?imageslim" alt="img"></p>
+<p>还有更详细点的，就不贴了，贴了也看不懂。</p>
+<h4 id="call-方法"><a href="#call-方法" class="headerlink" title="call 方法"></a>call 方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 读取dex文件，</span></span><br><span class="line"><span class="comment"> * 获取dex文件中的所有类</span></span><br><span class="line"><span class="comment"> * 进行分组</span></span><br><span class="line"><span class="comment"> * 然后输出</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> TaskResult <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> TaskExecuteException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; dexFileList.size(); i++) &#123;</span><br><span class="line">            RandomAccessFile dexFile = dexFileList.get(i);</span><br><span class="line">            DexData dexData = <span class="keyword">new</span> DexData(dexFile);</span><br><span class="line">            dexData.load();</span><br><span class="line">            dexFile.close();</span><br><span class="line">            <span class="comment">// 获取 dex 中定义的 class</span></span><br><span class="line">            <span class="comment">// 注意 dex 中可能会有其他 dex 中的 class 的引用，这里是不包含的</span></span><br><span class="line">            ClassRef[] defClassRefs = dexData.getInternalReferences();</span><br><span class="line">            Set&lt;String&gt; classNameSet = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">            <span class="keyword">for</span> (ClassRef classRef : defClassRefs) &#123;</span><br><span class="line">                <span class="comment">// 将 "Ljava/lang/String;" 变成 "java.lang.String",</span></span><br><span class="line">                String className = ApkUtil.getNormalClassName(classRef.getName());</span><br><span class="line">                <span class="keyword">if</span> (classProguardMap.containsKey(className)) &#123;</span><br><span class="line">                    <span class="comment">// 获取混淆前的类名</span></span><br><span class="line">                    <span class="comment">// classProguardMap 是解压 task 中生成的 map</span></span><br><span class="line">                    className = classProguardMap.get(className);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (className.indexOf(<span class="string">'.'</span>) == -<span class="number">1</span>) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                classNameSet.add(className);</span><br><span class="line">            &#125;</span><br><span class="line">            ...</span><br><span class="line">        <span class="keyword">return</span> taskResult;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> TaskExecuteException(e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>for 循环里面的 DexData 是核心类，但是需要了解 dex 文件结构才能将解，会专门起一篇留到番外。</p>
+<p>直接看输出的json，然后理解代码：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"taskType"</span>: <span class="number">15</span>,</span><br><span class="line">  <span class="attr">"taskDescription"</span>: <span class="string">"Count classes in dex file, output results group by package name."</span>,</span><br><span class="line">  <span class="attr">"start-time"</span>: <span class="string">"2020-08-03 21:34:37:539"</span>,</span><br><span class="line">  <span class="attr">"end-time"</span>: <span class="string">"2020-08-03 21:34:39:381"</span>,</span><br><span class="line">  <span class="attr">"total-classes"</span>: <span class="number">1423</span>,</span><br><span class="line">  <span class="attr">"groups"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"android.support.v7.widget"</span>,</span><br><span class="line">      <span class="attr">"class-count"</span>: <span class="number">187</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"android.support.v4.app"</span>,</span><br><span class="line">      <span class="attr">"class-count"</span>: <span class="number">175</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"android.support.v4.view"</span>,</span><br><span class="line">      <span class="attr">"class-count"</span>: <span class="number">92</span></span><br><span class="line">    &#125;,</span><br><span class="line">    ...</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里是将所有 dex 中的 class 按照包名分组，然后统计其数量。</p>
+<p>那么，这个有什么用处呢？我个人的想法，其实是可以生成一个历史记录，看看每个版本各个包下的类的数量变化。</p>
+<h3 id="CountRTask"><a href="#CountRTask" class="headerlink" title="CountRTask"></a>CountRTask</h3><p>这个 task 是用于计算所有 R 文件的字段数量。</p>
+<p>如果没有特意的 keep R文件的话，由于 proguard 会将 R 文件的字段内联到代码里面，所以 release 版就不会有 R 文件。当然某些情况下需要keep R 文件，那么 最好的处理是只 keep 住需要的字段。</p>
+<h4 id="call-方法-1"><a href="#call-方法-1" class="headerlink" title="call 方法"></a>call 方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (RandomAccessFile dexFile : dexFileList) &#123;</span><br><span class="line">    DexData dexData = <span class="keyword">new</span> DexData(dexFile);</span><br><span class="line">    dexData.load();</span><br><span class="line">    dexFile.close();</span><br><span class="line">    ClassRef[] defClassRefs = dexData.getInternalReferences();</span><br><span class="line">    <span class="comment">// 遍历dex中的类</span></span><br><span class="line">    <span class="keyword">for</span> (ClassRef classRef : defClassRefs) &#123;</span><br><span class="line">        <span class="comment">// 获取类名</span></span><br><span class="line">        String className = ApkUtil.getNormalClassName(classRef.getName());</span><br><span class="line">        <span class="keyword">if</span> (classProguardMap.containsKey(className)) &#123;</span><br><span class="line">            <span class="comment">// 根据混淆文件，获取未混淆类名</span></span><br><span class="line">            className = classProguardMap.get(className);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 去除内部类的后半部分</span></span><br><span class="line">        <span class="comment">// com.example.sample.R$styleable -&gt; com.example.sample.R</span></span><br><span class="line">        String pureClassName = getOuterClassName(className);</span><br><span class="line">        <span class="comment">// 一个光 R 是个什么鬼？？？</span></span><br><span class="line">        <span class="comment">// 连包名都没有，java可以运行吗？</span></span><br><span class="line">        <span class="keyword">if</span> (pureClassName.endsWith(<span class="string">".R"</span>) || <span class="string">"R"</span>.equals(pureClassName)) &#123;</span><br><span class="line">            <span class="comment">// 获取该类的字段长度</span></span><br><span class="line">            <span class="keyword">if</span> (!classesMap.containsKey(pureClassName)) &#123;</span><br><span class="line">                classesMap.put(pureClassName, classRef.getFieldArray().length);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// 累加内部类</span></span><br><span class="line">                <span class="comment">// com.example.sample.R$string</span></span><br><span class="line">                <span class="comment">// com.example.sample.R$layout</span></span><br><span class="line">                classesMap.put(pureClassName, classesMap.get(pureClassName) + classRef.getFieldArray().length);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>计算 R 文件的字段数量与计算 dex 中 class 数量是差不多的。主要是如何找到 R 文件。</p>
+<p>输出结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;taskType&quot;: 9,</span><br><span class="line">  &quot;taskDescription&quot;: &quot;Count the R class.&quot;,</span><br><span class="line">  &quot;R-count&quot;: 27,</span><br><span class="line">  &quot;Field-counts&quot;: 5449,</span><br><span class="line">  &quot;start-time&quot;: &quot;2020-08-03 22:16:14:524&quot;,</span><br><span class="line">  &quot;end-time&quot;: &quot;2020-08-03 22:16:16:318&quot;,</span><br><span class="line">  &quot;R-classes&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;com.example.resapk.R&quot;,</span><br><span class="line">      &quot;field-count&quot;: 1839</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;android.support.v7.appcompat.R&quot;,</span><br><span class="line">      &quot;field-count&quot;: 1577</span><br><span class="line">    &#125;,</span><br><span class="line">    ...</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="DuplicateFileTask"><a href="#DuplicateFileTask" class="headerlink" title="DuplicateFileTask"></a>DuplicateFileTask</h3><p>找出重复的文件。这个 task 还是很有用的，特别是对于一些资源文件。apk 解压后文件并不多，所以重复文件都是针对的 res 下的图片之类的。</p>
+<h4 id="call"><a href="#call" class="headerlink" title="call"></a>call</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> TaskResult <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> TaskExecuteException </span>&#123;</span><br><span class="line">    TaskResult taskResult = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ...</span><br><span class="line">        computeMD5(inputFile);</span><br><span class="line">        ...</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> TaskExecuteException(e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> taskResult;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为文件生成 md5 值，然后比较。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 计算出文件的 md5</span></span><br><span class="line"><span class="keyword">final</span> String md5 = Util.byteArrayToHex(msgDigest.digest());</span><br><span class="line">String filename = file.getAbsolutePath().substring(inputFile.getAbsolutePath().length() + <span class="number">1</span>);</span><br><span class="line"><span class="comment">// 获取混淆之前的名字</span></span><br><span class="line"><span class="keyword">if</span> (entryNameMap.containsKey(filename)) &#123;</span><br><span class="line">    filename = entryNameMap.get(filename);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (!md5Map.containsKey(md5)) &#123;</span><br><span class="line">    md5Map.put(md5, <span class="keyword">new</span> ArrayList&lt;String&gt;());</span><br><span class="line">    <span class="comment">// 统计文件大小</span></span><br><span class="line">    <span class="keyword">if</span> (entrySizeMap.containsKey(filename)) &#123;</span><br><span class="line">        <span class="comment">// 文件重复就使用之前的数据</span></span><br><span class="line">        fileSizeList.add(Pair.of(md5, entrySizeMap.get(filename).getFirst()));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        fileSizeList.add(Pair.of(md5, totalRead));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 统计所有文件的 md5</span></span><br><span class="line"><span class="comment">// 一个 md5 对应一个 list</span></span><br><span class="line">md5Map.get(md5).add(filename);</span><br></pre></td></tr></table></figure>
+
+<p>就是使用一个map记录所有文件的 md5，发现有重复的则添加到 list 里面。</p>
+<p>看看输出格式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;taskType&quot;: 10,</span><br><span class="line">  &quot;taskDescription&quot;: &quot;Find out the duplicated files.&quot;,</span><br><span class="line">  &quot;files&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;md5&quot;: &quot;02aca4b1e0a80c3cf29ebefc103a506a&quot;,</span><br><span class="line">      &quot;size&quot;: 340,</span><br><span class="line">      &quot;files&quot;: [</span><br><span class="line">        &quot;res\\drawable-xxhdpi-v4\\bg_shadow_top.png&quot;,</span><br><span class="line">        &quot;res\\drawable-xxhdpi-v4\\bg_shadow_top_copy.png&quot;</span><br><span class="line">      ]</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;md5&quot;: &quot;c9e47dbb0e1927076ed7b2e1ec157be7&quot;,</span><br><span class="line">      &quot;size&quot;: 6,</span><br><span class="line">      &quot;files&quot;: [</span><br><span class="line">        &quot;META-INF\\androidx.appcompat_appcompat.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.asynclayoutinflater_asynclayoutinflater.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.coordinatorlayout_coordinatorlayout.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.core_core.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.cursoradapter_cursoradapter.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.customview_customview.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.documentfile_documentfile.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.drawerlayout_drawerlayout.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.fragment_fragment.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.interpolator_interpolator.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.legacy_legacy-support-core-ui.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.legacy_legacy-support-core-utils.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.loader_loader.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.localbroadcastmanager_localbroadcastmanager.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.print_print.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.slidingpanelayout_slidingpanelayout.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.swiperefreshlayout_swiperefreshlayout.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.vectordrawable_vectordrawable-animated.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.vectordrawable_vectordrawable.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.versionedparcelable_versionedparcelable.version&quot;,</span><br><span class="line">        &quot;META-INF\\androidx.viewpager_viewpager.version&quot;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">  ],</span><br><span class="line">  &quot;start-time&quot;: &quot;2020-08-03 22:29:58:809&quot;,</span><br><span class="line">  &quot;end-time&quot;: &quot;2020-08-03 22:29:58:910&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="FindNonAlphaPngTask"><a href="#FindNonAlphaPngTask" class="headerlink" title="FindNonAlphaPngTask"></a>FindNonAlphaPngTask</h3><p>找出不带透明通道的 png 图片，因为没有透明通道，png 就是浪费，可以使用 jpg 等别的格式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">findNonAlphaPng</span><span class="params">(File file)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (file != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (file.isDirectory()) &#123;</span><br><span class="line">            File[] files = file.listFiles();</span><br><span class="line">            <span class="keyword">for</span> (File tempFile : files) &#123;</span><br><span class="line">                findNonAlphaPng(tempFile);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (file.isFile() &amp;&amp; file.getName().endsWith(ApkConstants.PNG_FILE_SUFFIX) &amp;&amp; !file.getName().endsWith(ApkConstants.NINE_PNG)) &#123;</span><br><span class="line">            <span class="comment">// png 文件，但是不是 .9</span></span><br><span class="line">            <span class="comment">// .9 图片需要透明度，所以直接跳过</span></span><br><span class="line">            BufferedImage bufferedImage = ImageIO.read(file);</span><br><span class="line">            <span class="comment">// 如果 没有 alpha 通道</span></span><br><span class="line">            <span class="keyword">if</span> (bufferedImage != <span class="keyword">null</span> &amp;&amp; bufferedImage.getColorModel() != <span class="keyword">null</span> &amp;&amp; !bufferedImage.getColorModel().hasAlpha()) &#123;</span><br><span class="line">                <span class="comment">// 获取文件名</span></span><br><span class="line">                String filename = file.getAbsolutePath().substring(inputFile.getAbsolutePath().length() + <span class="number">1</span>);</span><br><span class="line">                <span class="comment">// 获取混淆前的文件名</span></span><br><span class="line">                <span class="keyword">if</span> (entryNameMap.containsKey(filename)) &#123;</span><br><span class="line">                    filename = entryNameMap.get(filename);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">long</span> size = file.length();</span><br><span class="line">                <span class="keyword">if</span> (entrySizeMap.containsKey(filename)) &#123;</span><br><span class="line">                    <span class="comment">// 获取文件大小</span></span><br><span class="line">                    size = entrySizeMap.get(filename).getFirst();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 大于阈值，记录下来</span></span><br><span class="line">                <span class="keyword">if</span> (size &gt;= downLimitSize * ApkConstants.K1024) &#123;</span><br><span class="line">                    nonAlphaPngList.add(Pair.of(filename, file.length()));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>是一个递归函数，直接看 else if 的逻辑就好了。</p>
+<p>我还是第一个次见到 BufferedImage 这个 API，学到了。</p>
+<h3 id="ManifestAnalyzeTask"><a href="#ManifestAnalyzeTask" class="headerlink" title="ManifestAnalyzeTask"></a>ManifestAnalyzeTask</h3><p>分析 manifest 文件。这里有个有意思的东西，在 eclipse 年代，我们的版本号都是写在  manifest 中的，现在写在了 gradle 中，那么问题来了，当编译之后，可以从 manifest  获取到版本号吗？</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">manifest</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:versionCode</span>=<span class="string">"1"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:versionName</span>=<span class="string">"1.0"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:compileSdkVersion</span>=<span class="string">"29"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:compileSdkVersionCodename</span>=<span class="string">"10"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">package</span>=<span class="string">"com.example.resapk"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">platformBuildVersionCode</span>=<span class="string">"1"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">platformBuildVersionName</span>=<span class="string">"1065353216.000000"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">uses-sdk</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:minSdkVersion</span>=<span class="string">"19"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:targetSdkVersion</span>=<span class="string">"29"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>上面的 xml 是我从 apk 里面解压出来，拖到 as 里面展示的信息，里面是可以获取到版本号的。</p>
+<p>而且，我们也可以在 intermediates 中看最终的 manifest 文件：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">manifest</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">package</span>=<span class="string">"com.example.resapk"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:versionCode</span>=<span class="string">"1"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:versionName</span>=<span class="string">"1.0"</span> &gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">uses-sdk</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:minSdkVersion</span>=<span class="string">"19"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:targetSdkVersion</span>=<span class="string">"29"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>解析代码其实就是一个 xml 解析器，就不贴代码了，不过有一个疑问，就是这个解析器还使用到了 arsc 文件，很奇怪，肯能与 api 的关系。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ManifestParser</span><span class="params">(File manifestFile, File arscFile)</span> <span class="keyword">throws</span> IOException, AndrolibException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (manifestFile != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.manifestFile = manifestFile;</span><br><span class="line">    &#125;</span><br><span class="line">    resourceParser = ApkResourceDecoder.createAXmlParser(arscFile);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;taskType&quot;: 2,</span><br><span class="line">  &quot;taskDescription&quot;: &quot;Read package info from the AndroidManifest.xml.&quot;,</span><br><span class="line">  &quot;start-time&quot;: &quot;2020-08-03 22:29:55:208&quot;,</span><br><span class="line">  &quot;end-time&quot;: &quot;2020-08-03 22:29:55:217&quot;,</span><br><span class="line">  &quot;manifest&quot;: &#123;</span><br><span class="line">    &quot;package&quot;: &quot;com.example.resapk&quot;,</span><br><span class="line">    &quot;android:minSdkVersion&quot;: &quot;19&quot;,</span><br><span class="line">    &quot;android:targetSdkVersion&quot;: &quot;29&quot;,</span><br><span class="line">    &quot;android:versionCode&quot;: &quot;1&quot;,</span><br><span class="line">    &quot;android:versionName&quot;: &quot;1.0&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="MethodCountTask"><a href="#MethodCountTask" class="headerlink" title="MethodCountTask"></a>MethodCountTask</h3><p>统计 apk 中的方法数量，可以分组。这个task的逻辑与 CountClassTask 很像。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">countDex</span><span class="params">(RandomAccessFile dexFile)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    classInternalMethod.clear();</span><br><span class="line">    classExternalMethod.clear();</span><br><span class="line">    pkgInternalRefMethod.clear();</span><br><span class="line">    pkgExternalMethod.clear();</span><br><span class="line">    DexData dexData = <span class="keyword">new</span> DexData(dexFile);</span><br><span class="line">    dexData.load();</span><br><span class="line">    <span class="comment">// 获取 dex 中的方法，在 struct method_id_list dex_method_ids 中储存</span></span><br><span class="line">    MethodRef[] methodRefs = dexData.getMethodRefs();</span><br><span class="line">    <span class="comment">// 获取不属于该 dex 的类</span></span><br><span class="line">    ClassRef[] externalClassRefs = dexData.getExternalReferences();</span><br><span class="line">    Map&lt;String, String&gt; proguardClassMap = config.getProguardClassMap();</span><br><span class="line">    String className = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">for</span> (ClassRef classRef : externalClassRefs) &#123;</span><br><span class="line">        className = ApkUtil.getNormalClassName(classRef.getName());</span><br><span class="line">        <span class="keyword">if</span> (proguardClassMap.containsKey(className)) &#123;</span><br><span class="line">            className = proguardClassMap.get(className);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (className.indexOf(<span class="string">'.'</span>) == -<span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 将外部类的方法数置为0</span></span><br><span class="line">        classExternalMethod.put(className, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (MethodRef methodRef : methodRefs) &#123;</span><br><span class="line">        <span class="comment">// 该方法所属的类</span></span><br><span class="line">        className = ApkUtil.getNormalClassName(methodRef.getDeclClassName());</span><br><span class="line">        <span class="keyword">if</span> (proguardClassMap.containsKey(className)) &#123;</span><br><span class="line">            className = proguardClassMap.get(className);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!Util.isNullOrNil(className)) &#123;</span><br><span class="line">            <span class="keyword">if</span> (className.indexOf(<span class="string">'.'</span>) == -<span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 将dex内部方法放到 classInternalMethod</span></span><br><span class="line">            <span class="comment">// 将dex外部方法方法 classExternalMethod</span></span><br><span class="line">            <span class="keyword">if</span> (classExternalMethod.containsKey(className)) &#123;</span><br><span class="line">                classExternalMethod.put(className, classExternalMethod.get(className) + <span class="number">1</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (classInternalMethod.containsKey(className)) &#123;</span><br><span class="line">                classInternalMethod.put(className, classInternalMethod.get(className) + <span class="number">1</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                classInternalMethod.put(className, <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 移除外部类（引用的方法为0的）</span></span><br><span class="line">    <span class="comment">//remove 0-method referenced class</span></span><br><span class="line">    Iterator&lt;String&gt; iterator = classExternalMethod.keySet().iterator();</span><br><span class="line">    <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">        <span class="keyword">if</span> (classExternalMethod.get(iterator.next()) == <span class="number">0</span>) &#123;</span><br><span class="line">            iterator.remove();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>统计 dex 中的方法数量，这里由于 class 分为两种，一种是 dex 中定义的，一种是引用的别的 dex 的。所以这里区分了一下，这个指标可以作为分包的一个指标，因为如果一个dex里面引用的别的 dex 的 class 非常多的话，说明分包没分好，会导致 dex 体积变大，从而导致 apk 变大。</p>
+<p>看看输出结果：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="attr">"dex-file"</span>:<span class="string">"classes.dex"</span>,</span><br><span class="line">        <span class="attr">"internal-packages"</span>:[</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="attr">"name"</span>:<span class="string">"android.support.v7.widget"</span>,</span><br><span class="line">                <span class="attr">"methods"</span>:<span class="number">2390</span></span><br><span class="line">            &#125;,</span><br><span class="line">            ...</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="attr">"name"</span>:<span class="string">"com.example.resapk"</span>,</span><br><span class="line">                <span class="attr">"methods"</span>:<span class="number">24</span></span><br><span class="line">            &#125;,</span><br><span class="line">            ...</span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">"total-internal-classes"</span>:<span class="number">1316</span>,</span><br><span class="line">        <span class="attr">"total-internal-methods"</span>:<span class="number">12459</span>,</span><br><span class="line">        <span class="attr">"external-packages"</span>:[</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="attr">"name"</span>:<span class="string">"android.view"</span>,</span><br><span class="line">                <span class="attr">"methods"</span>:<span class="number">692</span></span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="attr">"name"</span>:<span class="string">"android.widget"</span>,</span><br><span class="line">                <span class="attr">"methods"</span>:<span class="number">563</span></span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="attr">"name"</span>:<span class="string">"android.app"</span>,</span><br><span class="line">                <span class="attr">"methods"</span>:<span class="number">271</span></span><br><span class="line">            &#125;,</span><br><span class="line">            ...</span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">"total-external-classes"</span>:<span class="number">481</span>,</span><br><span class="line">        <span class="attr">"total-external-methods"</span>:<span class="number">3598</span></span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>可以看出我们的 dex 中，使用 framework 的方法有 3598 个。</p>
+<p>这里原始的输出，但是经过格式化之后，只能看到这样的信息，不太清楚为啥要减少字段：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"taskType"</span>: <span class="number">4</span>,</span><br><span class="line">  <span class="attr">"taskDescription"</span>: <span class="string">"Count methods in dex file, output results group by class name or package name."</span>,</span><br><span class="line">  <span class="attr">"start-time"</span>: <span class="string">"2020-08-03 23:19:26:927"</span>,</span><br><span class="line">  <span class="attr">"end-time"</span>: <span class="string">"2020-08-03 23:19:28:421"</span>,</span><br><span class="line">  <span class="attr">"total-methods"</span>: <span class="number">16057</span>,</span><br><span class="line">  <span class="attr">"groups"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"Android System"</span>,</span><br><span class="line">      <span class="attr">"method-count"</span>: <span class="number">15486</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"java system"</span>,</span><br><span class="line">      <span class="attr">"method-count"</span>: <span class="number">531</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"[others]"</span>,</span><br><span class="line">      <span class="attr">"method-count"</span>: <span class="number">40</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关于 dex 的 class 的信息没有了。</p>
+<h3 id="MultiSTLCheckTask"><a href="#MultiSTLCheckTask" class="headerlink" title="MultiSTLCheckTask"></a>MultiSTLCheckTask</h3><p>这个检测是与 so 有关，但是这方面我不熟，里面的检测主要是使用 nm 工具的输出信息，所以我就不介绍了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里不熟悉 nm 工具。所以不太清楚在做什么</span></span><br><span class="line"><span class="comment">// 使用 arm-linux-androideabi-nm 分析指定的 so 文件，-D -C 参数</span></span><br><span class="line"><span class="comment">// 参数意义：https://manned.org/arm-linux-androideabi-nm/07ad85eb</span></span><br><span class="line"><span class="comment">// 判断输出的每一行内容</span></span><br><span class="line"><span class="comment">// 0001df70 T std::get_unexpected()</span></span><br><span class="line"><span class="comment">// 0001df50 T std::set_unexpected(void (*)())</span></span><br><span class="line"><span class="comment">// 00016780 T std::get_new_handler()</span></span><br><span class="line"><span class="comment">// 00016760 T std::set_new_handler(void (*)())</span></span><br><span class="line"><span class="comment">// 0001dd90 T std::current_exception()</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isStlLinked</span><span class="params">(File libFile)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    ProcessBuilder processBuilder = <span class="keyword">new</span> ProcessBuilder(toolnmPath, <span class="string">"-D"</span>, <span class="string">"-C"</span>, libFile.getAbsolutePath());</span><br><span class="line">    Process process = processBuilder.start();</span><br><span class="line">    BufferedReader reader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getInputStream()));</span><br><span class="line">    String line = reader.readLine();</span><br><span class="line">    <span class="keyword">while</span> (line != <span class="keyword">null</span>) &#123;</span><br><span class="line">        String[] columns = line.split(<span class="string">" "</span>);</span><br><span class="line">        Log.d(TAG, <span class="string">"%s"</span>, line);</span><br><span class="line">        <span class="keyword">if</span> (columns.length &gt;= <span class="number">3</span> &amp;&amp; columns[<span class="number">1</span>].equals(<span class="string">"T"</span>) &amp;&amp; columns[<span class="number">2</span>].startsWith(<span class="string">"std::"</span>)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        line = reader.readLine();</span><br><span class="line">    &#125;</span><br><span class="line">    reader.close();</span><br><span class="line">    process.waitFor();</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="MultiLibCheckTask"><a href="#MultiLibCheckTask" class="headerlink" title="MultiLibCheckTask"></a>MultiLibCheckTask</h3><p>这个很简单，就是判断  libs 下是否有超过1个目录，很简单，就不贴代码了。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 这个 task 很简单，就是输出 lib 下的各个目录</span><br><span class="line">//   "lib-dirs": [</span><br><span class="line">//    "arm64-v8a",</span><br><span class="line">//    "armeabi",</span><br><span class="line">//    "armeabi-v7a",</span><br><span class="line">//    "mips",</span><br><span class="line">//    "mips64",</span><br><span class="line">//    "x86",</span><br><span class="line">//    "x86_64"</span><br><span class="line">//  ],</span><br><span class="line">//  "multi-lib": true,</span><br></pre></td></tr></table></figure>
+
+<h3 id="ResProguardCheckTask"><a href="#ResProguardCheckTask" class="headerlink" title="ResProguardCheckTask"></a>ResProguardCheckTask</h3><p>这个task是判断apk的资源是否被混淆了。</p>
+<p>咋判断呢？</p>
+<p>第一种情况，如果存在 r 目录，则肯定是被混淆了，因为是配合的 AndResGuard 使用的。</p>
+<p>第二种情况，如果存在 res 目录，需要判断厘米的各个目录是否被混淆了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">fileNamePattern = Pattern.compile(<span class="string">"[a-z_0-9]&#123;1,3&#125;"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (dir.isDirectory() &amp;&amp; !fileNamePattern.matcher(dir.getName()).matches()) &#123;</span><br><span class="line">    hasProguard = <span class="keyword">false</span>;</span><br><span class="line">    Log.i(TAG, <span class="string">"directory "</span> + dir.getName() + <span class="string">" has a non-proguard name!"</span>);</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>判断方法很简单，看看混淆后的目录名字是否超过了3个即可。</p>
+<h3 id="ShowFileSizeTask"><a href="#ShowFileSizeTask" class="headerlink" title="ShowFileSizeTask"></a>ShowFileSizeTask</h3><p>这个 task 是用来找出超过一定大小的文件的。这个还是挺有用，可以找出ui切的大图。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"taskType"</span>: <span class="number">3</span>,</span><br><span class="line">  <span class="attr">"taskDescription"</span>: <span class="string">"Show files whose size exceed limit size in order."</span>,</span><br><span class="line">  <span class="attr">"files"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"entry-name"</span>: <span class="string">"resources.arsc"</span>,</span><br><span class="line">      <span class="attr">"entry-size"</span>: <span class="number">265548</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"entry-name"</span>: <span class="string">"res/mipmap-xxxhdpi-v4/ic_launcher_round.png"</span>,</span><br><span class="line">      <span class="attr">"entry-size"</span>: <span class="number">16570</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"entry-name"</span>: <span class="string">"res/mipmap-xxhdpi-v4/ic_launcher_round.png"</span>,</span><br><span class="line">      <span class="attr">"entry-size"</span>: <span class="number">11873</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"entry-name"</span>: <span class="string">"res/mipmap-xxxhdpi-v4/ic_launcher.png"</span>,</span><br><span class="line">      <span class="attr">"entry-size"</span>: <span class="number">10652</span></span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"start-time"</span>: <span class="string">"2020-08-03 23:22:35:851"</span>,</span><br><span class="line">  <span class="attr">"end-time"</span>: <span class="string">"2020-08-03 23:22:35:863"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>因为，解压的时候记录了每个文件的大小，所以直接进行分组就好了。这里是因为过滤了指定后缀文件，所以才这么少。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (Map.Entry&lt;String, Pair&lt;Long, Long&gt;&gt; entry : entrySizeMap.entrySet()) &#123;</span><br><span class="line">    <span class="comment">// 文件后缀</span></span><br><span class="line">    <span class="keyword">final</span> String suffix = getSuffix(entry.getKey());</span><br><span class="line">    Pair&lt;Long, Long&gt; size = entry.getValue();</span><br><span class="line">    <span class="comment">// 文件大小超过下限</span></span><br><span class="line">    <span class="keyword">if</span> (size.getFirst() &gt;= downLimit * ApkConstants.K1024) &#123;</span><br><span class="line">        <span class="comment">// 有在参数指定该后缀，则统计</span></span><br><span class="line">        <span class="comment">// 没有指定任何后缀，也统计</span></span><br><span class="line">        <span class="comment">// 否则，忽略</span></span><br><span class="line">        <span class="keyword">if</span> (filterSuffix.isEmpty() || filterSuffix.contains(suffix)) &#123;</span><br><span class="line">            entryList.add(Pair.of(entry.getKey(), size.getFirst()));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Log.d(TAG, <span class="string">"file: %s, filter by suffix."</span>, entry.getKey());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Log.d(TAG, <span class="string">"file:%s, size:%d B, downlimit:%d KB"</span>, entry.getKey(), size.getFirst(), downLimit);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="UncompressedFileTask"><a href="#UncompressedFileTask" class="headerlink" title="UncompressedFileTask"></a>UncompressedFileTask</h4><p>该任务是输出压缩前后大小仍然相等的文件，apk 实质上是一个压缩文件，所以里面的文件都是经过压缩的才对。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (Map.Entry&lt;String, Pair&lt;Long, Long&gt;&gt; entry : entrySizeMap.entrySet()) &#123;</span><br><span class="line">    <span class="keyword">final</span> String suffix = getSuffix(entry.getKey());</span><br><span class="line">    Pair&lt;Long, Long&gt; size = entry.getValue();</span><br><span class="line">    <span class="comment">// 将压缩前的文件放入 uncompressSizeMap</span></span><br><span class="line">    <span class="comment">// 将压缩后的文件放入 compressSizeMap</span></span><br><span class="line">    <span class="keyword">if</span> (filterSuffix.isEmpty() || filterSuffix.contains(suffix)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!uncompressSizeMap.containsKey(suffix)) &#123;</span><br><span class="line">            uncompressSizeMap.put(suffix, size.getFirst());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            uncompressSizeMap.put(suffix, uncompressSizeMap.get(suffix) + size.getFirst());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!compressSizeMap.containsKey(suffix)) &#123;</span><br><span class="line">            compressSizeMap.put(suffix, size.getSecond());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            compressSizeMap.put(suffix, compressSizeMap.get(suffix) + size.getSecond());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Log.d(TAG, <span class="string">"file: %s, filter by suffix."</span>, entry.getKey());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 判断压缩前后的文件大小是否相等</span></span><br><span class="line"><span class="keyword">if</span> (uncompressSizeMap.get(suffix).equals(compressSizeMap.get(suffix))) &#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>是因为解压apk的时候，统计了每个文件的大小，压缩前后的大小，所以可以直接使用。</p>
+<h4 id="UnStrippedSoCheckTask"><a href="#UnStrippedSoCheckTask" class="headerlink" title="UnStrippedSoCheckTask"></a>UnStrippedSoCheckTask</h4><p>这个任务，同样使用到了 nm 工具，所以我不熟。因为使用到了 nm 工具，所以，需要配置该工具的路径。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isSoStripped</span><span class="params">(File libFile)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">    <span class="comment">// 使用 arm-linux-androideabi-nm 分析指定的 so 文件，不带参数</span></span><br><span class="line">    ProcessBuilder processBuilder = <span class="keyword">new</span> ProcessBuilder(toolnmPath, libFile.getAbsolutePath());</span><br><span class="line">    Process process = processBuilder.start();</span><br><span class="line">    BufferedReader reader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getErrorStream()));</span><br><span class="line">    String line = reader.readLine();</span><br><span class="line">    <span class="keyword">boolean</span> result = <span class="keyword">false</span>;</span><br><span class="line">    <span class="comment">// aarch64-linux-android-nm: libcrashlytics.so: no symbols</span></span><br><span class="line">    <span class="comment">// 如果输出上面的信息，则通过，当然这里我是不太懂到底是个啥</span></span><br><span class="line">    <span class="keyword">if</span> (!Util.isNullOrNil(line)) &#123;</span><br><span class="line">        Log.d(TAG, <span class="string">"%s"</span>, line);</span><br><span class="line">        String[] columns = line.split(<span class="string">":"</span>);</span><br><span class="line">        <span class="keyword">if</span> (columns.length == <span class="number">3</span> &amp;&amp; columns[<span class="number">2</span>].trim().equalsIgnoreCase(<span class="string">"no symbols"</span>)) &#123;</span><br><span class="line">            result = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    reader.close();</span><br><span class="line">    process.waitFor();</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/08/03/blog_bak/Blog/Android-源码解析/Matrix/011-Matrix源码分析：ApkChecker的其他小工具/" title="011-Matrix源码分析：ApkChecker的其他小工具">http://aprz512.github.io/2020/08/03/blog_bak/Blog/Android-源码解析/Matrix/011-Matrix源码分析：ApkChecker的其他小工具/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/08/02/blog_bak/Blog/Android-源码解析/Matrix/009-Matrix源码分析：ApkChecker解压apk/" rel="next" title="009-Matrix源码分析：ApkChecker解压apk.md">
+                  <i class="fa fa-chevron-left"></i> 009-Matrix源码分析：ApkChecker解压apk.md
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/08/04/blog_bak/Blog/flutter/001-Dart语法捡漏/" rel="prev" title="001-Dart语法捡漏">
+                  001-Dart语法捡漏 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">199</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#CountClassTask"><span class="nav-number">1.</span> <span class="nav-text">CountClassTask</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#init-方法"><span class="nav-number">1.1.</span> <span class="nav-text">init 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#call-方法"><span class="nav-number">1.2.</span> <span class="nav-text">call 方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CountRTask"><span class="nav-number">2.</span> <span class="nav-text">CountRTask</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#call-方法-1"><span class="nav-number">2.1.</span> <span class="nav-text">call 方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DuplicateFileTask"><span class="nav-number">3.</span> <span class="nav-text">DuplicateFileTask</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#call"><span class="nav-number">3.1.</span> <span class="nav-text">call</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FindNonAlphaPngTask"><span class="nav-number">4.</span> <span class="nav-text">FindNonAlphaPngTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ManifestAnalyzeTask"><span class="nav-number">5.</span> <span class="nav-text">ManifestAnalyzeTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MethodCountTask"><span class="nav-number">6.</span> <span class="nav-text">MethodCountTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MultiSTLCheckTask"><span class="nav-number">7.</span> <span class="nav-text">MultiSTLCheckTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MultiLibCheckTask"><span class="nav-number">8.</span> <span class="nav-text">MultiLibCheckTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ResProguardCheckTask"><span class="nav-number">9.</span> <span class="nav-text">ResProguardCheckTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ShowFileSizeTask"><span class="nav-number">10.</span> <span class="nav-text">ShowFileSizeTask</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#UncompressedFileTask"><span class="nav-number">10.1.</span> <span class="nav-text">UncompressedFileTask</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UnStrippedSoCheckTask"><span class="nav-number">10.2.</span> <span class="nav-text">UnStrippedSoCheckTask</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">832k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">12:36</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

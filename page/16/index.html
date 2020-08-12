@@ -189,7 +189,7 @@
       
     
 
-    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">12</span></a>
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">14</span></a>
 
   </li>
       
@@ -215,7 +215,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">188</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">199</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -269,7 +269,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0004-异步加载数据/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/View 的滑动处理（三）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -283,7 +283,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0004-异步加载数据/" class="post-title-link" itemprop="url">0004-异步加载数据</a>
+            <a href="/2019/09/10/blog_bak/Blog/Android-View/View 的滑动处理（三）/" class="post-title-link" itemprop="url">View 的滑动处理（三）</a>
           
         </h1>
 
@@ -298,7 +298,7 @@
                 
               
 
-              <time title="创建时间：2019-09-09 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-09T00:00:00+08:00">2019-09-09</time>
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
             </span>
           
             
@@ -309,7 +309,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-11 17:05:54" itemprop="dateModified" datetime="2019-09-11T17:05:54+08:00">2019-09-11</time>
+                <time title="修改时间：2019-08-18 18:49:55" itemprop="dateModified" datetime="2019-08-18T18:49:55+08:00">2019-08-18</time>
               </span>
             
           
@@ -319,7 +319,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tangram/" itemprop="url" rel="index"><span itemprop="name">Tangram</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/View-的滑动/" itemprop="url" rel="index"><span itemprop="name">View 的滑动</span></a></span>
 
                 
                 
@@ -338,7 +338,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0004-异步加载数据/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0004-异步加载数据/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-View/View 的滑动处理（三）/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-View/View 的滑动处理（三）/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -350,704 +350,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>7.5k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>7 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Tangram 的页面的数据无法一次性返回，有些区块布局内的数据需要异步加载、甚至分页加载。Tangram 里内置了封装了异步加载的逻辑，需要各个层面配合完成。</p><h2 id="数据设置"><a href="#数据设置" class="headerlink" title="数据设置"></a>数据设置</h2><p>想要实现异步加载，服务器返回的数据需要做如下配置：</p><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">"id"</span>: <span class="string">"Shop"</span>,</span><br><span class="line">	<span class="attr">"load"</span>: <span class="string">"queryShop"</span>,</span><br><span class="line">	<span class="attr">"loadType"</span>: <span class="string">"-1"</span>,</span><br><span class="line">	<span class="attr">"type"</span>: <span class="string">"container-oneColumn"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/09/blog_bak/Blog/Android-源码解析/Tangram/0004-异步加载数据/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0001-前言/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0001-前言/" class="post-title-link" itemprop="url">0001-前言</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-07 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-07T00:00:00+08:00">2019-09-07</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-11 17:05:54" itemprop="dateModified" datetime="2019-09-11T17:05:54+08:00">2019-09-11</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tangram/" itemprop="url" rel="index"><span itemprop="name">Tangram</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0001-前言/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0001-前言/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>177</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>1 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>直接看官方文档比较好吧：</p>
-<ul>
-<li><a href="http://tangram.pingguohe.net/docs/basic-concept/history" target="_blank" rel="noopener">了解Tangram</a></li>
-<li><a href="http://tangram.pingguohe.net/docs/basic-concept/concept" target="_blank" rel="noopener">基本概念</a></li>
-<li><a href="http://tangram.pingguohe.net/docs/basic-concept/structure" target="_blank" rel="noopener">基础架构</a></li>
-<li><a href="http://tangram.pingguohe.net/docs/basic-concept/principle" target="_blank" rel="noopener">设计原则</a></li>
-</ul>
-<p>后面的文章，都是照着下面链接的目录来的：</p>
-<p><a href="http://tangram.pingguohe.net/docs/android/access-tangram" target="_blank" rel="noopener">http://tangram.pingguohe.net/docs/android/access-tangram</a></p>
-<p>主要是记录在看文档的过程中，对相应部分源码的分析与自己的理解。</p>
-<p>Tangram 的接入与核心方法这两部分可讲的东西不多，所以我们直接跳过。</p>
-
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/" class="post-title-link" itemprop="url">0002-组件开发</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-07 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-07T00:00:00+08:00">2019-09-07</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-11 17:05:54" itemprop="dateModified" datetime="2019-09-11T17:05:54+08:00">2019-09-11</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tangram/" itemprop="url" rel="index"><span itemprop="name">Tangram</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>4.3k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>4 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在 Tangram 的领域里，我们将一个普通的列表页面结构化成树状结构：分别是页面 - 布局 - 组件。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">页面</span><br><span class="line">	|</span><br><span class="line">	- 布局1</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件11</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件12</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件13</span><br><span class="line">	|</span><br><span class="line">	- 布局2</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件21</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件22</span><br><span class="line">	|</span><br><span class="line">	- 布局3</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件31</span><br><span class="line">	|	|</span><br><span class="line">	|	- 组件32</span><br><span class="line">	|</span><br><span class="line">	- 组件4</span><br><span class="line">	...</span><br><span class="line">	|</span><br><span class="line">	|</span><br><span class="line">	|</span><br><span class="line">	- 布局n</span><br><span class="line">		|</span><br><span class="line">		- 组件n1</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/07/blog_bak/Blog/Android-源码解析/Tangram/0002-组件开发/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0005-绑定数据/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0005-绑定数据/" class="post-title-link" itemprop="url">0005-绑定数据</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-06T00:00:00+08:00">2019-09-06</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0005-绑定数据/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0005-绑定数据/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>5.1k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>5 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>前面一篇文章，对于 preview 方法，我们分析完了第一行代码，现在，我们继续分析设置数据的方法，做了什么：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">IContainer iContainer = (IContainer) mContainer;</span><br><span class="line"><span class="keyword">if</span> (jsonData != <span class="keyword">null</span>) &#123;</span><br><span class="line">    iContainer.getVirtualView().setVData(jsonData);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0005-绑定数据/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/" class="post-title-link" itemprop="url">0007-控件</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-06T00:00:00+08:00">2019-09-06</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>7.6k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>7 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>虚拟控件到底是如何工作的？它是如何直接绘制在 canvas 上的？</p><p>Tangram 提供的控件分为两类，一类以 Native 开头，表示实际上是基于原生控件实现的。一类以 Virtual 开头，表示这不是一个实际的控件。</p><p>这里分析两个控件，来加深对虚拟控件的理解。</p><h2 id="NativeText"><a href="#NativeText" class="headerlink" title="NativeText"></a>NativeText</h2><p>看它的构造函数，它里面封装了一个原生的控件：</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0007-控件/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0006-事件处理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0006-事件处理/" class="post-title-link" itemprop="url">0006-事件处理</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-06T00:00:00+08:00">2019-09-06</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0006-事件处理/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0006-事件处理/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>3.3k</span>
+              <span>3.4k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1070,11 +373,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>组件默认是不会响应事件的。想要组件响应事件，需要做如下类似设置：</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flag="flag_exposure|flag_clickable"</span><br></pre></td></tr></table></figure><p>flag_exposure 表示组件曝光事件，源码中 <code>com.tmall.wireless.vaf.virtualview.event.EventManager#TYPE_Exposure</code> 表示曝光事件，看了调用的位置，一般都在 setData 的时候，有点奇怪。</p>
+          <h2 id="ViewDragHelper-定义"><a href="#ViewDragHelper-定义" class="headerlink" title="ViewDragHelper 定义"></a>ViewDragHelper 定义</h2><p>Android 官方对 ViewDragHelper 的定义是：</p><ul>
+<li>可以用于自定义 ViewGroup</li>
+<li>可以进行拖拽移动或者重新定位ViewGroup中子视图View</li>
+<li>提供有效操作和状态追踪</li>
+</ul><p>##使用 ViewDragHelper</p><p>下面说说，如何使用 ViewDragHelper（下面简称 VDH） 。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/06/blog_bak/Blog/Android-源码解析/Virtualview/0006-事件处理/#more" rel="contents">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-View/View 的滑动处理（三）/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1105,7 +412,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1119,7 +426,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/" class="post-title-link" itemprop="url">0003-模板编译与解析</a>
+            <a href="/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/" class="post-title-link" itemprop="url">自定义LayoutManager</a>
           
         </h1>
 
@@ -1134,7 +441,7 @@
                 
               
 
-              <time title="创建时间：2019-09-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-04T00:00:00+08:00">2019-09-04</time>
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
             </span>
           
             
@@ -1145,22 +452,9 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-07 13:59:24" itemprop="dateModified" datetime="2019-09-07T13:59:24+08:00">2019-09-07</time>
+                <time title="修改时间：2019-08-18 12:16:05" itemprop="dateModified" datetime="2019-08-18T12:16:05+08:00">2019-08-18</time>
               </span>
             
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -1174,7 +468,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1186,7 +480,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>9.4k</span>
+              <span>9k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1196,7 +490,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>9 分钟</span>
+              <span>8 分钟</span>
             </span>
           
 
@@ -1209,13 +503,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <blockquote>
-<p>PS： 为了方便记录，将编译与解析合并</p>
-</blockquote><p>官方文档的这一篇叫做“组件编译”，我看了文档，发现这里的组件的意思应该是“控件”。为了阅读的流畅性，所以这里我就改名为模板编译，其实最终还是编译的一个一个的布局控件。</p><p>既然要将一个xml文件编译成二进制文件，最后还要能够解析出来，那么我们需要解决一些问题，还是拿之前的 xml 文件来说：</p>
+          <p>在做了这么长时间的Android开发，还没有遇到过这个需求，不过看了别人的很多效果，感觉很棒，所以找了时间就研究了一下，现在做一些记录，等以后有了相关需要可以快速回顾。</p><p>在我学习的过程中，不可避免的遇到了很多问题，有的已经解决，有的还未解决，所以这个 Demo 就是看个乐呵吧。</p><p>自定义一个 LayoutManager 整体给我的感觉是与实现自定义 ViewGroup 的 onLayout 比较像。其他的测量绘制方法都不需要我们实现，测量方法还有很多可以直接使用的：</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0003-模板编译与解析/#more" rel="contents">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-View/自定义LayoutManager/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1246,7 +538,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0001-前言/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-JetPack/WorkManager与LowMemoryKiller/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1260,7 +552,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0001-前言/" class="post-title-link" itemprop="url">0001-前言</a>
+            <a href="/2019/09/10/blog_bak/Blog/Android-JetPack/WorkManager与LowMemoryKiller/" class="post-title-link" itemprop="url">WorkManager 与 LowMemoryKiller 理解</a>
           
         </h1>
 
@@ -1275,7 +567,7 @@
                 
               
 
-              <time title="创建时间：2019-09-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-04T00:00:00+08:00">2019-09-04</time>
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
             </span>
           
             
@@ -1286,22 +578,9 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
+                <time title="修改时间：2019-08-18 12:16:05" itemprop="dateModified" datetime="2019-08-18T12:16:05+08:00">2019-08-18</time>
               </span>
             
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -1315,7 +594,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0001-前言/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0001-前言/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-JetPack/WorkManager与LowMemoryKiller/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-JetPack/WorkManager与LowMemoryKiller/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1327,7 +606,259 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>343</span>
+              <span>3.1k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>3 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>今天在查看bugly的时候，发现了如下错误：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android.app.RemoteServiceException</span><br><span class="line">Context.startForegroundService() did not then call Service.startForeground()</span><br></pre></td></tr></table></figure><p>发现是由于WorkManager引起的，原因是由于我们刚刚引入了WorkManager，不想对原来的代码改动太大，所以只是将AlarmManager替换成了WorkManager。</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-JetPack/WorkManager与LowMemoryKiller/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-思考/Android 应用是如何编译与运行的/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/09/10/blog_bak/Blog/Android-思考/Android 应用是如何编译与运行的/" class="post-title-link" itemprop="url">Android 应用是如何编译与运行的</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:48:54" itemprop="dateModified" datetime="2019-08-18T12:48:54+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-思考/Android 应用是如何编译与运行的/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-思考/Android 应用是如何编译与运行的/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>3.5k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>3 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Android Studio 负责如何构建与部署我们的应用。但是你有没有想过当你按下Run按钮时发生了什么？</p><h3 id="构建"><a href="#构建" class="headerlink" title="构建"></a>构建</h3><h4 id="Java-compilation"><a href="#Java-compilation" class="headerlink" title="Java compilation"></a>Java compilation</h4><p>我们的代码是用Java编写的。但是，Java代码的编译和运行方式与Web应用程序相同吗？</p><p>Android应用程序的编译过程与其他Java应用程序有很大不同。</p><p>但是它们的开始过程都是一样的：</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-思考/Android 应用是如何编译与运行的/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-思考/Android无障碍服务/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/09/10/blog_bak/Blog/Android-思考/Android无障碍服务/" class="post-title-link" itemprop="url">Android 无障碍服务</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-18 12:48:54" itemprop="dateModified" datetime="2019-08-18T12:48:54+08:00">2019-08-18</time>
+              </span>
+            
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-思考/Android无障碍服务/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-思考/Android无障碍服务/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>1.6k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1350,11 +881,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>本来按照顺序是应该先写 VLayout，再写 Tangram，最后才是 Virtualview。这是一个循序渐进的过程。由于我本身对 VLayout 有了一定的了解，所以我就直接看了 Tangram，发现源码阅读起来不算太难，就是写代码的风格看着有点蛋疼（我们装了阿里的 Java 规约插件，然后发现源码里全是警告线，这特么自己开发的内部都不用的吗）。当我根据文档一点一点的阅读完源码之后，本来以为就要结束的时候，才发现里面说的“虚拟控件”才是比较值得咀嚼的。</p>
+          <p>由于某种原因，我们需要屏蔽某些界面上的无障碍服务的使用，刚开始我以为是做不到的。因为我们的思路出了问题，就直接想着要去停止系统的这个服务。但是经过一番搜索之后，没有发现任何结果。官方文档也说了：</p><blockquote>
+<p>The lifecycle of an accessibility service is managed exclusively by the system and follows the established service life cycle.</p>
+</blockquote>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0001-前言/#more" rel="contents">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-思考/Android无障碍服务/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1385,7 +918,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0002-数据模板/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-JetPack/DataBinding 原理分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1399,7 +932,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0002-数据模板/" class="post-title-link" itemprop="url">0002-数据模板</a>
+            <a href="/2019/09/10/blog_bak/Blog/Android-JetPack/DataBinding 原理分析/" class="post-title-link" itemprop="url">DataBinding 原理分析</a>
           
         </h1>
 
@@ -1414,7 +947,7 @@
                 
               
 
-              <time title="创建时间：2019-09-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-04T00:00:00+08:00">2019-09-04</time>
+              <time title="创建时间：2019-09-10 10:34:15" itemprop="dateCreated datePublished" datetime="2019-09-10T10:34:15+08:00">2019-09-10</time>
             </span>
           
             
@@ -1425,22 +958,9 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
+                <time title="修改时间：2019-08-18 12:16:05" itemprop="dateModified" datetime="2019-08-18T12:16:05+08:00">2019-08-18</time>
               </span>
             
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -1454,7 +974,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0002-数据模板/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0002-数据模板/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-JetPack/DataBinding 原理分析/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-JetPack/DataBinding 原理分析/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1466,7 +986,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>4.9k</span>
+              <span>19k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1476,7 +996,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>4 分钟</span>
+              <span>17 分钟</span>
             </span>
           
 
@@ -1489,11 +1009,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>这一段本来应该是介绍 Tangram 才说的，但是为了说明模板的作用，这里还是需要简要的说明一下 Tangram 是做什么的。</p><p>首先，作为一个商城类应用，其首页的变动是非常频繁的，特别是在一些特殊的节日。按照一般的开发逻辑，在节日之前肯定是要发新版的，而且节日过了之后，又需要将界面改回来。如果一直发新版本的话，就效率太低了，更新频繁的话也很容易找骂。</p>
+          <p>DataBinding 是一个支持库，它可以将布局中的界面组件绑定到数据源上，做到UI与数据的单项或者双向监听。说白一点就是数据发生变化可以直接反映到界面上，不用再次手动操作了。当然它的作用远远不止于此，本文从这个点入手，来略微深入一下它的实现过程。</p><p>首先，DataBinding可以将数据的变化反应到UI上，实际上就是帮助我们更新UI，那么它肯定需要持有（直接或者间接）UI的引用，不然的话，是没法操作UI的。用过DataBinding 的小伙伴应该都知道，DataBinding 会根据布局生成一个类，这个类里会有许多成员变量，每个变量对应着布局里面各个控件。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0002-数据模板/#more" rel="contents">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-JetPack/DataBinding 原理分析/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1524,7 +1044,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0007-使用布局辅助模块/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1538,7 +1058,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/" class="post-title-link" itemprop="url">0004-组件的创建</a>
+            <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0007-使用布局辅助模块/" class="post-title-link" itemprop="url">0007-使用布局辅助模块</a>
           
         </h1>
 
@@ -1553,7 +1073,7 @@
                 
               
 
-              <time title="创建时间：2019-09-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-04T00:00:00+08:00">2019-09-04</time>
+              <time title="创建时间：2019-09-10 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-10T00:00:00+08:00">2019-09-10</time>
             </span>
           
             
@@ -1564,7 +1084,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-07 11:42:50" itemprop="dateModified" datetime="2019-09-07T11:42:50+08:00">2019-09-07</time>
+                <time title="修改时间：2019-09-11 17:05:54" itemprop="dateModified" datetime="2019-09-11T17:05:54+08:00">2019-09-11</time>
               </span>
             
           
@@ -1574,7 +1094,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Virtualview/" itemprop="url" rel="index"><span itemprop="name">Virtualview</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tangram/" itemprop="url" rel="index"><span itemprop="name">Tangram</span></a></span>
 
                 
                 
@@ -1593,7 +1113,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0007-使用布局辅助模块/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0007-使用布局辅助模块/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1605,7 +1125,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>14k</span>
+              <span>563</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1615,7 +1135,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>13 分钟</span>
+              <span>1 分钟</span>
             </span>
           
 
@@ -1628,11 +1148,428 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>前面我们说了，想要加载一个模板文件，需要调用如下代码：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sViewManager.loadBinBufferSync(TEST.BIN);</span><br></pre></td></tr></table></figure><p>那么，模板加载进来了之后，该怎么使用呢？用法还算是简单，如下：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">preview</span><span class="params">(String templateName, com.alibaba.fastjson.JSONObject jsonData)</span> </span>&#123;</span><br><span class="line">    mContainer = sVafContext.getContainerService().getContainer(templateName, <span class="keyword">true</span>);</span><br><span class="line">    IContainer iContainer = (IContainer) mContainer;</span><br><span class="line">    <span class="keyword">if</span> (jsonData != <span class="keyword">null</span>) &#123;</span><br><span class="line">        iContainer.getVirtualView().setVData(jsonData);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Layout.Params p = iContainer.getVirtualView().getComLayoutParams();</span><br><span class="line">    LinearLayout.LayoutParams marginLayoutParams = <span class="keyword">new</span> LinearLayout.LayoutParams(p.mLayoutWidth, p.mLayoutHeight);</span><br><span class="line">    marginLayoutParams.leftMargin = p.mLayoutMarginLeft;</span><br><span class="line">    marginLayoutParams.topMargin = p.mLayoutMarginTop;</span><br><span class="line">    marginLayoutParams.rightMargin = p.mLayoutMarginRight;</span><br><span class="line">    marginLayoutParams.bottomMargin = p.mLayoutMarginBottom;</span><br><span class="line"></span><br><span class="line">    mLinearLayout.removeAllViews();</span><br><span class="line">    mLinearLayout.addView(mContainer, marginLayoutParams);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <p><code>CardSupport</code>，布局辅助模块，主要处里布局背景加载的回调，让业务方有能力去控制相关逻辑，业务方需要继承它并注册到 Tangram 里。由于这里面的逻辑涉及到 vLayout，而 vLayout 系列准备另起一个系列，所以这里就不说咯。</p><p>这个类还是挺简单的，里面就几个空方法，Java 8 可以改成接口，用默认实现。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/04/blog_bak/Blog/Android-源码解析/Virtualview/0004-组件的创建/#more" rel="contents">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0007-使用布局辅助模块/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0005-使用定时器/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0005-使用定时器/" class="post-title-link" itemprop="url">0005-使用定时器</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-10T00:00:00+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-11 17:05:54" itemprop="dateModified" datetime="2019-09-11T17:05:54+08:00">2019-09-11</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tangram/" itemprop="url" rel="index"><span itemprop="name">Tangram</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0005-使用定时器/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0005-使用定时器/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>3.2k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>3 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>组件的业务逻辑里难免有涉及到定数触发的逻辑，比如倒计时、定时滚动。Tangram 内置了定时器模块，可以全局复用，防止重复开发。以在组件里使用定时器为例： 在 bindView 或者 postBindView 方法里注册定时器。</p><p>在自定义的 View 中：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postBindView</span><span class="params">(BaseCell cell)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (cell.serviceManager != <span class="keyword">null</span>) &#123;</span><br><span class="line">        TimerSupport timerSupport = cell.serviceManager.getService(TimerSupport.class);</span><br><span class="line">        <span class="keyword">if</span> (timerSupport != <span class="keyword">null</span> &amp;&amp; !timerSupport.isRegistered(<span class="keyword">this</span>)) &#123;</span><br><span class="line">            <span class="comment">//第一个参数4是单位秒，第二个参数是接口回调，第三个参数是立即执行</span></span><br><span class="line">            timerSupport.register(<span class="number">4</span>, <span class="keyword">this</span>, <span class="keyword">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0005-使用定时器/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0006-使用组件辅助模块/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0006-使用组件辅助模块/" class="post-title-link" itemprop="url">0006-使用组件辅助模块</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-10T00:00:00+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-11 17:05:54" itemprop="dateModified" datetime="2019-09-11T17:05:54+08:00">2019-09-11</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Tangram/" itemprop="url" rel="index"><span itemprop="name">Tangram</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0006-使用组件辅助模块/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0006-使用组件辅助模块/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>1.4k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>1 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>每个组件里可能会有一些重复逻辑，特别是采用通用 model 开发组件的时候，组件的 View 之间一般没有继承体系，为了解决这种问题，建议业务也像<code>SimpleClickSupport</code>或者<code>ExposureSupport</code>一样将逻辑模块化，通过 serviceManager 注册到框里提供给组件使用。此外框架里还提供了一个<code>CellSupport</code>，暴露了一些基本接口，业务方需要继承它并注册到 Tangram 里。</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Android-源码解析/Tangram/0006-使用组件辅助模块/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2019/09/10/blog_bak/Blog/Java/Annotation Processor/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/09/10/blog_bak/Blog/Java/Annotation Processor/" class="post-title-link" itemprop="url">Annotation Processor</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-10 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-10T00:00:00+08:00">2019-09-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-29 17:28:10" itemprop="dateModified" datetime="2019-09-29T17:28:10+08:00">2019-09-29</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/AnnotationProcessor/" itemprop="url" rel="index"><span itemprop="name">AnnotationProcessor</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/09/10/blog_bak/Blog/Java/Annotation Processor/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2019/09/10/blog_bak/Blog/Java/Annotation Processor/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>8.5k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>8 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>注解处理在 Java 1.5 的时候就已经发布了，虽然它很老了，但是却是最强大的 API 之一。下面我们会先讨论注解处理，代码自动生成以及使用到这些技术的开源库。</p><h3 id="什么是注解"><a href="#什么是注解" class="headerlink" title="什么是注解"></a>什么是注解</h3><p>实际上，我们应该都知道什么是注解。我们经常使用到的：<code>@Override</code>，<code>@Singleton</code>，<code>@StringRes</code> 等等，这些就是注解。</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/10/blog_bak/Blog/Java/Annotation Processor/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1660,7 +1597,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/15/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><span class="page-number current">16</span><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/17/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/15/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><span class="page-number current">16</span><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/17/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1696,7 +1633,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">188</span>
+          <span class="site-state-item-count">199</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1735,7 +1672,11 @@
         
           
         
-        <span class="site-state-item-count">12</span>
+          
+        
+          
+        
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -1846,14 +1787,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">773k</span>
+    <span title="站点总字数">832k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">11:43</span>
+    <span title="站点阅读时长">12:36</span>
 </div>
 
         
