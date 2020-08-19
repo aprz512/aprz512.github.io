@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="在分析activity的引用链的时候，我们还可以顺便分析一下，内存中有没有重复的Bitmap，如果有的话，就可以看看是什么原因导致的，这样对优化内存有帮助。分析该任务的类是 DuplicatedBitmapAnalyzer。用过 as 的都知道它有一个 profiler功能，里面可以对CPU/网络/内存做分析。而内存分析的话，它也提供了 dump 与分析 hprof 文件的功能。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="015-Matrix源码分析：检测内存中重复的Bitmap">
+<meta property="og:url" content="http://aprz512.github.io/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/015-Matrix源码分析：检测内存中重复的Bitmap/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="在分析activity的引用链的时候，我们还可以顺便分析一下，内存中有没有重复的Bitmap，如果有的话，就可以看看是什么原因导致的，这样对优化内存有帮助。分析该任务的类是 DuplicatedBitmapAnalyzer。用过 as 的都知道它有一个 profiler功能，里面可以对CPU/网络/内存做分析。而内存分析的话，它也提供了 dump 与分析 hprof 文件的功能。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-08-19T02:52:32.937Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="015-Matrix源码分析：检测内存中重复的Bitmap">
+<meta name="twitter:description" content="在分析activity的引用链的时候，我们还可以顺便分析一下，内存中有没有重复的Bitmap，如果有的话，就可以看看是什么原因导致的，这样对优化内存有帮助。分析该任务的类是 DuplicatedBitmapAnalyzer。用过 as 的都知道它有一个 profiler功能，里面可以对CPU/网络/内存做分析。而内存分析的话，它也提供了 dump 与分析 hprof 文件的功能。">
+  <link rel="canonical" href="http://aprz512.github.io/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/015-Matrix源码分析：检测内存中重复的Bitmap/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>015-Matrix源码分析：检测内存中重复的Bitmap | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">14</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">204</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/015-Matrix源码分析：检测内存中重复的Bitmap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">015-Matrix源码分析：检测内存中重复的Bitmap
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-19 00:00:00 / 修改时间：10:52:32" itemprop="dateCreated datePublished" datetime="2020-08-19T00:00:00+08:00">2020-08-19</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Matrix/" itemprop="url" rel="index"><span itemprop="name">Matrix</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/015-Matrix源码分析：检测内存中重复的Bitmap/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/015-Matrix源码分析：检测内存中重复的Bitmap/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>6k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>5 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在分析activity的引用链的时候，我们还可以顺便分析一下，内存中有没有重复的Bitmap，如果有的话，就可以看看是什么原因导致的，这样对优化内存有帮助。</p><p>分析该任务的类是 <code>DuplicatedBitmapAnalyzer</code>。用过 as 的都知道它有一个 profiler功能，里面可以对CPU/网络/内存做分析。而内存分析的话，它也提供了 dump 与分析 hprof 文件的功能。</p><a id="more"></a>
+
+<p>所以，我们查看这个模块的相关源码的话，就可以找到这个类：</p>
+<blockquote>
+<p><a href="https://android.googlesource.com/platform/tools/base/+/studio-master-dev/perflib/src/main/java/com/android/tools/perflib/heap/memoryanalyzer/DuplicatedBitmapAnalyzerTask.java" target="_blank" rel="noopener">https://android.googlesource.com/platform/tools/base/+/studio-master-dev/perflib/src/main/java/com/android/tools/perflib/heap/memoryanalyzer/DuplicatedBitmapAnalyzerTask.java</a></p>
+</blockquote>
+<p>里面是使用了一个算法来分析内存中的相同的bitmap。</p>
+<p>先看看上面链接的这个类，然后再看 matrix 的这个类，会更好一点，因为 matrix 的这个类加了不少东西，导致方法很长，看起来就不好懂。</p>
+<p>那我们就先分析 google 的那个类，它的逻辑很纯粹，好理解这个算法。</p>
+<p>先说一下这个算法是如何做的：</p>
+<p>首先，要判断两个 Bitmap 是否是一样的，只需要判断它的 mBuffer 字段是不是一样的，所以就归结为<strong>比较两个 byte 数组是否一样</strong>。</p>
+<p>内存中的 Bitmap 对象那么多，怎么才能列举出所有相等的 mBuffer 呢？</p>
+<p>第一步，将 mBuffer 按照 mBuffer[0] 的值进行分组。假设，得到了 8 组。</p>
+<p>第二部，遍历上面得到的 8 组内容，对每组按照 mBuffer[1] 的值再进行分组。</p>
+<p>重复上面的过程。一直到有 mBuffer 已经被遍历完了，就检查一下被遍历完成的集合大小，是否大于1。如果大于1，则说明这个集合里面的 mBuffer 是一样的。所以就找到了所有的相同的 mBuffer。下面是具体的实现代码：</p>
+<blockquote>
+<p>DuplicatedBitmapAnalyzerTask#analyze</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> columnIndex = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span> (!commonPrefixSets.isEmpty()) &#123;</span><br><span class="line">    <span class="keyword">for</span> (Set&lt;ArrayInstance&gt; commonPrefixArrays : commonPrefixSets) &#123;</span><br><span class="line">        Map&lt;Object, Set&lt;ArrayInstance&gt;&gt; entryClassifier = <span class="keyword">new</span> HashMap&lt;&gt;(</span><br><span class="line">                commonPrefixArrays.size());</span><br><span class="line">        <span class="keyword">for</span> (ArrayInstance arrayInstance : commonPrefixArrays) &#123;</span><br><span class="line">            Object element = cachedValues.get(arrayInstance)[columnIndex];</span><br><span class="line">            <span class="keyword">if</span> (entryClassifier.containsKey(element)) &#123;</span><br><span class="line">                entryClassifier.get(element).add(arrayInstance);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                Set&lt;ArrayInstance&gt; instanceSet = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">                instanceSet.add(arrayInstance);</span><br><span class="line">                entryClassifier.put(element, instanceSet);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (Set&lt;ArrayInstance&gt; branch : entryClassifier.values()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (branch.size() &lt;= <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="comment">// Unique branch, ignore it and it won't be counted towards duplication.</span></span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            Set&lt;ArrayInstance&gt; terminatedArrays = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">            <span class="comment">// Move all ArrayInstance that we have hit the end of to the candidate result list.</span></span><br><span class="line">            <span class="keyword">for</span> (ArrayInstance instance : branch) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance.getLength() == columnIndex + <span class="number">1</span>) &#123;</span><br><span class="line">                    terminatedArrays.add(instance);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            branch.removeAll(terminatedArrays);</span><br><span class="line">            <span class="comment">// Exact duplicated arrays found.</span></span><br><span class="line">            <span class="keyword">if</span> (terminatedArrays.size() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">int</span> byteArraySize = -<span class="number">1</span>;</span><br><span class="line">                ArrayList&lt;Instance&gt; duplicateBitmaps = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">                <span class="keyword">for</span> (ArrayInstance terminatedArray : terminatedArrays) &#123;</span><br><span class="line">                    duplicateBitmaps.add(byteArrayToBitmapMap.get(terminatedArray));</span><br><span class="line">                    byteArraySize = terminatedArray.getLength();</span><br><span class="line">                &#125;</span><br><span class="line">                results.add(</span><br><span class="line">                        <span class="keyword">new</span> DuplicatedBitmapEntry(<span class="keyword">new</span> ArrayList&lt;&gt;(duplicateBitmaps),</span><br><span class="line">                                byteArraySize));</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// If there are ArrayInstances that have identical prefixes and haven't hit the</span></span><br><span class="line">            <span class="comment">// end, add it back for the next iteration.</span></span><br><span class="line">            <span class="keyword">if</span> (branch.size() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">                reducedPrefixSets.add(branch);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    commonPrefixSets.clear();</span><br><span class="line">    commonPrefixSets.addAll(reducedPrefixSets);</span><br><span class="line">    reducedPrefixSets.clear();</span><br><span class="line">    columnIndex++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实还有一种找出重复 mBuffer  的方式，比较简单，就是对 mBuffer 进行 md5或者hash。比如下面的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 处理 heap，找出有相同 buffer 的 bitmap 的 instance，存放在 map 中。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> objMap 存放相同 buffer 的 instance 的map</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> heap 待处理的 heap</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> classObj 这里是  bitmap 的封装对象</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">analyzeHeapForSameBuffer</span><span class="params">(Map&lt;String, ArrayList&lt;ObjNode&gt;&gt; objMap,</span></span></span><br><span class="line"><span class="function"><span class="params">                                Heap heap, ClassObj classObj)</span></span>&#123;</span><br><span class="line">    List&lt;Instance&gt; instances = classObj.getHeapInstances(heap.getId());</span><br><span class="line">    <span class="keyword">for</span> (Instance instance : instances)&#123;</span><br><span class="line">        ArrayInstance buffer = HahaHelper.fieldValue(HahaHelper.classInstanceValues(instance), <span class="string">"mBuffer"</span>);</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = HahaHelper.getByteArray(buffer);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String md5String = Md5Helper.getMd5(bytes);</span><br><span class="line">            <span class="keyword">if</span>(objMap.containsKey(md5String))&#123;</span><br><span class="line">                objMap.get(md5String).add(getObjNode(instance));</span><br><span class="line">            &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">                ArrayList&lt;ObjNode&gt; objNodes = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">                objNodes.add(getObjNode(instance));</span><br><span class="line">                objMap.put(md5String, objNodes);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重复的图片找到之后，再找到引用链（与分析 activity 的引用链一样），然后将这些信息保存起来。这里还保存了 mBuffer，用于还原图片，便于开发者寻找问题。</p>
+<blockquote>
+<p>com.tencent.matrix.resource.analyzer.CLIMain#analyzeAndStoreResult</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用 bitmap 的 buffer 还原成图片</span></span><br><span class="line"><span class="comment">// Store bitmap buffer.</span></span><br><span class="line"><span class="keyword">final</span> List&lt;DuplicatedBitmapEntry&gt; duplicatedBmpEntries = duplicatedBmpResult.getDuplicatedBitmapEntries();</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> duplicatedBmpEntryCount = duplicatedBmpEntries.size();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; duplicatedBmpEntryCount; ++i) &#123;</span><br><span class="line">    <span class="keyword">final</span> DuplicatedBitmapEntry entry = duplicatedBmpEntries.get(i);</span><br><span class="line">    <span class="keyword">final</span> BufferedImage img = BitmapDecoder.getBitmap(</span><br><span class="line">            <span class="keyword">new</span> HprofBitmapProvider(entry.getBuffer(), entry.getWidth(), entry.getHeight()));</span><br><span class="line">    <span class="comment">// Since bmp format is not compatible with alpha channel, we export buffer as png instead.</span></span><br><span class="line">    <span class="keyword">final</span> String pngName = bufferContentsRootDirName + <span class="string">"/"</span> + entry.getBufferHash() + <span class="string">".png"</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        zos.putNextEntry(<span class="keyword">new</span> ZipEntry(pngName));</span><br><span class="line">        ImageIO.write(img, <span class="string">"png"</span>, zos);</span><br><span class="line">        zos.flush();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            zos.closeEntry();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable ignored) &#123;</span><br><span class="line">            <span class="comment">// Ignored.</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后就是输出 json 信息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> JSONObject duplicatedBmpResultJson = <span class="keyword">new</span> JSONObject();</span><br><span class="line">duplicatedBmpResult.encodeToJSON(duplicatedBmpResultJson);</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/015-Matrix源码分析：检测内存中重复的Bitmap/" title="015-Matrix源码分析：检测内存中重复的Bitmap">http://aprz512.github.io/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/015-Matrix源码分析：检测内存中重复的Bitmap/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/08/17/blog_bak/Blog/Android-源码解析/Matrix/013-Matrix源码分析：检测Activity内存泄漏/" rel="next" title="013-Matrix源码分析：检测Activity内存泄漏">
+                  <i class="fa fa-chevron-left"></i> 013-Matrix源码分析：检测Activity内存泄漏
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/014-Matrix源码分析：使用haha库找出泄漏的引用链/" rel="prev" title="014-Matrix源码分析：使用haha库找出泄漏的引用链">
+                  014-Matrix源码分析：使用haha库找出泄漏的引用链 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">204</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">873k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">13:14</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

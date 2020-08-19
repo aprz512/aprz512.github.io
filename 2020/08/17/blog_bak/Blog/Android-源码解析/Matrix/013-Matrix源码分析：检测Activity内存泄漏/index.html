@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="Matrix的框架抽象了一个 Plugin 类。我们可以继承这个类来实现我们想做的功能。使用的时候只需要：12TracePlugin tracePlugin = (new TracePlugin(traceConfig));builder.plugin(tracePlugin);matrix-resource-canary-android这个module里面就提供了一个 ResourcePlugi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="013-Matrix源码分析：检测Activity内存泄漏">
+<meta property="og:url" content="http://aprz512.github.io/2020/08/17/blog_bak/Blog/Android-源码解析/Matrix/013-Matrix源码分析：检测Activity内存泄漏/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="Matrix的框架抽象了一个 Plugin 类。我们可以继承这个类来实现我们想做的功能。使用的时候只需要：12TracePlugin tracePlugin = (new TracePlugin(traceConfig));builder.plugin(tracePlugin);matrix-resource-canary-android这个module里面就提供了一个 ResourcePlugi">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-08-19T02:52:32.937Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="013-Matrix源码分析：检测Activity内存泄漏">
+<meta name="twitter:description" content="Matrix的框架抽象了一个 Plugin 类。我们可以继承这个类来实现我们想做的功能。使用的时候只需要：12TracePlugin tracePlugin = (new TracePlugin(traceConfig));builder.plugin(tracePlugin);matrix-resource-canary-android这个module里面就提供了一个 ResourcePlugi">
+  <link rel="canonical" href="http://aprz512.github.io/2020/08/17/blog_bak/Blog/Android-源码解析/Matrix/013-Matrix源码分析：检测Activity内存泄漏/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>013-Matrix源码分析：检测Activity内存泄漏 | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">14</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">204</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/08/17/blog_bak/Blog/Android-源码解析/Matrix/013-Matrix源码分析：检测Activity内存泄漏/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">013-Matrix源码分析：检测Activity内存泄漏
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-17 00:00:00" itemprop="dateCreated datePublished" datetime="2020-08-17T00:00:00+08:00">2020-08-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-19 10:52:32" itemprop="dateModified" datetime="2020-08-19T10:52:32+08:00">2020-08-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Matrix/" itemprop="url" rel="index"><span itemprop="name">Matrix</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/08/17/blog_bak/Blog/Android-源码解析/Matrix/013-Matrix源码分析：检测Activity内存泄漏/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/08/17/blog_bak/Blog/Android-源码解析/Matrix/013-Matrix源码分析：检测Activity内存泄漏/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>8.8k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>8 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Matrix的框架抽象了一个 Plugin 类。我们可以继承这个类来实现我们想做的功能。使用的时候只需要：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">TracePlugin tracePlugin = (<span class="keyword">new</span> TracePlugin(traceConfig));</span><br><span class="line">builder.plugin(tracePlugin);</span><br></pre></td></tr></table></figure><p>matrix-resource-canary-android这个module里面就提供了一个 ResourcePlugin。其主要作用就是检测 APP 中的 activity 泄漏，然后 dump 出 hprof 文件，再裁剪 hprof 文件，最后上传。</p><a id="more"></a>
+
+
+
+<p>检测 activity 泄漏，通常会想到 leakcanary，这个module 也是在 leakcanary 的基础上进行了二次开发，我们看看源码。</p>
+<p>核心代码在 ActivityRefWatcher 里面。</p>
+<h3 id="start"><a href="#start" class="headerlink" title="start"></a>start</h3><p>plugin 里面分别调用了 watcher 的 start stop等方法，这些方法属于 plugin 的生命周期，从这里入手逻辑会更清晰。</p>
+<p>首先既然要检测泄漏，那么必然要监听 activity 的 destroy 方法，老一套，使用了 ActivityLifecycleCallbacks：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onActivityDestroyed</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">     <span class="comment">// 该方法里面的逻辑也很简单，就是将activity的信息添加到一个集合中</span></span><br><span class="line">     <span class="comment">// 后面会开启扫描任务扫描这个集合</span></span><br><span class="line">     pushDestroyedActivityInfo(activity);</span><br><span class="line"><span class="comment">/*     synchronized (mDestroyedActivityInfos) &#123;</span></span><br><span class="line"><span class="comment">         mDestroyedActivityInfos.notifyAll();</span></span><br><span class="line"><span class="comment">     &#125;*/</span></span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 LeakCanary 里面，我们判断是否泄漏是延迟了 5S，而且还加上了 gc，再去判断对象是否还存在。</p>
+<p>Matrix的判断方式有点不一样，往下看。</p>
+<h3 id="RetryableTask"><a href="#RetryableTask" class="headerlink" title="RetryableTask"></a>RetryableTask</h3><p>在start的时候，也开启了一个task，这个task是运行在 HandlerThread 中，也就是一个线程了。</p>
+<p>我们分析看这个 task 做了啥：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个 weak 引用，触发 gc，看有没有被回收，触发 gc，系统不一定会叼你</span></span><br><span class="line"><span class="keyword">final</span> WeakReference&lt;Object&gt; sentinelRef = <span class="keyword">new</span> WeakReference&lt;&gt;(<span class="keyword">new</span> Object());</span><br><span class="line">triggerGc();</span><br><span class="line"><span class="keyword">if</span> (sentinelRef.get() != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">// System ignored our gc request, we will retry later.</span></span><br><span class="line">    MatrixLog.d(TAG, <span class="string">"system ignore our gc request, wait for next detection."</span>);</span><br><span class="line">    <span class="keyword">return</span> Status.RETRY;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 task 做了很多处理，减少泄漏误判情况，比如，这里它创建了一个弱引用，用来判断 gc 是否真的执行了。需要注意一下，这个 task 是有返回值的，Status.RETRY 表示这个 task 会再次执行。</p>
+<p>接下来就是扫描上面说的那个集合：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// activity 已经被回收了</span></span><br><span class="line"><span class="keyword">if</span> (destroyedActivityInfo.mActivityRef.get() == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">// The activity was recycled by a gc triggered outside.</span></span><br><span class="line">    MatrixLog.v(TAG, <span class="string">"activity with key [%s] was already recycled."</span>, destroyedActivityInfo.mKey);</span><br><span class="line">    infoIt.remove();</span><br><span class="line">    <span class="keyword">continue</span>;</span><br><span class="line">&#125;</span><br><span class="line">++destroyedActivityInfo.mDetectedCount;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 泄露检测测试超过一定次数才认为是真的泄露了</span></span><br><span class="line"><span class="keyword">if</span> (destroyedActivityInfo.mDetectedCount &lt; mMaxRedetectTimes</span><br><span class="line">        || !mResourcePlugin.getConfig().getDetectDebugger()) &#123;</span><br><span class="line">    <span class="comment">// Although the sentinel tell us the activity should have been recycled,</span></span><br><span class="line">    <span class="comment">// system may still ignore it, so try again until we reach max retry times.</span></span><br><span class="line">    MatrixLog.i(TAG, <span class="string">"activity with key [%s] should be recycled but actually still \n"</span></span><br><span class="line">                    + <span class="string">"exists in %s times, wait for next detection to confirm."</span>,</span><br><span class="line">            destroyedActivityInfo.mKey, destroyedActivityInfo.mDetectedCount);</span><br><span class="line">    <span class="keyword">continue</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里也是减少误判，只有当一个 activity 泄漏到了一定次数后，才会认为它是真的泄漏了。</p>
+<p>后面的逻辑，就是根据不同的模式来进行不同的逻辑处理，这个插件支持的模式如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> DumpMode &#123;</span><br><span class="line">    NO_DUMP, AUTO_DUMP, MANUAL_DUMP, SILENCE_DUMP</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里只介绍 AUTO_DUMP 模式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果是 AUTO_DUMP 模式，那么就去自动分析 heap 文件了，与 LeakCanary 类似</span></span><br><span class="line"><span class="keyword">final</span> File hprofFile = mHeapDumper.dumpHeap();</span><br><span class="line"><span class="keyword">if</span> (hprofFile != <span class="keyword">null</span>) &#123;</span><br><span class="line">    markPublished(destroyedActivityInfo.mActivityName);</span><br><span class="line">    <span class="comment">// dump hprof 文件</span></span><br><span class="line">    <span class="keyword">final</span> HeapDump heapDump = <span class="keyword">new</span> HeapDump(hprofFile, destroyedActivityInfo.mKey, destroyedActivityInfo.mActivityName);</span><br><span class="line">    <span class="comment">// 处理 dump 出来的 hprof 文件</span></span><br><span class="line">    mHeapDumpHandler.process(heapDump);</span><br><span class="line">    infoIt.remove();</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    MatrixLog.i(TAG, <span class="string">"heap dump for further analyzing activity with key [%s] was failed, just ignore."</span>,</span><br><span class="line">                destroyedActivityInfo.mKey);</span><br><span class="line">    infoIt.remove();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看看它是怎么处理 hprof 文件的，我之前以为这个模式会与 LeakCanary一样会使用 haha 库来分析泄漏引用链，但是看了源码后，发现没有，这里只是做了 hprof 文件的裁剪。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shrinkHprofAndReport</span><span class="params">(Context context, HeapDump heapDump)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Intent intent = <span class="keyword">new</span> Intent(context, CanaryWorkerService.class);</span><br><span class="line">    intent.setAction(ACTION_SHRINK_HPROF);</span><br><span class="line">    intent.putExtra(EXTRA_PARAM_HEAPDUMP, heapDump);</span><br><span class="line">    enqueueWork(context, CanaryWorkerService.class, JOB_ID, intent);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将裁剪任务交给了 JobIntentService。虽然里面有个 MatrixJobIntentService，但是基本上是拷贝的 JobIntentService，在里面做了一些 try catch 操作。</p>
+<p>接下来，分析它具体的裁剪代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">is = <span class="keyword">new</span> FileInputStream(hprofIn);</span><br><span class="line">os = <span class="keyword">new</span> BufferedOutputStream(<span class="keyword">new</span> FileOutputStream(hprofOut));</span><br><span class="line"><span class="keyword">final</span> HprofReader reader = <span class="keyword">new</span> HprofReader(<span class="keyword">new</span> BufferedInputStream(is));</span><br><span class="line"><span class="comment">// 这里是做了一个访问者模式，所以，核心代码都在 visitor 里面</span></span><br><span class="line"><span class="comment">// 不了解 hprof 的结构。里面的代码没法看</span></span><br><span class="line">reader.accept(<span class="keyword">new</span> HprofInfoCollectVisitor());</span><br><span class="line"><span class="comment">// Reset.</span></span><br><span class="line">is.getChannel().position(<span class="number">0</span>);</span><br><span class="line">reader.accept(<span class="keyword">new</span> HprofKeptBufferCollectVisitor());</span><br><span class="line"><span class="comment">// Reset.</span></span><br><span class="line">is.getChannel().position(<span class="number">0</span>);</span><br><span class="line">reader.accept(<span class="keyword">new</span> HprofBufferShrinkVisitor(<span class="keyword">new</span> HprofWriter(os)));</span><br></pre></td></tr></table></figure>
+
+<p>由于我对 hprof 结构也不熟悉，查了些文档也收获不大，所以就不细说了。</p>
+<p>里面的逻辑大致分为几步：</p>
+<ul>
+<li><p>收集 hprof 文件的 bitmap 与 string 对象（索引id）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitStringRecord</span><span class="params">(ID id, String text, <span class="keyword">int</span> timestamp, <span class="keyword">long</span> length)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 主要是处理了 Bitmap 与 String 这两个类</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Bitmap 有个 mBuffer 字段与 mRecycled 字段</span></span><br><span class="line">    <span class="comment">// Bitmap在android sdk &lt; 26之前（&gt; 2.3），存儲像素的byte數組是放在Java層的，26之後是放在native層的。</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// String 有个 value 字段</span></span><br><span class="line">    <span class="comment">// String在android sdk &lt; 23之前，存儲字符的byte數組是放在Java層的，23之後是放在native層的。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mBitmapClassNameStringId == <span class="keyword">null</span> &amp;&amp; <span class="string">"android.graphics.Bitmap"</span>.equals(text)) &#123;</span><br><span class="line">        mBitmapClassNameStringId = id;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mMBufferFieldNameStringId == <span class="keyword">null</span> &amp;&amp; <span class="string">"mBuffer"</span>.equals(text)) &#123;</span><br><span class="line">        mMBufferFieldNameStringId = id;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mMRecycledFieldNameStringId == <span class="keyword">null</span> &amp;&amp; <span class="string">"mRecycled"</span>.equals(text)) &#123;</span><br><span class="line">        mMRecycledFieldNameStringId = id;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mStringClassNameStringId == <span class="keyword">null</span> &amp;&amp; <span class="string">"java.lang.String"</span>.equals(text)) &#123;</span><br><span class="line">        mStringClassNameStringId = id;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mValueFieldNameStringId == <span class="keyword">null</span> &amp;&amp; <span class="string">"value"</span>.equals(text)) &#123;</span><br><span class="line">        mValueFieldNameStringId = id;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>收集 string 与 bitmap 的字段（索引id），重要的是 bitmap 的 mBuffer 的索引</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 找到Bitmap實例</span></span><br><span class="line"><span class="keyword">if</span> (mBmpClassId != <span class="keyword">null</span> &amp;&amp; mBmpClassId.equals(typeId)) &#123;</span><br><span class="line">    ID bufferId = <span class="keyword">null</span>;</span><br><span class="line">    Boolean isRecycled = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">final</span> ByteArrayInputStream bais = <span class="keyword">new</span> ByteArrayInputStream(instanceData);</span><br><span class="line">    <span class="keyword">for</span> (Field field : mBmpClassInstanceFields) &#123;</span><br><span class="line">        <span class="keyword">final</span> ID fieldNameStringId = field.nameId;</span><br><span class="line">        <span class="keyword">final</span> Type fieldType = Type.getType(field.typeId);</span><br><span class="line">        <span class="keyword">if</span> (fieldType == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"visit bmp instance failed, lost type def of typeId: "</span> + field.typeId);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 找到這個實例mBuffer字段的索引id</span></span><br><span class="line">        <span class="keyword">if</span> (mMBufferFieldNameStringId.equals(fieldNameStringId)) &#123;</span><br><span class="line">            bufferId = (ID) IOUtil.readValue(bais, fieldType, mIdSize);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 找到這個實例mRecycled的boolean值(基礎數據類型，沒有引用關係)</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (mMRecycledFieldNameStringId.equals(fieldNameStringId)) &#123;</span><br><span class="line">            isRecycled = (Boolean) IOUtil.readValue(bais, fieldType, mIdSize);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bufferId == <span class="keyword">null</span> || isRecycled == <span class="keyword">null</span>) &#123;</span><br><span class="line">            IOUtil.skipValue(bais, fieldType, mIdSize);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    bais.close();</span><br><span class="line">    <span class="comment">// 確認Bitmap沒有被回收</span></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> reguardAsNotRecycledBmp = (isRecycled == <span class="keyword">null</span> || !isRecycled);</span><br><span class="line">    <span class="keyword">if</span> (bufferId != <span class="keyword">null</span> &amp;&amp; reguardAsNotRecycledBmp &amp;&amp; !bufferId.equals(mNullBufferId)) &#123;</span><br><span class="line">        <span class="comment">// 將mBuffer對應的byte數組索引id加入集合</span></span><br><span class="line">        mBmpBufferIds.add(bufferId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>去除<strong>非 bitmap 的 buffer</strong>与<strong>重复的bitmap的buffer</strong>（String 的除外）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (deduplicatedId != <span class="keyword">null</span> &amp;&amp; !bufferId.equals(deduplicatedId) &amp;&amp; !bufferId.equals(mNullBufferId)) &#123;</span><br><span class="line">    <span class="comment">// 让重复的 buf 指向同一个</span></span><br><span class="line">    modifyIdInBuffer(instanceData, bufferIdPos, deduplicatedId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 重複的byte數組索引 重定向之後的 索引id</span></span><br><span class="line"><span class="keyword">final</span> ID deduplicatedID = mBmpBufferIdToDeduplicatedIdMap.get(id);</span><br><span class="line"><span class="comment">// Discard non-bitmap or duplicated bitmap buffer but keep reference key.</span></span><br><span class="line"><span class="comment">// 将非 bitmap 数组也给裁了</span></span><br><span class="line"><span class="keyword">if</span> (deduplicatedID == <span class="keyword">null</span> || !id.equals(deduplicatedID)) &#123;</span><br><span class="line">    <span class="comment">// 这里判断了 string</span></span><br><span class="line">    <span class="comment">// 也就是说，Hprof文件裁剪的過程主要是裁剪了重複Bitmap的byte[]數據，String 是用来判断的</span></span><br><span class="line">    <span class="keyword">if</span> (!mStringValueIds.contains(id)) &#123;</span><br><span class="line">        <span class="comment">// 这里直接 return，没有调用 super 方法，</span></span><br><span class="line">        <span class="comment">// 即没有调用 `com.tencent.matrix.resource.hproflib.HprofWriter.HprofHeapDumpWriter.visitHeapDumpPrimitiveArray` 的方法，</span></span><br><span class="line">        <span class="comment">// 所以不会写入数组信息</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">super</span>.visitHeapDumpPrimitiveArray(tag, id, stackId, numElements, typeId, elements);</span><br></pre></td></tr></table></figure>
+
+<p>经过这些步骤之后，hprof 文件就裁剪完成了。</p>
+</li>
+</ul>
+<p>裁剪完成之后，会执行 CanaryResultService，回调到：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doReportHprofResult</span><span class="params">(String resultPath, String activityName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">final</span> JSONObject resultJson = <span class="keyword">new</span> JSONObject();</span><br><span class="line"><span class="comment">//            resultJson = DeviceUtil.getDeviceInfo(resultJson, getApplication());</span></span><br><span class="line">			<span class="comment">// resultPath 裁剪后的hprof压缩文件路径</span></span><br><span class="line">            resultJson.put(SharePluginInfo.ISSUE_RESULT_PATH, resultPath);</span><br><span class="line">            resultJson.put(SharePluginInfo.ISSUE_ACTIVITY_NAME, activityName);</span><br><span class="line">            Plugin plugin =  Matrix.with().getPluginByClass(ResourcePlugin.class);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (plugin != <span class="keyword">null</span>) &#123;</span><br><span class="line">                plugin.onDetectIssue(<span class="keyword">new</span> Issue(resultJson));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable thr) &#123;</span><br><span class="line">            MatrixLog.printErrStackTrace(TAG, thr, <span class="string">"unexpected exception, skip reporting."</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终会调用，plugin 的 onDetectIssue 方法，这里我们可以进行对应的处理。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/08/17/blog_bak/Blog/Android-源码解析/Matrix/013-Matrix源码分析：检测Activity内存泄漏/" title="013-Matrix源码分析：检测Activity内存泄漏">http://aprz512.github.io/2020/08/17/blog_bak/Blog/Android-源码解析/Matrix/013-Matrix源码分析：检测Activity内存泄漏/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/08/12/blog_bak/Blog/Android-源码解析/Matrix/Matrix源码分析番外篇：Dex文件结构/" rel="next" title="Matrix源码分析番外篇：Dex文件结构">
+                  <i class="fa fa-chevron-left"></i> Matrix源码分析番外篇：Dex文件结构
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/08/19/blog_bak/Blog/Android-源码解析/Matrix/015-Matrix源码分析：检测内存中重复的Bitmap/" rel="prev" title="015-Matrix源码分析：检测内存中重复的Bitmap">
+                  015-Matrix源码分析：检测内存中重复的Bitmap <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">204</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#start"><span class="nav-number">1.</span> <span class="nav-text">start</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RetryableTask"><span class="nav-number">2.</span> <span class="nav-text">RetryableTask</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">873k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">13:14</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
