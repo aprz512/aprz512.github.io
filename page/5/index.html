@@ -176,7 +176,7 @@
       
     
 
-    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">22</span></a>
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">21</span></a>
 
   </li>
       
@@ -189,7 +189,7 @@
       
     
 
-    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">14</span></a>
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">19</span></a>
 
   </li>
       
@@ -215,7 +215,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">204</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">217</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -269,7 +269,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/30/blog_bak/Blog/Android-源码解析/Matrix/002-Matrix源码分析：UIThreadMonitor监测主线程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -283,7 +283,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/" class="post-title-link" itemprop="url">HashMap的扩容原理(基于JDK1.8)</a>
+            <a href="/2020/06/30/blog_bak/Blog/Android-源码解析/Matrix/002-Matrix源码分析：UIThreadMonitor监测主线程/" class="post-title-link" itemprop="url">002-Matrix源码分析：UIThreadMonitor监测主线程</a>
           
         </h1>
 
@@ -298,7 +298,7 @@
                 
               
 
-              <time title="创建时间：2020-04-11 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-11T00:00:00+08:00">2020-04-11</time>
+              <time title="创建时间：2020-06-30 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-30T00:00:00+08:00">2020-06-30</time>
             </span>
           
             
@@ -309,408 +309,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
-              </span>
-            
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>4.7k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>4 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="寻找储存的位置"><a href="#寻找储存的位置" class="headerlink" title="寻找储存的位置"></a>寻找储存的位置</h2><p>将一个键值对放到HashMap里面的时候，需要计算这个键值对存放到哪个位置，该位置的计算方式如下：</p><ul>
-<li><p>计算 key 的 hashCode</p>
-  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用 key 的 hashCode 方法来计算</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">hash</span><span class="params">(Object key)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> h;</span><br><span class="line">    <span class="comment">// 当key = null时，hash值 = 0，所以HashMap的key 可为null      </span></span><br><span class="line">    <span class="comment">// 注：对比HashTable，HashTable对key直接hashCode（），若key为null时，会抛出异常，所以HashTable的key不可为null</span></span><br><span class="line">    <span class="keyword">return</span> (key == <span class="keyword">null</span>) ? <span class="number">0</span> : (h = key.hashCode()) ^ (h &gt;&gt;&gt; <span class="number">16</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>根据容量大小与key的hashCode来算出位置</p>
-  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里 i 就是计算出来的位置，hash 就是上面 hash() 函数返回的值。</span></span><br><span class="line">i = (n - <span class="number">1</span>) &amp; hash</span><br></pre></td></tr></table></figure>
-
-</li>
-</ul>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2020/04/11/blog_bak/Blog/Java/HashMap的扩容原理/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/08/blog_bak/Blog/Android-View/多指触控/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2020/04/08/blog_bak/Blog/Android-View/多指触控/" class="post-title-link" itemprop="url">多指触控</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2020-04-08 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-08T00:00:00+08:00">2020-04-08</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
-              </span>
-            
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/08/blog_bak/Blog/Android-View/多指触控/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/08/blog_bak/Blog/Android-View/多指触控/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>330</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>1 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>有的博文已经写的非常好了，而且我在项目中几乎没有使用过，所以就贴个链接吧。</p><p>请先阅读下面的参考文档，然后能够回答下面的问题：</p><ol>
-<li><p>为什么要把mFirstTouchTarget设计成链表？</p>
-</li>
-<li><p>记录目标的TouchTarget的pointerIdBits又起到什么作用？</p>
-</li>
-<li><p>设ViewGroup中，有2个Button：A，B：</p>
-<ul>
-<li><p>按下A，再按下A（多点触控），为什么释放后A的点击事件只会触发一次？</p>
-</li>
-<li><p>按下A，按下 ViewGroup 的空白区域，为什么先释放A，却无法触发A的点击事件，继续释放VG，又会触发A的点击事件？</p>
-</li>
-<li><p>按下 ViewGroup 的空白区域，为什么点击A，B无响应？</p>
-</li>
-</ul>
-</li>
-</ol>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2020/04/08/blog_bak/Blog/Android-View/多指触控/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/06/blog_bak/Blog/Java/线程池/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2020/04/06/blog_bak/Blog/Java/线程池/" class="post-title-link" itemprop="url">线程池</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2020-04-06 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-06T00:00:00+08:00">2020-04-06</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
-              </span>
-            
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/06/blog_bak/Blog/Java/线程池/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/06/blog_bak/Blog/Java/线程池/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>5.5k</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>5 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="几个参数"><a href="#几个参数" class="headerlink" title="几个参数"></a>几个参数</h3><p>我们先来看一下创建线程池的几个参数：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">int</span> maximumPoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">long</span> keepAliveTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                          TimeUnit unit,</span></span></span><br><span class="line"><span class="function"><span class="params">                          BlockingQueue&lt;Runnable&gt; workQueue,</span></span></span><br><span class="line"><span class="function"><span class="params">                          ThreadFactory threadFactory,</span></span></span><br><span class="line"><span class="function"><span class="params">                          RejectedExecutionHandler handler)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (corePoolSize &lt; <span class="number">0</span> ||</span><br><span class="line">        maximumPoolSize &lt;= <span class="number">0</span> ||</span><br><span class="line">        maximumPoolSize &lt; corePoolSize ||</span><br><span class="line">        keepAliveTime &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="keyword">if</span> (workQueue == <span class="keyword">null</span> || threadFactory == <span class="keyword">null</span> || handler == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">this</span>.corePoolSize = corePoolSize;</span><br><span class="line">    <span class="keyword">this</span>.maximumPoolSize = maximumPoolSize;</span><br><span class="line">    <span class="keyword">this</span>.workQueue = workQueue;</span><br><span class="line">    <span class="keyword">this</span>.keepAliveTime = unit.toNanos(keepAliveTime);</span><br><span class="line">    <span class="keyword">this</span>.threadFactory = threadFactory;</span><br><span class="line">    <span class="keyword">this</span>.handler = handler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2020/04/06/blog_bak/Blog/Java/线程池/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/06/blog_bak/Blog/Android-源码解析/Matrix/001-Matrix源码分析：LooperMonitor 监测基石/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2020/04/06/blog_bak/Blog/Android-源码解析/Matrix/001-Matrix源码分析：LooperMonitor 监测基石/" class="post-title-link" itemprop="url">001-Matrix源码分析：LooperMonitor 监测基石</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2020-04-06 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-06T00:00:00+08:00">2020-04-06</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-07-15 17:25:42" itemprop="dateModified" datetime="2020-07-15T17:25:42+08:00">2020-07-15</time>
+                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
               </span>
             
           
@@ -739,7 +338,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/06/blog_bak/Blog/Android-源码解析/Matrix/001-Matrix源码分析：LooperMonitor 监测基石/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/06/blog_bak/Blog/Android-源码解析/Matrix/001-Matrix源码分析：LooperMonitor 监测基石/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/06/30/blog_bak/Blog/Android-源码解析/Matrix/002-Matrix源码分析：UIThreadMonitor监测主线程/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/30/blog_bak/Blog/Android-源码解析/Matrix/002-Matrix源码分析：UIThreadMonitor监测主线程/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -751,7 +350,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>4.6k</span>
+              <span>7.4k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -761,7 +360,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>4 分钟</span>
+              <span>7 分钟</span>
             </span>
           
 
@@ -774,13 +373,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Matrix是一个APM库，它提供了许多功能供我们使用。我们从最简单的功能开始分析。</p><blockquote>
-<p>com.tencent.matrix.trace.tracer.FrameTracer</p>
-</blockquote><p>这个类是用来展示app的帧率的，我们知道收集一个帧率还是相当容易的，但是这个库里面有些小细节以及扩展我们可以学习以下。</p><p>这里我们不从Matrix的入口函数开始分析，因为这样函数的调用栈会显得很长，不利于阅读，我们直接从最低层的类开始说起，慢慢往上走，就像搭建房子一样。</p>
+          <p>常说的一个问题：为啥Looper有个死循环却不会阻塞主线程？？？</p><p>这是因为我们所谓的主线程就是这个死循环。我们的每一帧都是封装成了消息然后被分发，在主线程处理，主线程是不断的在处理这些消息，如果什么时候有个特别耗时的消息来了，那么主线程就会卡死。</p><p>上面说了一个题外话，我们现在来看看如何监测主线程。了解这个类还需要一点预备知识：</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2020/04/06/blog_bak/Blog/Android-源码解析/Matrix/001-Matrix源码分析：LooperMonitor 监测基石/#more" rel="contents">
+              <a class="btn" href="/2020/06/30/blog_bak/Blog/Android-源码解析/Matrix/002-Matrix源码分析：UIThreadMonitor监测主线程/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -811,7 +408,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/05/blog_bak/Blog/Android-高级/屏幕适配/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/22/blog_bak/Blog/网络优化/网络编程007：QUIC协议/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -825,7 +422,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2020/04/05/blog_bak/Blog/Android-高级/屏幕适配/" class="post-title-link" itemprop="url">屏幕适配</a>
+            <a href="/2020/06/22/blog_bak/Blog/网络优化/网络编程007：QUIC协议/" class="post-title-link" itemprop="url">网络编程007：QUIC协议</a>
           
         </h1>
 
@@ -840,7 +437,7 @@
                 
               
 
-              <time title="创建时间：2020-04-05 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-05T00:00:00+08:00">2020-04-05</time>
+              <time title="创建时间：2020-06-22 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-22T00:00:00+08:00">2020-06-22</time>
             </span>
           
             
@@ -851,9 +448,22 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
+                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
               </span>
             
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -867,7 +477,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/05/blog_bak/Blog/Android-高级/屏幕适配/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/05/blog_bak/Blog/Android-高级/屏幕适配/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/06/22/blog_bak/Blog/网络优化/网络编程007：QUIC协议/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/22/blog_bak/Blog/网络优化/网络编程007：QUIC协议/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -902,11 +512,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>我们先来理解一下屏幕适配这个概念。什么叫屏幕适配？屏幕适配是为了做什么？是为了让一个 10x10 的图标在所有屏幕上表现出一样的大小吗？</p><p>不是的！那是为了什么？是为了让这个图标在所有手机屏幕上占的比例是一样的。</p><p>比如，一个 320x480 的手机，10x10 的图标占手机宽度（讨论高度意义不大）的 1/32。而在一个 1080x1920 的手机上只占手机宽度的 1/108，这样就显得很奇怪。同样都是手机，你凭在我的手机上显示这么小，眼睛都看瞎了。</p>
+          <p>TCP协议在创建连接之前需要进行三次握手：</p><p><img src="http://www.52im.net/data/attachment/forum/201910/31/222033u1b3zwxj1m05cr3g.png" alt="网络编程懒人入门(十)：一泡尿的时间，快速读懂QUIC协议_11111.png"></p><p>如果是传输加密数据的话，还需要建立 TLS 连接，握手次数更多：</p><p><img src="http://www.52im.net/data/attachment/forum/201910/31/201028q2e00d2zsas6ac23.png" alt="网络编程懒人入门(十)：一泡尿的时间，快速读懂QUIC协议_2.png"></p><p>前面我们说过，TCP在网络稳定的情况下性能会比较好，但是在弱网情况下就会暴露出许多问题。</p><h3 id="QUIC协议登场"><a href="#QUIC协议登场" class="headerlink" title="QUIC协议登场"></a>QUIC协议登场</h3><p>QUIC 是 Quick UDP Internet Connections 的缩写，谷歌发明的新传输协议。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2020/04/05/blog_bak/Blog/Android-高级/屏幕适配/#more" rel="contents">
+              <a class="btn" href="/2020/06/22/blog_bak/Blog/网络优化/网络编程007：QUIC协议/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -937,7 +547,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/算法/大话数据结构/面试中的算法/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -951,7 +561,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/面试中的算法/" class="post-title-link" itemprop="url">0053-面试中的算法</a>
+            <a href="/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/" class="post-title-link" itemprop="url">网络编程007：IP地址与MAC地址</a>
           
         </h1>
 
@@ -966,8 +576,20 @@
                 
               
 
-              <time title="创建时间：2020-04-04 22:59:11" itemprop="dateCreated datePublished" datetime="2020-04-04T22:59:11+08:00">2020-04-04</time>
+              <time title="创建时间：2020-06-18 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-18T00:00:00+08:00">2020-06-18</time>
             </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
+              </span>
+            
           
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -975,7 +597,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/大话数据结构/" itemprop="url" rel="index"><span itemprop="name">大话数据结构</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
 
                 
                 
@@ -994,7 +616,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/面试中的算法/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/算法/大话数据结构/面试中的算法/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1006,7 +628,121 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>675</span>
+              <span>2.1k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>2 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>经过前面几篇文章的洗礼，你应该知道IP地址与MAC地址各自的作用。</p><p>我自己的理解就是：IP地址是用来连接子网的，MAC地址是用来处理子网内部的。</p><p>但是这只是比较粗浅的理解，如果有人问到：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">有了IP地址，为何还要用MAC地址？</span><br><span class="line">或者，有了MAC地址，为何还要IP地址？</span><br></pre></td></tr></table></figure><p>对于这些问题，你该如何给他解释清楚呢？</p><h4 id="我们先来探讨一下，没有IP地址的情况："><a href="#我们先来探讨一下，没有IP地址的情况：" class="headerlink" title="我们先来探讨一下，没有IP地址的情况："></a>我们先来探讨一下，没有IP地址的情况：</h4>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/06/18/blog_bak/Blog/网络优化/网络编程006：IP地址与MAC地址/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/17/blog_bak/Blog/Android-思考/Window 与 View的动态更改思考/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2020/06/17/blog_bak/Blog/Android-思考/Window 与 View的动态更改思考/" class="post-title-link" itemprop="url">Window 与 View的动态更改思考</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-17 10:06:09" itemprop="dateCreated datePublished" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/17/blog_bak/Blog/Android-思考/Window 与 View的动态更改思考/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/17/blog_bak/Blog/Android-思考/Window 与 View的动态更改思考/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>1.2k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1029,11 +765,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="面试中的算法"><a href="#面试中的算法" class="headerlink" title="面试中的算法"></a>面试中的算法</h2><p>当时间复杂度为 O(1) 时，则无法再优化，需要从空间方面想办法。</p><p>同样的，当空间复杂度为 O(1)时，只能从算法时间方面想办法（需出奇兵）。</p><h3 id="如何判断链表中是否有环？"><a href="#如何判断链表中是否有环？" class="headerlink" title="如何判断链表中是否有环？"></a>如何判断链表中是否有环？</h3><p>最容易想到的就是将每个节点记录下来，然后判断判断是否出现过即可。这样的话空间复杂度为0(n)，如果想要空间复杂度为 O(1)，该如何做呢？</p>
+          <p>我们创建一个悬浮窗的时候，需要使用 WindowManager 来创建。</p><p>WindowManager 是一个接口，它继承至 ViewManager，主要有3个方法供我们使用：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addView</span><span class="params">(View view, ViewGroup.LayoutParams params)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">updateViewLayout</span><span class="params">(View view, ViewGroup.LayoutParams params)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">removeView</span><span class="params">(View view)</span></span>;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/面试中的算法/#more" rel="contents">
+              <a class="btn" href="/2020/06/17/blog_bak/Blog/Android-思考/Window 与 View的动态更改思考/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1064,7 +800,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Android-高级/Android V1 V2 签名机制/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/17/blog_bak/Blog/Android-View/RecyclerView 的缓存机制/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1078,7 +814,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2020/04/04/blog_bak/Blog/Android-高级/Android V1 V2 签名机制/" class="post-title-link" itemprop="url">Android V1 V2 签名机制</a>
+            <a href="/2020/06/17/blog_bak/Blog/Android-View/RecyclerView 的缓存机制/" class="post-title-link" itemprop="url">图解 RecyclerView 的缓存机制</a>
           
         </h1>
 
@@ -1093,7 +829,7 @@
                 
               
 
-              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
+              <time title="创建时间：2020-06-17 10:06:09" itemprop="dateCreated datePublished" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
             </span>
           
 
@@ -1108,7 +844,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/Android-高级/Android V1 V2 签名机制/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Android-高级/Android V1 V2 签名机制/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/06/17/blog_bak/Blog/Android-View/RecyclerView 的缓存机制/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/17/blog_bak/Blog/Android-View/RecyclerView 的缓存机制/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1120,7 +856,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>5.5k</span>
+              <span>9.7k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1130,7 +866,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>5 分钟</span>
+              <span>9 分钟</span>
             </span>
           
 
@@ -1144,17 +880,14 @@
 
       
           <blockquote>
-<p>很早之前就想写这个，直到现在才有时间。理解了这个发现对 HTTPS 也有了进一步的理解。</p>
-</blockquote><h2 id="为什么需要签名-？"><a href="#为什么需要签名-？" class="headerlink" title="为什么需要签名 ？"></a>为什么需要签名 ？</h2><p>了解 HTTPS 通信的同学应该知道，在消息通信时，必须至少解决两个问题：</p><ul>
-<li><p>一是确保消息来源的真实性</p>
-</li>
-<li><p>二是确保消息不会被第三方篡改</p>
-</li>
-</ul><p>我们先来看 HTTPS 签名以及校验的过程：</p><p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E9%AB%98%E7%BA%A7/%E7%AD%BE%E5%90%8D/%E7%AD%BE%E5%90%8D.png?raw=true" alt></p><p>这里只是简单的理了一下核心思路，有不懂的还是应该查看相关文献。</p>
+<p>以后会尽量写非源码的东西，因为过一段时间之后，发现自己看自己的文章都费劲，而且，源码大部分是在分析方法的调用链，意义不大，需要多写写自己的体悟才行。如果有时候必须要写，也要简化调用链的分析，提供类图，写重点和结论。</p>
+</blockquote><blockquote>
+<p>本文的思路与结论是基于参考文档的<a href="https://android.jlelse.eu/anatomy-of-recyclerview-part-1-a-search-for-a-viewholder-404ba3453714" target="_blank" rel="noopener">Anatomy of RecyclerView: a Search for a ViewHolder</a>与 <a href="https://android.jlelse.eu/anatomy-of-recyclerview-part-1-a-search-for-a-viewholder-continued-d81c631a2b91" target="_blank" rel="noopener">Anatomy of RecyclerView: a Search for a ViewHolder (continued)</a> 这两篇文章而来。由于这两篇文章的某些观点与其他文章的的不一致，我经过自己的理解与推断调试后，是支持这两篇文章的观点的，所以当你阅读参考文档时，需要自己考量。</p>
+</blockquote>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/Android-高级/Android V1 V2 签名机制/#more" rel="contents">
+              <a class="btn" href="/2020/06/17/blog_bak/Blog/Android-View/RecyclerView 的缓存机制/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1185,7 +918,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/算法/大话数据结构/0015-线性表的链式储存结构/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1199,7 +932,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0015-线性表的链式储存结构/" class="post-title-link" itemprop="url">0015-线性表的链式储存结构</a>
+            <a href="/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/" class="post-title-link" itemprop="url">网络编程005：实现基于TCP的长连接</a>
           
         </h1>
 
@@ -1214,8 +947,20 @@
                 
               
 
-              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
+              <time title="创建时间：2020-06-17 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-17T00:00:00+08:00">2020-06-17</time>
             </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-15 17:33:21" itemprop="dateModified" datetime="2020-07-15T17:33:21+08:00">2020-07-15</time>
+              </span>
+            
           
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1223,7 +968,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/大话数据结构/" itemprop="url" rel="index"><span itemprop="name">大话数据结构</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
 
                 
                 
@@ -1242,121 +987,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0015-线性表的链式储存结构/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0015-线性表的链式储存结构/" itemprop="commentCount"></span></a>
-  </span>
-  
-  
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">本文字数：</span>
-              
-              <span>646</span>
-            </span>
-          
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              
-              <span>1 分钟</span>
-            </span>
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>之前，我们说过，用顺序储存在插入与删除的情况下是效率比较低的。我们分析一下原因：</p><p>每个元素是相邻的，当需要插入的时候，就必须要移动一些元素。想要提高插入与删除的效率，那么就不能让元素相邻。所以另外一种储存方案就被设计出来了——链式储存。</p><p>所谓链式储存，就是不仅储存数据，还需要储存下一个元素储存的位置，就像一条链子一样，<strong>我们叫这种数据结构为单链表</strong>。如图：</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0015-线性表的链式储存结构/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/Java/Java Final 关键字/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="aprz512">
-      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
-      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="二手程序员">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2020/04/04/blog_bak/Blog/Java/Java Final 关键字/" class="post-title-link" itemprop="url">Java Final 关键字</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
-            </span>
-          
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-        
-      
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/Java/Java Final 关键字/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/Java/Java Final 关键字/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1391,28 +1022,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>final 关键字一般会多用于这样的几个地方：</p><ul>
-<li><p>变量<br>当final变量是基本数据类型以及String类型时，如果在编译期间能知道它的确切值，则编译器会把它当做编译期常量使用。</p>
-</li>
-<li><p>防止被重写<br>比如：java.lang.String 类</p>
-</li>
-<li><p>内部类访问外部局部变量<br>这个我们经常使用，而且IDE也会提示你。但是你有没有想过Java为什么要设计成这样，这其中的秘密何在？</p>
-<p>比如，我们有这样的代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这个方法没有意义</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fun</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="keyword">final</span> <span class="keyword">int</span> i = <span class="number">10</span>;</span><br><span class="line">       <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">           <span class="meta">@Override</span></span><br><span class="line">           <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">               <span class="keyword">int</span> c = i + <span class="number">10</span>;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;).start();</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p>如果，我们没有给 i 声明 final 修饰符，IDE就会报一个错误（need to be final）。需要声明为 final 是因为，编译器编译的时候其实悄悄对函数做了手脚，偷偷把外部环境方法的局部变量 i，拷贝了一份到匿名内部类里。其实我们的代码经过编译之后变成了这样：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fun</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">int</span> i = <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">    	<span class="comment">// copy 了一份</span></span><br><span class="line">        <span class="keyword">int</span> copyI = i;</span><br><span class="line">        </span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">int</span> c = i+<span class="number">10</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;).start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>所以，这样就知道为啥需要声明为 final 了，因为内部拷贝了一份，而内部使用到了这个变量的值，如果在运行时外部的值改变了，那么内部的值却没有更新，就会出现各种问题，所以就干脆不让它改变。</p>
-</li>
-<li><p>以前在面试的时候，总是有很多面试官喜欢问：final、finally的区别！这特么就很蛋疼，这两货除了长的像，有啥是一样的。其实他们应该问 <strong>final 与 volatile 有啥区别？</strong>这个问题就比较阴险了，如果你不往并发上想的话，就会觉得这特么是什么脑残问题！！</p>
-<p>说到这里，我们还是应该从 <strong>Java 的内存模型</strong>说起。</p>
-</li>
-</ul>
+          <h3 id="Socket-的基本用法"><a href="#Socket-的基本用法" class="headerlink" title="Socket 的基本用法"></a>Socket 的基本用法</h3><p>Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信。</p><p>先看服务端的使用：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ServerSocket serverSocket = <span class="keyword">new</span> ServerSocket(port);</span><br><span class="line">Socket client = serverSocket.accept();</span><br><span class="line">InputStream in = client.getInputStream();</span><br><span class="line">OutputStream out = client.getOutputStream();</span><br><span class="line"><span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line"><span class="keyword">int</span> n;</span><br><span class="line"><span class="comment">// 将客户端发送过来的数据原封不动的发送回去</span></span><br><span class="line"><span class="keyword">while</span> ((n = in.read(buffer)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    out.write(buffer, <span class="number">0</span>, n);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/Java/Java Final 关键字/#more" rel="contents">
+              <a class="btn" href="/2020/06/17/blog_bak/Blog/网络优化/网络编程005：实现基于TCP的长连接/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1443,7 +1057,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/04/04/blog_bak/Blog/算法/大话数据结构/0002-逻辑结构与物理结构/">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/16/blog_bak/Blog/网络优化/网络编程004：理解HTTP协议/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="aprz512">
@@ -1457,7 +1071,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0002-逻辑结构与物理结构/" class="post-title-link" itemprop="url">0002-逻辑结构与物理结构</a>
+            <a href="/2020/06/16/blog_bak/Blog/网络优化/网络编程004：理解HTTP协议/" class="post-title-link" itemprop="url">网络编程004：理解HTTP协议</a>
           
         </h1>
 
@@ -1472,8 +1086,20 @@
                 
               
 
-              <time title="创建时间：2020-04-04 22:52:07" itemprop="dateCreated datePublished" datetime="2020-04-04T22:52:07+08:00">2020-04-04</time>
+              <time title="创建时间：2020-06-16 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-16T00:00:00+08:00">2020-06-16</time>
             </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
+              </span>
+            
           
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1481,7 +1107,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/大话数据结构/" itemprop="url" rel="index"><span itemprop="name">大话数据结构</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
 
                 
                 
@@ -1500,7 +1126,7 @@
       
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0002-逻辑结构与物理结构/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0002-逻辑结构与物理结构/" itemprop="commentCount"></span></a>
+    <a title="valine" href="/2020/06/16/blog_bak/Blog/网络优化/网络编程004：理解HTTP协议/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/16/blog_bak/Blog/网络优化/网络编程004：理解HTTP协议/" itemprop="commentCount"></span></a>
   </span>
   
   
@@ -1512,7 +1138,293 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>465</span>
+              <span>3.2k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>3 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><img src="http://www.52im.net/data/attachment/forum/201806/15/144336adhfhh6ao1dfj9hj.jpeg" alt="网络编程懒人入门(七)：深入浅出，全面理解HTTP协议_2.jpeg"></p><h3 id="HTTP的工作过程"><a href="#HTTP的工作过程" class="headerlink" title="HTTP的工作过程"></a>HTTP的工作过程</h3><p><strong>HTTP请求响应模型：</strong></p><p><img src="http://www.52im.net/data/attachment/forum/201806/15/150222j96nx292xu7nwz87.jpg" alt="网络编程懒人入门(七)：深入浅出，全面理解HTTP协议_4.jpg"></p><p><strong>HTTP通信机制是在一次完整的 HTTP 通信过程中，客户端与服务器之间将完成下列7个步骤：</strong></p><ol>
+<li>建立 TCP 连接：在HTTP工作开始之前，客户端首先要通过网络与服务器建立连接，该连接是通过 TCP 来完成的，该协议与 IP 协议共同构建 Internet，即著名的 TCP/IP 协议族，因此 Internet 又被称作是 TCP/IP 网络。HTTP 是比 TCP 更高层次的应用层协议，根据规则，只有低层协议建立之后，才能进行高层协议的连接，因此，首先要建立 TCP 连接，一般 TCP 连接的端口号是80；</li>
+<li>客户端向服务器发送请求命令：一旦建立了TCP连接，客户端就会向服务器发送请求命令；<br>例如：GET/sample/hello.jsp HTTP/1.1；</li>
+<li>客户端发送请求头信息：客户端发送其请求命令之后，还要以头信息的形式向服务器发送一些别的信息，之后客户端发送了一空白行来通知服务器，它已经结束了该头信息的发送；</li>
+<li>服务器应答：客户端向服务器发出请求后，服务器会客户端返回响应；<br>例如： HTTP/1.1 200 OK<br>响应的第一部分是协议的版本号和响应状态码；</li>
+<li>服务器返回响应头信息：正如客户端会随同请求发送关于自身的信息一样，服务器也会随同响应向用户发送关于它自己的数据及被请求的文档；</li>
+<li>服务器向客户端发送数据：服务器向客户端发送头信息后，它会发送一个空白行来表示头信息的发送到此为结束，接着，它就以 Content-Type 响应头信息所描述的格式发送用户所请求的实际数据；</li>
+<li>服务器关闭 TCP 连接：一般情况下，一旦服务器向客户端返回了请求数据，它就要关闭 TCP 连接，然后如果客户端或者服务器在其头信息加入了这行代码 Connection:keep-alive ，TCP 连接在发送后将仍然保持打开状态，于是，客户端可以继续通过相同的连接发送请求。保持连接节省了为每个请求建立新连接所需的时间，还节约了网络带宽。</li>
+</ol>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/06/16/blog_bak/Blog/网络优化/网络编程004：理解HTTP协议/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/16/blog_bak/Blog/网络优化/网络编程003：TCP与UDP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2020/06/16/blog_bak/Blog/网络优化/网络编程003：TCP与UDP/" class="post-title-link" itemprop="url">网络编程003：TCP与UDP</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-16 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-16T00:00:00+08:00">2020-06-16</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/16/blog_bak/Blog/网络优化/网络编程003：TCP与UDP/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/16/blog_bak/Blog/网络优化/网络编程003：TCP与UDP/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>2.2k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>2 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="建立链接的差异"><a href="#建立链接的差异" class="headerlink" title="建立链接的差异"></a>建立链接的差异</h3><h4 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h4><p>TCP是面向链接的，也就是我们通常说的三次握手。</p><p><img src="http://www.52im.net/data/attachment/forum/201710/27/110528h9iiyaqrryaijdgi.jpg" alt="网络编程懒人入门(四)：快速理解TCP和UDP的差异_1915184-43e91a9185faa031.jpg"></p><p>这里有张图描述的有点蛋疼，大致看没问题，仔细看为题很多。我刚开始看到这张图的时候，对图里面的 ACK 值感到疑惑。</p><p>因为我发现了有两个 ack，一个大写，一个小写，他们的意义是不同的：</p><p>具体的解释可以看这里：<a href="https://blog.csdn.net/baiyan3212/article/details/81302448" target="_blank" rel="noopener">https://blog.csdn.net/baiyan3212/article/details/81302448</a></p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/06/16/blog_bak/Blog/网络优化/网络编程003：TCP与UDP/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/15/blog_bak/Blog/网络优化/网络编程002：快速理解TCP协议/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2020/06/15/blog_bak/Blog/网络优化/网络编程002：快速理解TCP协议/" class="post-title-link" itemprop="url">网络编程002：快速理解TCP协议</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-15 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-15T00:00:00+08:00">2020-06-15</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/15/blog_bak/Blog/网络优化/网络编程002：快速理解TCP协议/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/15/blog_bak/Blog/网络优化/网络编程002：快速理解TCP协议/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>1.5k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -1535,11 +1447,150 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>数据结构就是说，一堆数据放在一起，它们之间会有某种关系在里面。</p><p>下面，我们就来聊聊储存这些关系的结构，按照角度的不同，我们分为两大类：逻辑结构、物理结构。</p><p>逻辑结构<strong>是描述数据之间的关系的</strong>，是我们今后要关注的，这是从我们的理解角度出发的。</p><p>物理结构<strong>是数据之间的关系在计算机中的储存形式</strong>，是从计算机的角度出发的。</p>
+          <p><img src="http://www.52im.net/data/attachment/forum/201710/12/154924b4p49zqhrrr3rlj5.jpg" alt="网络编程懒人入门(三)：快速理解TCP协议一篇就够_72539919.jpg"></p><p>以太网协议（Ethernet）规定了电子信号如何组成数据包（packet），解决了子网内部的点对点通信。</p><p>IP 协议实现了路由功能，允许某个局域网的 A 主机，向另一个局域网的 B 主机发送消息。</p><p>TCP 协议的作用是，保证数据通信的完整性和可靠性，防止丢包。如果路由器丢包（比如缓存满了，新进来的数据包就会丢失），就需要发现丢了哪一个包，以及如何重新发送这个包。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2020/04/04/blog_bak/Blog/算法/大话数据结构/0002-逻辑结构与物理结构/#more" rel="contents">
+              <a class="btn" href="/2020/06/15/blog_bak/Blog/网络优化/网络编程002：快速理解TCP协议/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/" class="post-title-link" itemprop="url">Protobuf 通信协议详解</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-14 00:00:00" itemprop="dateCreated datePublished" datetime="2020-06-14T00:00:00+08:00">2020-06-14</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-06-17 10:06:09" itemprop="dateModified" datetime="2020-06-17T10:06:09+08:00">2020-06-17</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/网络优化/" itemprop="url" rel="index"><span itemprop="name">网络优化</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>10k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>10 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="Protobuf-通信协议详解"><a href="#Protobuf-通信协议详解" class="headerlink" title="Protobuf 通信协议详解"></a>Protobuf 通信协议详解</h2><p>在移动互联网时代，手机流量、电量是最为有限的资源，而移动端的即时通讯应用无疑必须得直面这两点。</p><p>解决流量过大的基本方法就是<strong>使用高度压缩的通信协议</strong>，而数据压缩后流量减小带来的自然结果也就是省电：因为大数据量的传输必然需要更久的网络操作、数据序列化及反序列化操作，这些都是电量消耗过快的根源。</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/06/14/blog_bak/Blog/网络优化/Protobuf 通信协议详解/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1567,7 +1618,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1603,7 +1654,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">204</span>
+          <span class="site-state-item-count">217</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1646,7 +1697,17 @@
         
           
         
-        <span class="site-state-item-count">14</span>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">19</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -1703,9 +1764,7 @@
         
           
         
-          
-        
-        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-count">21</span>
         <span class="site-state-item-name">标签</span>
         </a>
       </div>
@@ -1757,14 +1816,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">873k</span>
+    <span title="站点总字数">919k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">13:14</span>
+    <span title="站点阅读时长">13:55</span>
 </div>
 
         

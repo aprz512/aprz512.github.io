@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=EB Garamond:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="/lib/fancybox/source/jquery.fancybox.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-bounce.min.css?v=1.0.2">
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: true,
+    copycode: {"enable":true,"show_result":true,"style":"flat"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="该库可以在 APP 运行时对 sql 语句、执行序列、表信息等进行分析检测。其主要代码在 matrix-sqlite-lint-android-sdk下。虽然名带 “lint ” ，但并不是代码的静态检查。这里主要介绍一下 SQLiteLint 的思路，因为需要检测出来哪些 SQL 是可以优化的，所以你就必须要了解 SQL 语句，而我对 SQL 语句的熟悉程度还达不到这一点，所以就很难看懂里面的一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="017-Matrix源码分析：监测SQL语句中的问题">
+<meta property="og:url" content="http://aprz512.github.io/2020/09/02/blog_bak/Blog/Android-源码解析/Matrix/017-Matrix源码分析：监测SQL语句中的问题/index.html">
+<meta property="og:site_name" content="二手程序员">
+<meta property="og:description" content="该库可以在 APP 运行时对 sql 语句、执行序列、表信息等进行分析检测。其主要代码在 matrix-sqlite-lint-android-sdk下。虽然名带 “lint ” ，但并不是代码的静态检查。这里主要介绍一下 SQLiteLint 的思路，因为需要检测出来哪些 SQL 是可以优化的，所以你就必须要了解 SQL 语句，而我对 SQL 语句的熟悉程度还达不到这一点，所以就很难看懂里面的一">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/csvJ6rH9McsI9ibGiaIgT8sOFicBw5GHjWelfLAyI2F8NrWKo3Hp3tpAcMvSzONH3s4SNVxgiaUvNxJmob1H2gTiaWQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1">
+<meta property="og:updated_time" content="2020-09-25T13:45:26.181Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="017-Matrix源码分析：监测SQL语句中的问题">
+<meta name="twitter:description" content="该库可以在 APP 运行时对 sql 语句、执行序列、表信息等进行分析检测。其主要代码在 matrix-sqlite-lint-android-sdk下。虽然名带 “lint ” ，但并不是代码的静态检查。这里主要介绍一下 SQLiteLint 的思路，因为需要检测出来哪些 SQL 是可以优化的，所以你就必须要了解 SQL 语句，而我对 SQL 语句的熟悉程度还达不到这一点，所以就很难看懂里面的一">
+<meta name="twitter:image" content="https://mmbiz.qpic.cn/mmbiz_png/csvJ6rH9McsI9ibGiaIgT8sOFicBw5GHjWelfLAyI2F8NrWKo3Hp3tpAcMvSzONH3s4SNVxgiaUvNxJmob1H2gTiaWQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1">
+  <link rel="canonical" href="http://aprz512.github.io/2020/09/02/blog_bak/Blog/Android-源码解析/Matrix/017-Matrix源码分析：监测SQL语句中的问题/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+<link href="https://fonts.loli.net/css?family=EB+Garamond:400,400i,700,700i|Noto+Serif+SC:400,500,700&display=swap&subset=chinese-simplified" rel="stylesheet">
+
+  <title>017-Matrix源码分析：监测SQL语句中的问题 | 二手程序员</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-right">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">二手程序员</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">吹灭读书灯，一身都是月。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">21</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">19</span></a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于我</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">217</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    
+  <div class="popup search-popup">
+  <div class="search-header">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <div class="search-input-wrapper">
+      <input autocomplete="off" autocorrect="off" autocapitalize="none"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="search-input">
+    </div>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+  <div id="search-result"></div>
+</div>
+
+
+  </div>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://aprz512.github.io/2020/09/02/blog_bak/Blog/Android-源码解析/Matrix/017-Matrix源码分析：监测SQL语句中的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="aprz512">
+      <meta itemprop="description" content="博客建于2017年02月05日21:39:56">
+      <meta itemprop="image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="二手程序员">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">017-Matrix源码分析：监测SQL语句中的问题
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-09-02 00:00:00" itemprop="dateCreated datePublished" datetime="2020-09-02T00:00:00+08:00">2020-09-02</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-25 21:45:26" itemprop="dateModified" datetime="2020-09-25T21:45:26+08:00">2020-09-25</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Matrix/" itemprop="url" rel="index"><span itemprop="name">Matrix</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+        
+      
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/02/blog_bak/Blog/Android-源码解析/Matrix/017-Matrix源码分析：监测SQL语句中的问题/#comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/09/02/blog_bak/Blog/Android-源码解析/Matrix/017-Matrix源码分析：监测SQL语句中的问题/" itemprop="commentCount"></span></a>
+  </span>
+  
+  
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">本文字数：</span>
+              
+              <span>6.2k</span>
+            </span>
+          
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              
+              <span>6 分钟</span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>该库可以在 APP 运行时对 sql 语句、执行序列、表信息等进行分析检测。其主要代码在 <code>matrix-sqlite-lint-android-sdk</code>下。虽然名带 “lint ” ，但并不是代码的静态检查。</p><p>这里主要介绍一下 SQLiteLint 的思路，因为需要检测出来哪些 SQL 是可以优化的，所以你就必须要了解 SQL 语句，而我对 SQL 语句的熟悉程度还达不到这一点，所以就很难看懂里面的一些算法。故算法部分就不深入分析了，有兴趣可以看源码以及官方文档。</p><a id="more"></a>
+
+<h3 id="检测流程"><a href="#检测流程" class="headerlink" title="检测流程"></a>检测流程</h3><p><img src="https://mmbiz.qpic.cn/mmbiz_png/csvJ6rH9McsI9ibGiaIgT8sOFicBw5GHjWelfLAyI2F8NrWKo3Hp3tpAcMvSzONH3s4SNVxgiaUvNxJmob1H2gTiaWQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1" alt="img"></p>
+<p>可以看到，基本流程与 IO 的检测是差不多的，实际上确实如此，源码部分也有很多类似的地方。</p>
+<p>我们看下里面的几个流程：</p>
+<ol>
+<li><p>收集 APP 运行时的 sql 执行信息<br>  包括执行语句、创建的表信息等。其中表相关信息可以通过 pragma 命令得到。对于执行语句，有两种情况：<br>  a）DB 框架提供了回调接口。比如微信使用的是 WCDB ，很容易就可以通过MMDataBase.setSQLiteTrace 注册回调拿到这些信息。<br>  b） 若使用 Android 默认的 DB 框架，SQLiteLint 提供了一种无侵入的获取到执行的sql语句及耗时等信息的方式。通过hook的技巧，向 SQLite3 C 层的  api sqlite3_profile 方法注册回调，也能拿到分析所需的信息，从而无需开发者额外的打点统计代码。</p>
+</li>
+<li><p>预处理<br>包括生成对应的 sql 语法树，生成不带实参的 sql ，判断是否 select* 语句等，为后面的分析做准备。预处理和后面的算法调度都在一个单独的处理线程。</p>
+</li>
+<li><p>调度具体检测算法执行<br>checker 就是各种检测算法，也支持扩展。并且检测算法都是以 C++ 实现，方便支持多平台。而调度的时机包括：最近未分析 sql 语句调度，抽样调度，初始化调度，每条 sql 语句调度。</p>
+</li>
+<li><p>发布问题<br>上报问题或者弹框提示。</p>
+</li>
+</ol>
+<p>可以看到重点在第 3 步，而这一步本文暂不分析。第2步也只简单的说一下。</p>
+<h3 id="收集App运行时的-SQL-执行信息"><a href="#收集App运行时的-SQL-执行信息" class="headerlink" title="收集App运行时的 SQL 执行信息"></a>收集App运行时的 SQL 执行信息</h3><p>该库提供了两种方式，一种是 hook，一种是通过回调接口。至于使用哪种，需要我们执行设置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> SQLiteLintConfig <span class="title">initSQLiteLintConfig</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * HOOK模式下，SQLiteLint会自己去获取所有已执行的sql语句及其耗时(by hooking sqlite3_profile)</span></span><br><span class="line"><span class="comment">         * <span class="doctag">@see</span> 而另一个模式：SQLiteLint.SqlExecutionCallbackMode.CUSTOM_NOTIFY , 则需要调用 &#123;<span class="doctag">@link</span> SQLiteLint#notifySqlExecution(String, String, int)&#125;来通知</span></span><br><span class="line"><span class="comment">         * SQLiteLint 需要分析的、已执行的sql语句及其耗时</span></span><br><span class="line"><span class="comment">         * <span class="doctag">@see</span> TestSQLiteLintActivity#doTest()</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> SQLiteLintConfig(SQLiteLint.SqlExecutionCallbackMode.HOOK);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> SQLiteLintConfig(SQLiteLint.SqlExecutionCallbackMode.HOOK);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用 hook 在高版本可能会有兼容问题，如果遇到后不要慌。</p>
+<h4 id="hook"><a href="#hook" class="headerlink" title="hook"></a>hook</h4><p>我们看看 hook 实现的相关代码，可以回想一下 IO 的 hook，想必是差不多的。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xhook_register(<span class="string">".*/libandroid_runtime\\.so$"</span>, <span class="string">"sqlite3_profile"</span>, (<span class="keyword">void</span>*)hooked_sqlite3_profile, (<span class="keyword">void</span>**)&amp;original_sqlite3_profile);</span><br></pre></td></tr></table></figure>
+
+<p>hook 的是 sqlite3_profile 函数。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">hooked_sqlite3_profile</span><span class="params">(sqlite3* db, <span class="keyword">void</span>(*xProfile)(<span class="keyword">void</span>*, <span class="keyword">const</span> <span class="keyword">char</span>*, sqlite_uint64), <span class="keyword">void</span>* p)</span> </span>&#123;</span><br><span class="line">    LOGI(<span class="string">"hooked_sqlite3_profile call"</span>);</span><br><span class="line">    <span class="keyword">return</span> original_sqlite3_profile(db, SQLiteLintSqlite3ProfileCallback, p);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>hook 函数也没干啥，就是直接调用了原函数，不过传递了一个 callback 进去。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">SQLiteLintSqlite3ProfileCallback</span><span class="params">(<span class="keyword">void</span> *data, <span class="keyword">const</span> <span class="keyword">char</span> *sql, sqlite_uint64 tm)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (kStop) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    JNIEnv*env = getJNIEnv();</span><br><span class="line">    <span class="keyword">if</span> (env != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        SQLiteConnection* connection = <span class="keyword">static_cast</span>&lt;SQLiteConnection*&gt;(data);</span><br><span class="line">        jstring extInfo = (jstring)env-&gt;CallStaticObjectMethod(kUtilClass, kMethodIDGetThrowableStack);</span><br><span class="line">        <span class="keyword">char</span> *ext_info = jstringToChars(env, extInfo);</span><br><span class="line"></span><br><span class="line">        NotifySqlExecution(connection-&gt;label, sql, tm/<span class="number">1000000</span>, ext_info);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">free</span>(ext_info);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        LOGW(<span class="string">"SQLiteLintSqlite3ProfileCallback env null"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该回调会在 sql 执行后触发，这样我们就可以拿到该 sql 的相关信息。然后调用 NotifySqlExecution 通知 sql 执行了，实际上就是放入队列里面。</p>
+<p>里面会有一个生产者-消费者模型，与 IO 是一样的，所以这里扮演的是生产者角色。</p>
+<h4 id="手动通知"><a href="#手动通知" class="headerlink" title="手动通知"></a>手动通知</h4><p>当我们不使用 hook 的时候，就需要开发者自己在 sql 执行后手动调用了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">notifySqlExecution</span><span class="params">(String concernedDbPath, String sql, <span class="keyword">int</span> timeCost)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isPluginStarted()) &#123;</span><br><span class="line">        SLog.i(TAG, <span class="string">"notifySqlExecution isPluginStarted not"</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    SQLiteLint.notifySqlExecution(concernedDbPath, sql, timeCost);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用这行代码之后，最终也会进入到 NotifySqlExecution 这行语句中，与 hook 方式是一样的，这样有点类似打点。</p>
+<p>我们看看 NotifySqlExecution 最终会调用到如下代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">  <span class="keyword">void</span> Lint::NotifySqlExecution(<span class="keyword">const</span> <span class="keyword">char</span> *sql, <span class="keyword">const</span> <span class="keyword">long</span> time_cost, <span class="keyword">const</span> <span class="keyword">char</span>* ext_info) &#123;</span><br><span class="line">      <span class="keyword">if</span> (sql == <span class="literal">nullptr</span>)&#123;</span><br><span class="line">          sError(<span class="string">"Lint::NotifySqlExecution sql NULL"</span>);</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (env_.IsReserveSql(sql)) &#123;</span><br><span class="line">          sDebug(<span class="string">"Lint::NotifySqlExecution a reserved sql"</span>);</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      SqlInfo *sql_info = <span class="keyword">new</span> SqlInfo();</span><br><span class="line">      sql_info-&gt;sql_ = sql;</span><br><span class="line">sql_info-&gt;execution_time_ = GetSysTimeMillisecond();</span><br><span class="line">      sql_info-&gt;ext_info_ = ext_info;</span><br><span class="line">      sql_info-&gt;time_cost_ = time_cost;</span><br><span class="line">      sql_info-&gt;is_in_main_thread_ = IsInMainThread();</span><br><span class="line"></span><br><span class="line">      <span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; lock(queue_mutex_);</span><br><span class="line">      queue_.push_back(<span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;SqlInfo&gt;(sql_info));</span><br><span class="line">      queue_cv_.notify_one();</span><br><span class="line">      lock.unlock();</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，这里给 sql_info 赋值了很多字段，就是收集相关信息了，然后就放到 queue_ 里面，然后通知消费者线程。</p>
+<h3 id="预处理"><a href="#预处理" class="headerlink" title="预处理"></a>预处理</h3><p>sql 信心收集完成之后，需要进行处理，我们看源码，直接看消费者线程的逻辑。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">         ...</span><br><span class="line">             </span><br><span class="line"><span class="comment">// 从队列中取一个</span></span><br><span class="line">         <span class="keyword">int</span> ret = TakeSqlInfo(sql_info);</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">             </span><br><span class="line">         <span class="comment">// 记录sql数量，用于抽样</span></span><br><span class="line">         env_.IncSqlCnt();</span><br><span class="line">         <span class="comment">// 将 sql 语句进行预处理，去除前后空格，全转小写</span></span><br><span class="line">         PreProcessSqlString(sql_info-&gt;sql_);</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">             </span><br><span class="line">         <span class="comment">// 真正的预处理逻辑</span></span><br><span class="line">         <span class="keyword">if</span> (!PreProcessSqlInfo(sql_info.get())) &#123;</span><br><span class="line">             sWarn(<span class="string">"Lint::Check PreProcessSqlInfo failed"</span>);</span><br><span class="line">             env_.AddToSqlHistory(*sql_info);</span><br><span class="line">             sql_info = <span class="literal">nullptr</span>;</span><br><span class="line">             <span class="keyword">continue</span>;</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">         <span class="comment">// 这里是抽样检测</span></span><br><span class="line">         ScheduleCheckers(CheckScene::kSample, *sql_info, published_issues);</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span> (!checked_sql_cache_.Get(wildcard_sql, checked)) &#123;</span><br><span class="line">             <span class="comment">// 这里是避免重复检测，与上面的抽象可能会重复</span></span><br><span class="line">             ScheduleCheckers(CheckScene::kUncheckedSql, *sql_info, published_issues);</span><br><span class="line">             checked_sql_cache_.Put(wildcard_sql, <span class="literal">true</span>);</span><br><span class="line">         &#125;</span><br></pre></td></tr></table></figure>
+
+<p>看看 ScheduleCheckers ：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> Lint::ScheduleCheckers(<span class="keyword">const</span> CheckScene check_scene, <span class="keyword">const</span> SqlInfo&amp; sql_info, <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Issue&gt; *published_issues) &#123;</span><br><span class="line">    <span class="comment">// 检测场景不符，就直接返回</span></span><br><span class="line">    <span class="comment">// 每个 Checker 有自己的检测场景</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">map</span>&lt;CheckScene, <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Checker*&gt;&gt;::iterator it = checkers_.find(check_scene);</span><br><span class="line">    <span class="keyword">if</span> (it == checkers_.end()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Checker*&gt; scene_checkers = it-&gt;second;</span><br><span class="line">    <span class="keyword">size_t</span> scene_checkers_cnt = scene_checkers.size();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">size_t</span> i=<span class="number">0</span>;i &lt; scene_checkers_cnt;i++) &#123;</span><br><span class="line"></span><br><span class="line">        Checker* checker = scene_checkers[i];</span><br><span class="line">        <span class="comment">// 如果是抽样检测（kSample），则需要满足隔 30 个取一个</span></span><br><span class="line">        <span class="keyword">if</span> (check_scene != CheckScene::kSample</span><br><span class="line">            || (env_.GetSqlCnt() % checker-&gt;GetSqlCntToSample() == <span class="number">0</span>)) &#123;</span><br><span class="line">            checker-&gt;Check(env_, sql_info, published_issues);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要就是调用了各个 Checker 的 Check 函数。Checker 有很多，里面具体做了啥，这里就不分析了，涉及到语法语义。</p>
+<h3 id="上报"><a href="#上报" class="headerlink" title="上报"></a>上报</h3><p>上报的逻辑与IO差不多。具体逻辑在</p>
+<blockquote>
+<p>sqlitelint::OnIssuePublish</p>
+</blockquote>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a href="https://mp.weixin.qq.com/s/laUgOmAcMiZIOfM2sWrQgw" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/laUgOmAcMiZIOfM2sWrQgw</a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+        
+      
+        <div id="reward-container">
+  <div>觉得不错，那就赞赏一下吧～</div>
+  <button id="reward-button" disable="enable" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/wechatpay.jpg" alt="aprz512 微信支付">
+        <p>微信支付</p>
+      </div>
+        
+      
+      <div style="display: inline-block">
+        <img src="/images/alipay.jpg" alt="aprz512 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>aprz512</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://aprz512.github.io/2020/09/02/blog_bak/Blog/Android-源码解析/Matrix/017-Matrix源码分析：监测SQL语句中的问题/" title="017-Matrix源码分析：监测SQL语句中的问题">http://aprz512.github.io/2020/09/02/blog_bak/Blog/Android-源码解析/Matrix/017-Matrix源码分析：监测SQL语句中的问题/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/09/01/blog_bak/Blog/计算机原理/写入放大/" rel="next" title="写入放大">
+                  <i class="fa fa-chevron-left"></i> 写入放大
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/09/02/blog_bak/Blog/C++/002-右值引用/" rel="prev" title="右值引用">
+                  右值引用 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="comments"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/avatar/avatar.jpeg?raw=true"
+      alt="aprz512">
+  <p class="site-author-name" itemprop="name">aprz512</p>
+  <div class="site-description motion-element" itemprop="description">博客建于2017年02月05日21:39:56</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/aprz512" title="GitHub &rarr; https://github.com/aprz512" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#检测流程"><span class="nav-number">1.</span> <span class="nav-text">检测流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#收集App运行时的-SQL-执行信息"><span class="nav-number">2.</span> <span class="nav-text">收集App运行时的 SQL 执行信息</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#hook"><span class="nav-number">2.1.</span> <span class="nav-text">hook</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#手动通知"><span class="nav-number">2.2.</span> <span class="nav-text">手动通知</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#预处理"><span class="nav-number">3.</span> <span class="nav-text">预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上报"><span class="nav-number">4.</span> <span class="nav-text">上报</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">5.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">true</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    
+    <span title="站点总字数">919k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">13:55</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+      <div class="reading-progress-bar"></div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.3.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: 'g48OrtSq4q4MWp6EAEWbkAsT-gzGzoHsz',
+    appKey: 'CXW8M63QPXbQ9qKMgHDy9Be2',
+    placeholder: '说点什么吧',
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: 'zh-cn' || 'zh-cn',
+    path: location.pathname
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
