@@ -65,7 +65,7 @@
 <meta property="og:site_name" content="二手程序员">
 <meta property="og:description" content="FrameTracer 与前面的两个 tracer 一样，都是继承的 Tracer。所以分析的套路也是一样的简单。而且它没有覆盖 dispatchBegin 与 dispatchEnd 这两个方法。123456@Overridepublic void doFrame(String focusedActivityName, long start, long end, long frameCostMs">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-07-15T09:08:55.008Z">
+<meta property="og:updated_time" content="2020-10-09T16:50:00.299Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="006-Matrix源码分析：FrameTracer 监控帧率">
 <meta name="twitter:description" content="FrameTracer 与前面的两个 tracer 一样，都是继承的 Tracer。所以分析的套路也是一样的简单。而且它没有覆盖 dispatchBegin 与 dispatchEnd 这两个方法。123456@Overridepublic void doFrame(String focusedActivityName, long start, long end, long frameCostMs">
@@ -190,7 +190,7 @@
       
     
 
-    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">19</span></a>
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">20</span></a>
 
   </li>
       
@@ -216,7 +216,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">217</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">218</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -310,7 +310,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
+                <time title="修改时间：2020-10-10 00:50:00" itemprop="dateModified" datetime="2020-10-10T00:50:00+08:00">2020-10-10</time>
               </span>
             
           
@@ -386,7 +386,7 @@
 
 
 
-<p>在前台才会进行帧率分析。</p>
+<p>在前台才会进行帧率分析。这里的帧率采用的是累加的方式，即使</p>
 <p>notifyListener 是 FrameTracer 内部可以注册监听，然后这里会回调这些监听。我们看看监听会回调一些什么信息过去：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">notifyListener</span><span class="params">(<span class="keyword">final</span> String visibleScene, <span class="keyword">final</span> <span class="keyword">long</span> taskCostMs, <span class="keyword">final</span> <span class="keyword">long</span> frameCostMs, <span class="keyword">final</span> <span class="keyword">boolean</span> isContainsFrame)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> start = System.currentTimeMillis();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (listeners) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">final</span> IDoFrameListener listener : listeners) &#123;</span><br><span class="line">                <span class="keyword">if</span> (config.isDevEnv()) &#123;</span><br><span class="line">                    listener.time = SystemClock.uptimeMillis();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 掉了几帧，这里是整除</span></span><br><span class="line">                <span class="keyword">final</span> <span class="keyword">int</span> dropFrame = (<span class="keyword">int</span>) (taskCostMs / frameIntervalMs);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// taskCostMs 与 frameCostMs 差不多，多执行几行代码的时间差别</span></span><br><span class="line">                <span class="comment">// 不过 frameCostMs 有可能为 0，当处理的message 是普通消息，而不是 doFrame 消息的时候</span></span><br><span class="line">                <span class="comment">// visibleScene 是当前 activity 的名字</span></span><br><span class="line">                <span class="comment">// isContainsFrame 我没搞懂，这个不是肯定为 true 吗？</span></span><br><span class="line">                listener.doFrameSync(visibleScene, taskCostMs, frameCostMs, dropFrame, isContainsFrame);</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> != listener.getExecutor()) &#123;</span><br><span class="line">                    <span class="comment">// 将回调转给 Executor 去执行</span></span><br><span class="line">                    listener.getExecutor().execute(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                            listener.doFrameAsync(visibleScene, taskCostMs, frameCostMs, dropFrame, isContainsFrame);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (config.isDevEnv()) &#123;</span><br><span class="line">                    listener.time = SystemClock.uptimeMillis() - listener.time;</span><br><span class="line">                    MatrixLog.d(TAG, <span class="string">"[notifyListener] cost:%sms listener:%s"</span>, listener.time, listener);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">long</span> cost = System.currentTimeMillis() - start;</span><br><span class="line">        <span class="keyword">if</span> (config.isDebug() &amp;&amp; cost &gt; frameIntervalMs) &#123;</span><br><span class="line">            MatrixLog.w(TAG, <span class="string">"[notifyListener] warm! maybe do heavy work in doFrameSync! size:%s cost:%sms"</span>, listeners.size(), cost);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -526,7 +526,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-count">218</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -579,7 +579,9 @@
         
           
         
-        <span class="site-state-item-count">19</span>
+          
+        
+        <span class="site-state-item-count">20</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -688,14 +690,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">919k</span>
+    <span title="站点总字数">928k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">13:55</span>
+    <span title="站点阅读时长">14:03</span>
 </div>
 
         

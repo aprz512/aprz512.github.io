@@ -65,7 +65,7 @@
 <meta property="og:site_name" content="二手程序员">
 <meta property="og:description" content="分析无用资源，Android studio 本身就提供了lint工具。但是有个缺点就是无法配合proguard使用，无用代码引用的资源是不会被计算出来的。ApkChecker里面提供了两个小工具，可以直接分析apk包里面的无用资源（res目录与asset目录）。UnusedAssetsTask我们先看简单一些的 UnusedAssetsTask 类，该类用于寻找出没有使用的 asset 资源。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-08-03T07:18:29.687Z">
+<meta property="og:updated_time" content="2020-10-09T16:50:00.299Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="010-Matrix源码分析：ApkChecker检查无用资源">
 <meta name="twitter:description" content="分析无用资源，Android studio 本身就提供了lint工具。但是有个缺点就是无法配合proguard使用，无用代码引用的资源是不会被计算出来的。ApkChecker里面提供了两个小工具，可以直接分析apk包里面的无用资源（res目录与asset目录）。UnusedAssetsTask我们先看简单一些的 UnusedAssetsTask 类，该类用于寻找出没有使用的 asset 资源。">
@@ -190,7 +190,7 @@
       
     
 
-    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">19</span></a>
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">20</span></a>
 
   </li>
       
@@ -216,7 +216,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">217</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">218</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -310,7 +310,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-08-03 15:18:29" itemprop="dateModified" datetime="2020-08-03T15:18:29+08:00">2020-08-03</time>
+                <time title="修改时间：2020-10-10 00:50:00" itemprop="dateModified" datetime="2020-10-10T00:50:00+08:00">2020-10-10</time>
               </span>
             
           
@@ -359,7 +359,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>12k</span>
+              <span>11k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -369,7 +369,7 @@
               
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
               
-              <span>11 分钟</span>
+              <span>10 分钟</span>
             </span>
           
 
@@ -421,7 +421,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">decodeCode</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (String dexFileName : dexFileNameList) &#123;</span><br><span class="line">        <span class="comment">// 使用 apktool 加载 dex 文件</span></span><br><span class="line">        DexBackedDexFile dexFile = DexFileFactory.loadDexFile(<span class="keyword">new</span> File(inputFile, dexFileName), Opcodes.forApi(<span class="number">15</span>));</span><br><span class="line"></span><br><span class="line">        BaksmaliOptions options = <span class="keyword">new</span> BaksmaliOptions();</span><br><span class="line">        <span class="comment">// class 类按自然排序</span></span><br><span class="line">        List&lt;? extends ClassDef&gt; classDefs = Ordering.natural().sortedCopy(dexFile.getClasses());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (ClassDef classDef : classDefs) &#123;</span><br><span class="line">            <span class="comment">// 从 ClassDef 中获取该 class 对应的 smali 代码</span></span><br><span class="line">            String[] lines = ApkUtil.disassembleClass(classDef, options);</span><br><span class="line">            <span class="keyword">if</span> (lines != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="comment">// 分析 smali 代码</span></span><br><span class="line">                readSmaliLines(lines);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>使用的是 APKTOOL 的 api，就不介绍了，我也不熟。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">readSmaliLines</span><span class="params">(String[] lines)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (lines == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (String line : lines) &#123;</span><br><span class="line">        line = line.trim();</span><br><span class="line">        <span class="comment">// 找 常量字符串，因为使用 assets 中的资源文件，方式是很单一的，需要制定文件的名字</span></span><br><span class="line">        <span class="comment">// 所以遍历 smali 代码，找到所有使用常量字符串的地方</span></span><br><span class="line">        <span class="comment">// const-string 的语法：</span></span><br><span class="line">        <span class="comment">// const-string v0, "LOG"        # 将v0寄存器赋值为字符串常量"LOG"</span></span><br><span class="line">        <span class="comment">// 这算是一种简单的分析方式</span></span><br><span class="line">        <span class="keyword">if</span> (!Util.isNullOrNil(line) &amp;&amp; line.startsWith(<span class="string">"const-string"</span>)) &#123;</span><br><span class="line">            String[] columns = line.split(<span class="string">","</span>);</span><br><span class="line">            <span class="keyword">if</span> (columns.length == <span class="number">2</span>) &#123;</span><br><span class="line">                <span class="comment">// 获取 , 后面的</span></span><br><span class="line">                String assetFileName = columns[<span class="number">1</span>].trim();</span><br><span class="line">                <span class="comment">// 去除双引号</span></span><br><span class="line">                assetFileName = assetFileName.substring(<span class="number">1</span>, assetFileName.length() - <span class="number">1</span>);</span><br><span class="line">                <span class="keyword">if</span> (!Util.isNullOrNil(assetFileName)) &#123;</span><br><span class="line">                    <span class="comment">// 遍历之前收集的所有资源文件的路径</span></span><br><span class="line">                    <span class="keyword">for</span> (String path : assetsPathSet) &#123;</span><br><span class="line">                        <span class="comment">// 如果包含该文件</span></span><br><span class="line">                        <span class="keyword">if</span> (assetFileName.endsWith(path)) &#123;</span><br><span class="line">                            <span class="comment">// 存放到 assetRefSet 里面</span></span><br><span class="line">                            assetRefSet.add(path);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">readSmaliLines</span><span class="params">(String[] lines)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (lines == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (String line : lines) &#123;</span><br><span class="line">        line = line.trim();</span><br><span class="line">        <span class="comment">// 找 常量字符串，因为使用 assets 中的资源文件，方式是很单一的，需要指定文件的名字</span></span><br><span class="line">        <span class="comment">// 所以遍历 smali 代码，找到所有使用常量字符串的地方</span></span><br><span class="line">        <span class="comment">// const-string 的语法：</span></span><br><span class="line">        <span class="comment">// const-string v0, "LOG"        # 将v0寄存器赋值为字符串常量"LOG"</span></span><br><span class="line">        <span class="comment">// 这算是一种简单的分析方式</span></span><br><span class="line">        <span class="keyword">if</span> (!Util.isNullOrNil(line) &amp;&amp; line.startsWith(<span class="string">"const-string"</span>)) &#123;</span><br><span class="line">            String[] columns = line.split(<span class="string">","</span>);</span><br><span class="line">            <span class="keyword">if</span> (columns.length == <span class="number">2</span>) &#123;</span><br><span class="line">                <span class="comment">// 获取 , 后面的</span></span><br><span class="line">                String assetFileName = columns[<span class="number">1</span>].trim();</span><br><span class="line">                <span class="comment">// 去除双引号</span></span><br><span class="line">                assetFileName = assetFileName.substring(<span class="number">1</span>, assetFileName.length() - <span class="number">1</span>);</span><br><span class="line">                <span class="keyword">if</span> (!Util.isNullOrNil(assetFileName)) &#123;</span><br><span class="line">                    <span class="comment">// 遍历之前收集的所有资源文件的路径</span></span><br><span class="line">                    <span class="keyword">for</span> (String path : assetsPathSet) &#123;</span><br><span class="line">                        <span class="comment">// 如果包含该文件</span></span><br><span class="line">                        <span class="keyword">if</span> (assetFileName.endsWith(path)) &#123;</span><br><span class="line">                            <span class="comment">// 存放到 assetRefSet 里面</span></span><br><span class="line">                            assetRefSet.add(path);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这里就是判断，<strong>const-string 的字符串里面有没有与 asset 目录下资源名一样的，有的话就算这个资源文件被使用了。</strong></p>
 <p>当然，如果恰好你的字符串与资源名相同，那就会误判。</p>
@@ -443,10 +443,6 @@
 
 <p>这是一个深度遍历。</p>
 <p>resource参数是<strong>代码中引用的资源</strong> + <strong>valueReferences 集合</strong>中的元素。</p>
-<p><strong>这里有个疑问，</strong>看如下代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// values 有 n 个文件夹 ： values-pl values-v24 等等</span></span><br><span class="line"><span class="comment">// 判断里面的 item 有没有使用 @ 或者 attr 方式的，有就添加进来</span></span><br><span class="line"><span class="keyword">for</span> (String resource : valuesReferences) &#123;</span><br><span class="line">    <span class="keyword">if</span> (resguardMap.containsKey(resource)) &#123;</span><br><span class="line">        resourceRefSet.add(resguardMap.get(resource));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        resourceRefSet.add(resource);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// resourceRefSet 现在储存的是 values 里面的引用的资源 + 代码中使用的资源</span></span><br><span class="line"><span class="keyword">for</span> (String resource : resourceRefSet) &#123;</span><br><span class="line">    readChildReference(resource);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>resourceRefSet 里面本来就有代码中引用的资源集合，这里是先添加了 valuesReferences 集合中的元素，然后才去做深度遍历。那么问题是，nonValueReferences 根本就不会包含 valuesReferences，在这之前添加有什么用处吗？？？</p>
 <p>我们继续分析上面的深度遍历代码，假设resource 是一个 layout 资源，按照上面的逻辑，该 layout 引用的所有 string，dimen， drawable 都会从 unusedResSet 集合中移除。这也就是说明它们被人引用过了，即判断它是有用资源。</p>
 <p>这显然是一个有bug的逻辑，当一个无用资源A引用了无用资源B，那无用资源B岂不是被标记为有用，确实！！！</p>
 <p>所以，有必要的话可以删除一批无用资源后，再次重新运行该工具，直到资源无变化。</p>
@@ -455,7 +451,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> TaskResult <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> TaskExecuteException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ...</span><br><span class="line">        unusedResSet.removeAll(resourceRefSet);</span><br><span class="line">        ...</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> TaskExecuteException(e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>在最后，它将 resourceRefSet 里面的所有资源都标记为引用了。从这里可以看出，resourceRefSet 里面的元素，都是根。</p>
-<p>所以，总结一下：<strong>是以代码为根（不准确，values的引用也是根，不知道为啥要这么设计），然后深度遍历所有引用的资源</strong>。</p>
+<p>所以，总结一下：<strong>是以代码为根（不准确，values的引用也是根，可能与后面的删除资源有关系，values不好删除？？？），然后深度遍历所有引用的资源</strong>。</p>
 <h4 id="smali-引用方式分析"><a href="#smali-引用方式分析" class="headerlink" title="smali 引用方式分析"></a>smali 引用方式分析</h4><p>我们接下来，看看，如何从代码中找到资源的引用。有四种情况</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. <span class="keyword">const</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> v6, <span class="number">0x7f0c0061</span></span><br><span class="line"></span><br><span class="line"><span class="number">2</span>. sget</span><br><span class="line"></span><br><span class="line"><span class="comment">// app 生成的是 static int 的，所以直接转换为了数值</span></span><br><span class="line"><span class="comment">// 但是 lib 里面不是  final 的，所以会是引用的方式</span></span><br><span class="line">sget v6, Lcom/tencent/mm/R$string;-&gt;chatting_long_click_menu_revoke_msg:I</span><br><span class="line">sget v1, Lcom/tencent/mm/libmmui/R$id;-&gt;property_anim:I</span><br><span class="line"></span><br><span class="line"><span class="number">3</span>. sput</span><br><span class="line"></span><br><span class="line">sput-object v0, Lcom/tencent/mm/plugin_welab_api/R$styleable;-&gt;ActionBar:[I   <span class="comment">//define resource in R.java</span></span><br><span class="line"></span><br><span class="line"><span class="number">4</span>. array-data</span><br><span class="line"></span><br><span class="line">:array_0</span><br><span class="line">.array-data <span class="number">4</span></span><br><span class="line">    <span class="number">0x7f0a0022</span></span><br><span class="line">    <span class="number">0x7f0a0023</span></span><br><span class="line">.end array-data</span><br></pre></td></tr></table></figure>
 
@@ -616,7 +612,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-count">218</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -669,7 +665,9 @@
         
           
         
-        <span class="site-state-item-count">19</span>
+          
+        
+        <span class="site-state-item-count">20</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -795,14 +793,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">919k</span>
+    <span title="站点总字数">928k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">13:55</span>
+    <span title="站点阅读时长">14:03</span>
 </div>
 
         

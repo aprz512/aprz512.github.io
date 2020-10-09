@@ -65,12 +65,12 @@
 <meta property="og:site_name" content="二手程序员">
 <meta property="og:description" content="常说的一个问题：为啥Looper有个死循环却不会阻塞主线程？？？这是因为我们所谓的主线程就是这个死循环。我们的每一帧都是封装成了消息然后被分发，在主线程处理，主线程是不断的在处理这些消息，如果什么时候有个特别耗时的消息来了，那么主线程就会卡死。上面说了一个题外话，我们现在来看看如何监测主线程。了解这个类还需要一点预备知识：">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/2828107-01d883ce1e6fd1ae.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/867/format/webp">
-<meta property="og:updated_time" content="2020-07-15T09:08:55.008Z">
+<meta property="og:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/uithreadmonitor1.png?raw=true">
+<meta property="og:updated_time" content="2020-10-09T16:50:00.299Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="002-Matrix源码分析：UIThreadMonitor监测主线程">
 <meta name="twitter:description" content="常说的一个问题：为啥Looper有个死循环却不会阻塞主线程？？？这是因为我们所谓的主线程就是这个死循环。我们的每一帧都是封装成了消息然后被分发，在主线程处理，主线程是不断的在处理这些消息，如果什么时候有个特别耗时的消息来了，那么主线程就会卡死。上面说了一个题外话，我们现在来看看如何监测主线程。了解这个类还需要一点预备知识：">
-<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/2828107-01d883ce1e6fd1ae.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/867/format/webp">
+<meta name="twitter:image" content="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/uithreadmonitor1.png?raw=true">
   <link rel="canonical" href="http://aprz512.github.io/2020/06/30/blog_bak/Blog/Android-源码解析/Matrix/002-Matrix源码分析：UIThreadMonitor监测主线程/">
 
 
@@ -192,7 +192,7 @@
       
     
 
-    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">19</span></a>
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">20</span></a>
 
   </li>
       
@@ -218,7 +218,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">217</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">218</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -312,7 +312,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-07-15 17:08:55" itemprop="dateModified" datetime="2020-07-15T17:08:55+08:00">2020-07-15</time>
+                <time title="修改时间：2020-10-10 00:50:00" itemprop="dateModified" datetime="2020-10-10T00:50:00+08:00">2020-10-10</time>
               </span>
             
           
@@ -387,8 +387,9 @@
         <p>常说的一个问题：为啥Looper有个死循环却不会阻塞主线程？？？</p><p>这是因为我们所谓的主线程就是这个死循环。我们的每一帧都是封装成了消息然后被分发，在主线程处理，主线程是不断的在处理这些消息，如果什么时候有个特别耗时的消息来了，那么主线程就会卡死。</p><p>上面说了一个题外话，我们现在来看看如何监测主线程。了解这个类还需要一点预备知识：</p><a id="more"></a>
 
 
-<p>FrameDisplayEventReceiver 在收到 VSYNC 信号之后，会调用 doFrame 方法，而 doFrame 方法就会处理 Choreographer.CALLBACK_INPUT，Choreographer.CALLBACK_ANIMATION，Choreographer.CALLBACK_TRAVERSAL这些东西。</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/2828107-01d883ce1e6fd1ae.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/867/format/webp" alt="img"></p>
+<p>FrameDisplayEventReceiver 在收到 VSYNC 信号之后，会调用 doFrame 方法，而 doFrame 方法就会处理 Choreographer.CALLBACK_INPUT，</p>
+<p>Choreographer.CALLBACK_ANIMATION，Choreographer.CALLBACK_TRAVERSAL这些东西。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/uithreadmonitor1.png?raw=true" alt="uithreadmonitor1.png"></p>
 <p>他们分别是 事件处理，动画，界面绘制相关的东西。比如对于属性动画，它注册了帧回调，会将相关代码添加到 Choreographer 的动画队列里面，然后下一帧就会被执行，动画也就得到了处理。</p>
 <p>doFrame方法本身也是一个 message：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Message msg = mHandler.obtainMessage(MSG_DO_FRAME);</span><br></pre></td></tr></table></figure>
@@ -406,7 +407,8 @@
 </blockquote>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">LooperMonitor.register(<span class="keyword">new</span> LooperMonitor.LooperDispatchListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isValid</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> isAlive;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dispatchStart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.dispatchStart();</span><br><span class="line">        UIThreadMonitor.<span class="keyword">this</span>.dispatchBegin();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dispatchEnd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.dispatchEnd();</span><br><span class="line">        UIThreadMonitor.<span class="keyword">this</span>.dispatchEnd();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<p>接下来就是注册了监听，这个监听的触发时机上一节我们分析过，分发消息的时候会成对的回调。我们继续看 dispatchBegin 与 dispatchEnd：</p>
+<p>接下来就是注册了监听，这个监听的触发时机上一节我们分析过，分发消息的时候会成对的回调。</p>
+<p>我们继续看 dispatchBegin 与 dispatchEnd：</p>
 <blockquote>
 <p>com.tencent.matrix.trace.core.UIThreadMonitor#dispatchBegin</p>
 </blockquote>
@@ -415,7 +417,7 @@
 <p>记录了一些时间：</p>
 <p>dispatchTimeMs[0] 是手机从启动到现在的时间。</p>
 <p>dispatchTimeMs[2] 是线程运行的时间。</p>
-<p>然后是通知自己的 observers，相当于又转了一下，利用 LooperDispatchListener 来通知自己的 LooperObserver。</p>
+<p>然后是通知自己的 observers，<strong>相当于又转了一下</strong>，利用 LooperDispatchListener 来通知<strong>自己的 LooperObserver</strong>。</p>
 <blockquote>
 <p>com.tencent.matrix.trace.core.UIThreadMonitor#dispatchEnd</p>
 </blockquote>
@@ -424,15 +426,14 @@
 <p>dispatchEnd 方法要稍微复杂一点，但是还是一样的，它也是记录了一些时间：</p>
 <p>dispatchTimeMs[3] 是线程运行时间，与 dispatchTimeMs[2] 对应起来看就可以知道线程执行这个消息的耗时。</p>
 <p>dispatchTimeMs[1] 是手机从启动到现在的时间，dispatchTimeMs[0] 对应就可以知道该方法现实时间的耗时。注意两个耗时的区别，现实耗时是大于线程耗时的，因为线程会切片运行。</p>
-<p>这个方法，也主要是回调了 observer.doFrame 和 observer.dispatchEnd 两个方法。</p>
+<p>这个方法，<strong>也主要是回调了 observer.doFrame 和 observer.dispatchEnd 两个方法，这两个方法几乎是同时调用的，方法里面的参数是我们需要的</strong>。</p>
 <p>这里有个地方有点疑问：按照 LooperObserver 的3个方法来看，显然是要监测 doFrame 的运行情况，而 doFrame 只是一个特定的消息才会回调，假如我随便发送了一个普通的消息，也会触发这3个回调，那不是有问题吗？</p>
 <p>我调试了一下这个回调，发现如下日志：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">activityName[com.example.sample.MainActivity] frame cost:0ms [104300|2480|218640]ns</span><br><span class="line">000000000</span><br><span class="line">activityName[com.example.sample.MainActivity] frame cost:0ms [104300|2480|218640]ns</span><br></pre></td></tr></table></figure>
 
-<p>我使用hander发送了一个message，打印出来的日志是这样的，就是说如果不是执行的 doFrame 的消息，frameCostMs 是 0，其余的是上一帧的值。</p>
-<p>我们注意一下就行了，上面的函数中，开头就有一个 if 判断，这个很重要，里面涉及到我们上面所说的3个队列。</p>
-<p>让我们从头道来：</p>
-<p>首先，外部会调用该类的 onStart 方法：</p>
+<p>我使用hander发送了一个message，打印出来的日志是这样的，就是说如果不是执行的 doFrame 的消息，frameCostMs 是 0，其余的是上一帧的值。我们注意一下就行了。</p>
+<p>上面的函数中，开头就有一个 if 判断，这个很重要，里面涉及到我们上面所说的3个队列。</p>
+<p>让我们从头道来，首先，外部会调用该类的 onStart 方法：</p>
 <blockquote>
 <p>com.tencent.matrix.trace.core.UIThreadMonitor#onStart</p>
 </blockquote>
@@ -445,7 +446,7 @@
 </blockquote>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">long</span> start = System.nanoTime();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 这个方法里面就做了一件事，就是将 isBelongFrame 置为 true</span></span><br><span class="line">        doFrameBegin(token);</span><br><span class="line">        <span class="comment">// 开始执行 input 队列</span></span><br><span class="line">        doQueueBegin(CALLBACK_INPUT);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 向 animation 队列添加一个 runnable</span></span><br><span class="line">        addFrameCallback(CALLBACK_ANIMATION, <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="comment">// input队列执行结束</span></span><br><span class="line">                doQueueEnd(CALLBACK_INPUT);</span><br><span class="line">                <span class="comment">// 开始执行 animation 队列</span></span><br><span class="line">                doQueueBegin(CALLBACK_ANIMATION);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 向 traversal 队列添加一个 runnable</span></span><br><span class="line">        addFrameCallback(CALLBACK_TRAVERSAL, <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="comment">// animation 队列执行结束</span></span><br><span class="line">                doQueueEnd(CALLBACK_ANIMATION);</span><br><span class="line">                <span class="comment">// 开始执行 traversal 队列</span></span><br><span class="line">                doQueueBegin(CALLBACK_TRAVERSAL);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (config.isDevEnv()) &#123;</span><br><span class="line">            MatrixLog.d(TAG, <span class="string">"[UIThreadMonitor#run] inner cost:%sns"</span>, System.nanoTime() - start);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这里其实就是向3个队列的头部插入 runnable，然后执行runnable的时候，调用对应的 begin与end方法。</p>
+<p><strong>这里其实就是向3个队列的头部插入 runnable，然后执行runnable的时候，计算出时差，调用对应的 begin与end方法。</strong></p>
 <blockquote>
 <p>com.tencent.matrix.trace.core.UIThreadMonitor#doQueueBegin</p>
 <p>com.tencent.matrix.trace.core.UIThreadMonitor#doQueueEnd</p>
@@ -515,8 +516,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2020/06/22/blog_bak/Blog/网络优化/网络编程007：QUIC协议/" rel="next" title="网络编程007：QUIC协议">
-                  <i class="fa fa-chevron-left"></i> 网络编程007：QUIC协议
+                <a href="/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/" rel="next" title="HttpDnsLib分析">
+                  <i class="fa fa-chevron-left"></i> HttpDnsLib分析
                 </a>
               
             </div>
@@ -525,8 +526,8 @@
 
             <div class="post-nav-prev post-nav-item">
               
-                <a href="/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/" rel="prev" title="HttpDnsLib分析">
-                  HttpDnsLib分析 <i class="fa fa-chevron-right"></i>
+                <a href="/2020/07/01/blog_bak/Blog/Android-源码解析/Matrix/003-Matrix源码分析：方法监控/" rel="prev" title="003-Matrix源码分析：方法监控">
+                  003-Matrix源码分析：方法监控 <i class="fa fa-chevron-right"></i>
                 </a>
               
             </div>
@@ -578,7 +579,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-count">218</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -631,7 +632,9 @@
         
           
         
-        <span class="site-state-item-count">19</span>
+          
+        
+        <span class="site-state-item-count">20</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -740,14 +743,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">919k</span>
+    <span title="站点总字数">928k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">13:55</span>
+    <span title="站点阅读时长">14:03</span>
 </div>
 
         

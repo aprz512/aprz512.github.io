@@ -67,7 +67,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://github.com/Tencent/matrix/wiki/images/trace/run_store.jpg">
 <meta property="og:image" content="https://github.com/Tencent/matrix/wiki/images/trace/stack.jpg">
-<meta property="og:updated_time" content="2020-08-03T07:26:06.154Z">
+<meta property="og:updated_time" content="2020-10-09T16:50:00.299Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="003-Matrix源码分析：方法监控">
 <meta name="twitter:description" content="在上一节中，我们看到过 AppMethodBeat 这个类，但是却没有介绍它，是因为这个玩意特别的难搞，需要单独的起一篇。这个类其实是用来统计每个函数的耗时的，具体的可以看官方文档：https://github.com/Tencent/matrix/wiki/Matrix-Android-TraceCanary">
@@ -193,7 +193,7 @@
       
     
 
-    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">19</span></a>
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类<span class="badge">20</span></a>
 
   </li>
       
@@ -219,7 +219,7 @@
       
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">217</span></a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">218</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -313,7 +313,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-08-03 15:26:06" itemprop="dateModified" datetime="2020-08-03T15:26:06+08:00">2020-08-03</time>
+                <time title="修改时间：2020-10-10 00:50:00" itemprop="dateModified" datetime="2020-10-10T00:50:00+08:00">2020-10-10</time>
               </span>
             
           
@@ -362,7 +362,7 @@
               
                 <span class="post-meta-item-text">本文字数：</span>
               
-              <span>8.5k</span>
+              <span>8.6k</span>
             </span>
           
             <span class="post-meta-item" title="阅读时长">
@@ -389,7 +389,7 @@
 
 
 <p>知道了每个函数的耗时，就可以找出卡顿的原因。</p>
-<p>下面我们来分析这个类。</p>
+<p>下面我们来分析这个类，首先来看一个字段。</p>
 <blockquote>
 <p>com.tencent.matrix.trace.core.AppMethodBeat#status</p>
 </blockquote>
@@ -420,16 +420,13 @@
 
 <p>realExecute 只会调用一次，里面启动了一个线程专门用来更新时间（隔5ms循环一次），原因是：</p>
 <blockquote>
-<p>考虑到每个方法执行前后都获取系统时间（System.nanoTime）会对性能影响比较大，</p>
-<p>而实际上，单个函数执行耗时小于 5ms 的情况，对卡顿来说不是主要原因，可以忽略不计，</p>
-<p>如果是多次调用的情况，则在它的父级方法中可以反映出来，所以为了减少对性能的影响，</p>
-<p>通过另一条更新时间的线程每 5ms 去更新一个时间变量，而每个方法执行前后只读取该变量来减少性能损耗。</p>
+<p>考虑到每个方法执行前后都获取系统时间（System.nanoTime）会对性能影响比较大，而实际上，单个函数执行耗时小于 5ms 的情况，对卡顿来说不是主要原因，可以忽略不计，如果是多次调用的情况，则在它的父级方法中可以反映出来，所以为了减少对性能的影响，通过另一条更新时间的线程每 5ms 去更新一个时间变量，而每个方法执行前后只读取该变量来减少性能损耗。</p>
 </blockquote>
-<p>还hack了 ActivityThread 的 H 的 callback，主要是用来拦截消息的处理，是一种很常用的 hook 方式，里面做了启动的耗时监测，暂时不深入，后面再说。</p>
+<p>方法里面还hack了 ActivityThread 的 H 的 callback，主要是用来拦截消息的处理，是一种很常用的 hook 方式，里面做了启动的耗时监测，暂时不深入，后面再说。</p>
 <blockquote>
 <p>com.tencent.matrix.trace.core.AppMethodBeat#mergeData</p>
 </blockquote>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mergeData</span><span class="params">(<span class="keyword">int</span> methodId, <span class="keyword">int</span> index, <span class="keyword">boolean</span> isIn)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 看注释这里是修复了一个bug，anr时间计算有问题，没看懂</span></span><br><span class="line">    <span class="keyword">if</span> (methodId == AppMethodBeat.METHOD_ID_DISPATCH) &#123;</span><br><span class="line">        sCurrentDiffTime = SystemClock.uptimeMillis() - sDiffTime;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">long</span> trueId = <span class="number">0L</span>;</span><br><span class="line">    <span class="keyword">if</span> (isIn) &#123;</span><br><span class="line">        trueId |= <span class="number">1L</span> &lt;&lt; <span class="number">63</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    trueId |= (<span class="keyword">long</span>) methodId &lt;&lt; <span class="number">43</span>;</span><br><span class="line">    trueId |= sCurrentDiffTime &amp; <span class="number">0x7FFFFFFFFFFL</span>;</span><br><span class="line">    <span class="comment">// sBuffer 是一个long数组，long的结构：</span></span><br><span class="line">    <span class="comment">// 第1位是 1或者0，1是函数入口，0是函数出口</span></span><br><span class="line">    <span class="comment">// 2-21位是 methodId</span></span><br><span class="line">    <span class="comment">// 22-64位是 函数的执行前后距离 MethodBeat 模块初始化的时间，一个函数会有占两个问题，根据 methodId 就可以计算出函数耗时</span></span><br><span class="line">    sBuffer[index] = trueId;</span><br><span class="line">    <span class="comment">// 该方法用于处理循环问题，sBuffer满了，会重头开始覆盖旧数据，主要是更新 indexRecord 链表头位置</span></span><br><span class="line">    checkPileup(index);</span><br><span class="line">    sLastIndex = index;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mergeData</span><span class="params">(<span class="keyword">int</span> methodId, <span class="keyword">int</span> index, <span class="keyword">boolean</span> isIn)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 看注释这里是修复了一个bug，anr时间计算有问题，没看懂</span></span><br><span class="line">    <span class="keyword">if</span> (methodId == AppMethodBeat.METHOD_ID_DISPATCH) &#123;</span><br><span class="line">        sCurrentDiffTime = SystemClock.uptimeMillis() - sDiffTime;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">long</span> trueId = <span class="number">0L</span>;</span><br><span class="line">    <span class="keyword">if</span> (isIn) &#123;</span><br><span class="line">        trueId |= <span class="number">1L</span> &lt;&lt; <span class="number">63</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    trueId |= (<span class="keyword">long</span>) methodId &lt;&lt; <span class="number">43</span>;</span><br><span class="line">    trueId |= sCurrentDiffTime &amp; <span class="number">0x7FFFFFFFFFFL</span>;</span><br><span class="line">    <span class="comment">// sBuffer 是一个long数组，long的结构：</span></span><br><span class="line">    <span class="comment">// 第1位是 1或者0，1是函数入口，0是函数出口</span></span><br><span class="line">    <span class="comment">// 2-21位是 methodId</span></span><br><span class="line">    <span class="comment">// 22-64位是 函数的执行前后距离 MethodBeat 模块初始化的时间，一个函数会有占两个位置，根据 methodId 就可以计算出函数耗时</span></span><br><span class="line">    sBuffer[index] = trueId;</span><br><span class="line">    <span class="comment">// 该方法用于处理循环问题，sBuffer满了，会重头开始覆盖旧数据，主要是更新 indexRecord 链表头位置</span></span><br><span class="line">    checkPileup(index);</span><br><span class="line">    sLastIndex = index;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这个方法也不难，就是往 sBuffer 里面添加数据，数据的结构注释也解释的很清楚了。</p>
 <p>最终sBuffer大致长这样：</p>
@@ -451,8 +448,8 @@
 
 <p>index 字段是用来记录 sBuffer 中的位置的。next 说明它是一个链表。</p>
 <p>用法如下：</p>
-<p>比如我们在，分发消息之前，首先调用 <code>com.tencent.matrix.trace.core.AppMethodBeat#maskIndex</code> 方法，传递一个 source 作为参数，得到一个 IndexRecord 对象，然后在分发消息结束后，再获取拿到 sIndex 的值，这样就有了两个 sIndex。取出这个范围里面的数据就好了。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">AppMethodBeat.IndexRecord beginRecord = AppMethodBeat.getInstance().maskIndex(<span class="string">"AnrTracer#dispatchBegin"</span>);</span><br><span class="line"><span class="keyword">long</span>[] data = AppMethodBeat.getInstance().copyData(beginRecord);</span><br><span class="line">beginRecord.release();</span><br></pre></td></tr></table></figure>
+<p>比如我们在，分发消息之前，首先调用 <code>com.tencent.matrix.trace.core.AppMethodBeat#maskIndex</code> 方法，传递一个 source 作为参数，得到一个 IndexRecord 对象，然后在分发消息结束后，再获取到 sIndex 的值，这样就有了两个 sIndex。取出这个范围里面的数据就好了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">AppMethodBeat.IndexRecord beginRecord = AppMethodBeat.getInstance().maskIndex(<span class="string">"AnrTracer#dispatchBegin"</span>);</span><br><span class="line"><span class="comment">// 方法的调用栈信息在 data 里面</span></span><br><span class="line"><span class="keyword">long</span>[] data = AppMethodBeat.getInstance().copyData(beginRecord);</span><br><span class="line">beginRecord.release();</span><br></pre></td></tr></table></figure>
 
 <p>AppMethodBeat 里面重要的方法就分析完了，我们看看上面忽略的 ActivityThreadHacker 这个类。这个类也很简单，主要就是 hook  ActivityThread的内部类 H 这个类。</p>
 <p>hook Hanlder 一般使用 callback 的方式，不清楚的可以看下消息分发优先级。</p>
@@ -526,8 +523,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2020/06/30/blog_bak/Blog/网络优化/HttpDnsLib/HttpDnsLib分析/" rel="next" title="HttpDnsLib分析">
-                  <i class="fa fa-chevron-left"></i> HttpDnsLib分析
+                <a href="/2020/06/30/blog_bak/Blog/Android-源码解析/Matrix/002-Matrix源码分析：UIThreadMonitor监测主线程/" rel="next" title="002-Matrix源码分析：UIThreadMonitor监测主线程">
+                  <i class="fa fa-chevron-left"></i> 002-Matrix源码分析：UIThreadMonitor监测主线程
                 </a>
               
             </div>
@@ -589,7 +586,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-count">218</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -642,7 +639,9 @@
         
           
         
-        <span class="site-state-item-count">19</span>
+          
+        
+        <span class="site-state-item-count">20</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -751,14 +750,14 @@
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">919k</span>
+    <span title="站点总字数">928k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">13:55</span>
+    <span title="站点阅读时长">14:03</span>
 </div>
 
         
