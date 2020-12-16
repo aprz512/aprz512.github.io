@@ -1,0 +1,961 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" type="image/png" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  <title>RxJava2 源码分析（六） - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.5","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"copy_btn":true,"image_zoom":{"enable":true},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="RxJava2 源码分析（六）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      75
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">RxJava2 源码分析（六）</h1>
+            
+            <div class="markdown-body">
+              <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>分析Flowable的相关源码，了解一下背压的知识。</p>
+<h3 id="从例子开始"><a href="#从例子开始" class="headerlink" title="从例子开始"></a>从例子开始</h3><blockquote>
+<p>demo</p>
+</blockquote>
+<pre><code class="hljs kotlin">Flowable
+        .create&lt;<span class="hljs-built_in">Int</span>&gt;(&#123;
+            it.onNext(<span class="hljs-number">1</span>)
+            it.onNext(<span class="hljs-number">2</span>)
+            it.onComplete()
+        &#125;, BackpressureStrategy.BUFFER)
+        .subscribe &#123;
+            System.<span class="hljs-keyword">out</span>.println(it)
+        &#125;</code></pre>
+<p>看看 create 方法创建了一个什么对象：</p>
+<h4 id="Flowable"><a href="#Flowable" class="headerlink" title="Flowable"></a>Flowable</h4><blockquote>
+<p>io.reactivex.Flowable#create</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; <span class="hljs-function">Flowable&lt;T&gt; <span class="hljs-title">create</span><span class="hljs-params">(FlowableOnSubscribe&lt;T&gt; source, BackpressureStrategy mode)</span> </span>&#123;
+    ObjectHelper.requireNonNull(source, <span class="hljs-string">&quot;source is null&quot;</span>);
+    ObjectHelper.requireNonNull(mode, <span class="hljs-string">&quot;mode is null&quot;</span>);
+    <span class="hljs-keyword">return</span> RxJavaPlugins.onAssembly(<span class="hljs-keyword">new</span> FlowableCreate&lt;T&gt;(source, mode));
+&#125;</code></pre>
+<p>创建了一个 FlowableCreate 对象，由于 Flowable 与 Observerable 差不多，所以下面我们按照分析 Observerable 的思路来分析 Flowable。</p>
+<h4 id="FlowableCreate"><a href="#FlowableCreate" class="headerlink" title="FlowableCreate"></a>FlowableCreate</h4><blockquote>
+<p>类结构</p>
+</blockquote>
+<pre><code class="hljs scala">public <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FlowableCreate&lt;T&gt;</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Flowable&lt;T&gt;</span> </span>&#123;...&#125;</code></pre>
+<p>这个没啥说的，与 Observerable 一样。</p>
+<blockquote>
+<p>构造函数</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">FlowableCreate</span><span class="hljs-params">(FlowableOnSubscribe&lt;T&gt; source, BackpressureStrategy backpressure)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.source = source;
+    <span class="hljs-keyword">this</span>.backpressure = backpressure;
+&#125;</code></pre>
+<p>也与 Observerable 差不多，就是两套代码吧。一个以 Observerable  开头，一个以 Flowable 开头，嗯，现在我对源码的探究就只到了这个程度，可能还有别的不同，暂时还未发现。</p>
+<blockquote>
+<p>subscribeActual 方法</p>
+<p>demo 中 backpressure 我们传递的是 BackpressureStrategy.BUFFER，所以 emitter 的值是 BufferAsyncEmitter。</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Subscriber&lt;? <span class="hljs-keyword">super</span> T&gt; t)</span> </span>&#123;
+    BaseEmitter&lt;T&gt; emitter;
+
+    <span class="hljs-keyword">switch</span> (backpressure) &#123;
+    <span class="hljs-keyword">case</span> MISSING: &#123;
+        emitter = <span class="hljs-keyword">new</span> MissingEmitter&lt;T&gt;(t);
+        <span class="hljs-keyword">break</span>;
+    &#125;
+    <span class="hljs-keyword">case</span> ERROR: &#123;
+        emitter = <span class="hljs-keyword">new</span> ErrorAsyncEmitter&lt;T&gt;(t);
+        <span class="hljs-keyword">break</span>;
+    &#125;
+    <span class="hljs-keyword">case</span> DROP: &#123;
+        emitter = <span class="hljs-keyword">new</span> DropAsyncEmitter&lt;T&gt;(t);
+        <span class="hljs-keyword">break</span>;
+    &#125;
+    <span class="hljs-keyword">case</span> LATEST: &#123;
+        emitter = <span class="hljs-keyword">new</span> LatestAsyncEmitter&lt;T&gt;(t);
+        <span class="hljs-keyword">break</span>;
+    &#125;
+    <span class="hljs-keyword">default</span>: &#123;
+        <span class="hljs-comment">// 走这里</span>
+        emitter = <span class="hljs-keyword">new</span> BufferAsyncEmitter&lt;T&gt;(t, bufferSize());
+        <span class="hljs-keyword">break</span>;
+    &#125;
+    &#125;
+
+    <span class="hljs-comment">// 下面的就不分析了，参考前面的文章</span>
+    t.onSubscribe(emitter);
+    <span class="hljs-keyword">try</span> &#123;
+        source.subscribe(emitter);
+    &#125; <span class="hljs-keyword">catch</span> (Throwable ex) &#123;
+        Exceptions.throwIfFatal(ex);
+        emitter.onError(ex);
+    &#125;
+&#125;
+</code></pre>
+<p>所以，我们只需要分析 BufferAsyncEmitter 这个类就好了。</p>
+<h4 id="FlowableCreate-BufferAsyncEmitter"><a href="#FlowableCreate-BufferAsyncEmitter" class="headerlink" title="FlowableCreate.BufferAsyncEmitter"></a>FlowableCreate.BufferAsyncEmitter</h4><blockquote>
+<p>类结构</p>
+<p>这个类是 FlowableCreate 的内部类，可以想到其他的 Emitter 应该也是内部类</p>
+<p>继承了 BaseEmitter</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BufferAsyncEmitter</span>&lt;<span class="hljs-title">T</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">BaseEmitter</span>&lt;<span class="hljs-title">T</span>&gt; </span>&#123;...&#125;</code></pre>
+<h4 id="FlowableCreate-BaseEmitter"><a href="#FlowableCreate-BaseEmitter" class="headerlink" title="FlowableCreate.BaseEmitter"></a>FlowableCreate.BaseEmitter</h4><blockquote>
+<p>类结构</p>
+<p>注意这个类继承至 AtomicLong</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">abstract</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BaseEmitter</span>&lt;<span class="hljs-title">T</span>&gt;</span>
+<span class="hljs-class"><span class="hljs-keyword">extends</span> <span class="hljs-title">AtomicLong</span></span>
+<span class="hljs-class"><span class="hljs-keyword">implements</span> <span class="hljs-title">FlowableEmitter</span>&lt;<span class="hljs-title">T</span>&gt;, <span class="hljs-title">Subscription</span> </span>&#123;...&#125;</code></pre>
+<p>这个类实现了一些通用的方法，比如 onError，onComplete，cancel等等。</p>
+<p>其中只有一个方法需要看看：</p>
+<blockquote>
+<p>BaseEmitter#request</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">request</span><span class="hljs-params">(<span class="hljs-keyword">long</span> n)</span> </span>&#123;
+    <span class="hljs-comment">// 判断 n 是不是正数</span>
+    <span class="hljs-keyword">if</span> (SubscriptionHelper.validate(n)) &#123;
+        <span class="hljs-comment">// 是正数，将 n 设置给自己</span>
+        <span class="hljs-comment">// 上面有说，这个类继承了 AtomicLong，所以它可以持有一个 Long 型的引用</span>
+        BackpressureHelper.add(<span class="hljs-keyword">this</span>, n);
+        <span class="hljs-comment">// 钩子方法</span>
+        onRequested();
+    &#125;
+&#125;</code></pre>
+<p>好了，到这里 BaseEmitter 的方法就分析的差不多了，这个类只是提供了一些默认的实现方法，没有别的逻辑，把它当成一个普通的父类就好了。</p>
+<h4 id="FlowableCreate-BufferAsyncEmitter-1"><a href="#FlowableCreate-BufferAsyncEmitter-1" class="headerlink" title="FlowableCreate.BufferAsyncEmitter"></a>FlowableCreate.BufferAsyncEmitter</h4><p>再回到 BufferAsyncEmitter 里面，看构造函数</p>
+<blockquote>
+<p>构造函数</p>
+</blockquote>
+<pre><code class="hljs java">BufferAsyncEmitter(Subscriber&lt;? <span class="hljs-keyword">super</span> T&gt; actual, <span class="hljs-keyword">int</span> capacityHint) &#123;
+    <span class="hljs-keyword">super</span>(actual);
+    <span class="hljs-comment">// 这里有一个新类</span>
+    <span class="hljs-keyword">this</span>.queue = <span class="hljs-keyword">new</span> SpscLinkedArrayQueue&lt;T&gt;(capacityHint);
+    <span class="hljs-keyword">this</span>.wip = <span class="hljs-keyword">new</span> AtomicInteger();
+&#125;</code></pre>
+<p>SpscLinkedArrayQueue 这个类不展开介绍了，贴一段注释就明白了。</p>
+<pre><code class="hljs smali">A single-producer single-consumer<span class="hljs-built_in"> array-backed </span>queue which can allocate<span class="hljs-built_in"> new </span>arrays in case the consumer is slowerthan the producer.
+
+一个单生产者单消费者数组支持的队列，它可以在消费者比生产者慢的情况下分配新的数组（自动增长）。</code></pre>
+<p>机翻都能看的懂吧，源码就是实现了这样功能的队列，有兴趣的可以看看。</p>
+<p>我们把 SpscLinkedArrayQueue 当成一个队列就好。注意这里的初始容量是 128，但是会自动增长。</p>
+<p>看完构造方法，再看 onNext 方法。</p>
+<blockquote>
+<p>onNext</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onNext</span><span class="hljs-params">(T t)</span> </span>&#123;
+    <span class="hljs-comment">// isCancelled 是父类的方法</span>
+    <span class="hljs-comment">// 当我们调用 setDisposable 方法的时候，父类就会保存这个 Disposable 的引用到 serial 字段</span>
+    <span class="hljs-comment">// 如果该 Disposable 调用了 dispose 方法，那么 isCancelled 会返回 true</span>
+    <span class="hljs-comment">// 调用父类的 cancel 方法，isCancelled 也会返回 true（内部调用了 serial.dispose()）</span>
+    <span class="hljs-comment">// 数据发送完毕或者发生错误，isCancelled 也会返回 true（内部调用了 serial.dispose()）</span>
+    <span class="hljs-comment">// done 只有数据发生完毕或者发生错误才会为true</span>
+    <span class="hljs-keyword">if</span> (done || isCancelled()) &#123;
+        <span class="hljs-keyword">return</span>;
+    &#125;
+
+    <span class="hljs-comment">// 不允许发送的数据为null</span>
+    <span class="hljs-keyword">if</span> (t == <span class="hljs-keyword">null</span>) &#123;
+        onError(<span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">&quot;onNext called with null. Null values are generally not allowed in 2.x operators and sources.&quot;</span>));
+        <span class="hljs-keyword">return</span>;
+    &#125;
+    <span class="hljs-comment">// 先将数据添加到队列里面</span>
+    queue.offer(t);
+    <span class="hljs-comment">// 调用 drain 方法</span>
+    drain();
+&#125;</code></pre>
+<p>看来，onNext 的主要目的，就是先将数据加入到队列里面，然后调用 drain 方法。继续看 drain 方法。</p>
+<blockquote>
+<p>drain </p>
+<p>这个方法有点长，变量名也有点蛋疼，但是慢慢分析，不难</p>
+<p>在阅读源码的时候，一定要有耐心。阅读源码的过程其实是一个提升自己理解力的过程。</p>
+<p>既然你需要阅读别人的源代码，那么你的理解力肯定是处于弱势的，不然的话，你一看就懂，那就说明源码的东西在作者写出来之前你都已经掌握了，那么阅读源码对自己没有任何好处。</p>
+<p>所以，阅读源码的过程，就是需要慢慢提升自己的理解力，来达到与作者的理解力一样的程度。</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">drain</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-comment">// wip 这个变量到后面分析，因为涉及到别的方法，单看这一个方法看不出什么东西来</span>
+    <span class="hljs-keyword">if</span> (wip.getAndIncrement() != <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-keyword">return</span>;
+    &#125;
+
+    <span class="hljs-keyword">int</span> missed = <span class="hljs-number">1</span>;
+    <span class="hljs-comment">// 这两个变量名有点吊</span>
+    <span class="hljs-keyword">final</span> Subscriber&lt;? <span class="hljs-keyword">super</span> T&gt; a = actual;
+    <span class="hljs-keyword">final</span> SpscLinkedArrayQueue&lt;T&gt; q = queue;
+
+    <span class="hljs-keyword">for</span> (;;) &#123;
+        <span class="hljs-comment">// 这里，获取设置的引用值，因为这个类是继承的 AtomicLong</span>
+        <span class="hljs-comment">// 前面我们分析过，只有 request 方法才会设置引用值</span>
+        <span class="hljs-comment">// 至于哪里调用了 request 方法，我们后面分析</span>
+        <span class="hljs-comment">// 这里将这个值当作 Long.MAX_VALUE</span>
+        <span class="hljs-keyword">long</span> r = get();
+        <span class="hljs-keyword">long</span> e = <span class="hljs-number">0L</span>;
+
+        <span class="hljs-comment">// 进入循环</span>
+        <span class="hljs-keyword">while</span> (e != r) &#123;
+            <span class="hljs-comment">// 判断是否取消了</span>
+            <span class="hljs-keyword">if</span> (isCancelled()) &#123;
+                <span class="hljs-comment">// 取消了就清空队列</span>
+                q.clear();
+                <span class="hljs-keyword">return</span>;
+            &#125;
+
+            <span class="hljs-comment">// 时候发送完毕了，或者出现了错误</span>
+            <span class="hljs-keyword">boolean</span> d = done;
+
+            <span class="hljs-comment">// 从队列中取出一个数据</span>
+            T o = q.poll();
+
+            <span class="hljs-comment">// 队列是否为空</span>
+            <span class="hljs-keyword">boolean</span> empty = o == <span class="hljs-keyword">null</span>;
+
+            <span class="hljs-comment">// 数据发送完毕了，并且队列为空</span>
+            <span class="hljs-keyword">if</span> (d &amp;&amp; empty) &#123;
+                Throwable ex = error;
+                <span class="hljs-keyword">if</span> (ex != <span class="hljs-keyword">null</span>) &#123;
+                    <span class="hljs-comment">// 调用父类 error 方法，会调用 onError</span>
+                    error(ex);
+                &#125; <span class="hljs-keyword">else</span> &#123;
+                    <span class="hljs-comment">// 调用父类 complete 方法，会调用 onComplete</span>
+                    complete();
+                &#125;
+                <span class="hljs-keyword">return</span>;
+            &#125;
+
+            <span class="hljs-comment">// 队列为空，则跳出循环</span>
+            <span class="hljs-keyword">if</span> (empty) &#123;
+                <span class="hljs-keyword">break</span>;
+            &#125;
+
+            <span class="hljs-comment">// 调用 onNext 方法，o 是从队列取出来的数据</span>
+            a.onNext(o);
+
+            <span class="hljs-comment">// e 的值累加</span>
+            e++;
+        &#125;
+
+        <span class="hljs-comment">// 这里要判断一下 e 与 r 是否相等，</span>
+        <span class="hljs-comment">// 因为如果队列为空的话，e 是不等于 r 的</span>
+        <span class="hljs-comment">// 相等的话，说明请求的个数刚好等于发送的个数，做一下收尾工作就好了</span>
+        <span class="hljs-keyword">if</span> (e == r) &#123;
+            <span class="hljs-comment">// 下面的一段与上面的很相似，不一句一句写了</span>
+            <span class="hljs-keyword">if</span> (isCancelled()) &#123;
+                q.clear();
+                <span class="hljs-keyword">return</span>;
+            &#125;
+
+            <span class="hljs-keyword">boolean</span> d = done;
+
+            <span class="hljs-keyword">boolean</span> empty = q.isEmpty();
+
+            <span class="hljs-keyword">if</span> (d &amp;&amp; empty) &#123;
+                Throwable ex = error;
+                <span class="hljs-keyword">if</span> (ex != <span class="hljs-keyword">null</span>) &#123;
+                    error(ex);
+                &#125; <span class="hljs-keyword">else</span> &#123;
+                    complete();
+                &#125;
+                <span class="hljs-keyword">return</span>;
+            &#125;
+        &#125;
+
+        <span class="hljs-keyword">if</span> (e != <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-comment">// 因为发送了 e 个数据，所以将引用值更新</span>
+            <span class="hljs-comment">// 内部就是将引用自减少了 e</span>
+            BackpressureHelper.produced(<span class="hljs-keyword">this</span>, e);
+        &#125;
+
+        <span class="hljs-comment">// 这个后面分析</span>
+        missed = wip.addAndGet(-missed);
+        <span class="hljs-keyword">if</span> (missed == <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-keyword">break</span>;
+        &#125;
+    &#125;
+&#125;</code></pre>
+<p>drain 的主要作用，就是当我们调用 request(num) 请求 num 个数据的时候，这个方法会从队列中取出 num 个数据出来给我们。</p>
+<p>可以思考一下，如果我们没有调用，request 方法，会怎么样？</p>
+<blockquote>
+<p>drain</p>
+<p>简化后的代码</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">drain</span><span class="hljs-params">()</span> </span>&#123;
+
+    ...
+    <span class="hljs-keyword">for</span> (;;) &#123;
+        <span class="hljs-keyword">long</span> r = get();
+        <span class="hljs-keyword">long</span> e = <span class="hljs-number">0L</span>;
+
+        <span class="hljs-comment">// 没有调用 request，导致 r 为 0，这里进不去</span>
+        <span class="hljs-keyword">while</span> (e != r) &#123;
+            ...
+        &#125;
+
+        <span class="hljs-comment">// 相等</span>
+        <span class="hljs-keyword">if</span> (e == r) &#123;
+            <span class="hljs-comment">// 没有取消</span>
+            <span class="hljs-keyword">if</span> (isCancelled()) &#123;
+                ...
+            &#125;
+
+            <span class="hljs-keyword">boolean</span> d = done;
+
+            <span class="hljs-comment">// 队列不为空</span>
+            <span class="hljs-keyword">boolean</span> empty = q.isEmpty();
+
+            <span class="hljs-comment">// 进不去</span>
+            <span class="hljs-keyword">if</span> (d &amp;&amp; empty) &#123;
+                ...
+            &#125;
+        &#125;
+
+        <span class="hljs-comment">// 进不去</span>
+        <span class="hljs-keyword">if</span> (e != <span class="hljs-number">0</span>) &#123;
+            ...
+        &#125;
+
+        missed = wip.addAndGet(-missed);
+        <span class="hljs-comment">// 满足，跳出循环</span>
+        <span class="hljs-keyword">if</span> (missed == <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-keyword">break</span>;
+        &#125;
+    &#125;
+&#125;</code></pre>
+<p>可以看到，如果我们没有调用 request 方法，虽然 onNext 方法被调用了，将数据加入到了队列中，但是却无法从队列中取出数据，即下游的观察者收不到任何数据。</p>
+<p>还有两个遗留的问题：</p>
+<ol>
+<li>wip 变量的作用？</li>
+<li>request 方法在哪里调用的？</li>
+</ol>
+<p>先看第一个问题：</p>
+<blockquote>
+<p>drain</p>
+</blockquote>
+<pre><code class="hljs java">    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">drain</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-comment">// 将值加 1，返回未加 1 之前的值</span>
+        <span class="hljs-comment">// 就是判断 wip 的引用值是否是0，然后加1</span>
+        <span class="hljs-keyword">if</span> (wip.getAndIncrement() != <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-keyword">return</span>;
+        &#125;
+
+        <span class="hljs-comment">// 到了这里 wip 引用的值理论上为1</span>
+        <span class="hljs-comment">// 但是多线程的情况下， onUnsubscribed 会将 wip 加 1</span>
+        <span class="hljs-keyword">int</span> missed = <span class="hljs-number">1</span>;
+        ...
+	
+        <span class="hljs-keyword">for</span> (;;) &#123;
+            ...
+                
+            <span class="hljs-comment">// 将 wip 的值减 - missed</span>
+            <span class="hljs-comment">// 这里处在一个循环中，最终 wip 的值会变成 0，missed 也会变成0，跳出循环</span>
+            missed = wip.addAndGet(-missed);
+            <span class="hljs-keyword">if</span> (missed == <span class="hljs-number">0</span>) &#123;
+                <span class="hljs-keyword">break</span>;
+            &#125;
+        &#125;
+    &#125;
+&#125;</code></pre>
+<blockquote>
+<p>onUnsubscribed</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">onUnsubscribed</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-comment">// 取消的时候，wip 的值为 0 的话，清空队列</span>
+    <span class="hljs-comment">// 就是说，此时，drain 方法运行到了 for 循环的最后几行</span>
+    <span class="hljs-comment">// 这里应该是为了保证，数据从队列里面取出来，一定要发送出去才行</span>
+    <span class="hljs-keyword">if</span> (wip.getAndIncrement() == <span class="hljs-number">0</span>) &#123;
+        queue.clear();
+    &#125;
+&#125;</code></pre>
+<p>在 BufferAsyncEmitter 这个类中，使用到 wip 这个变量的，只有上面这几个地方。</p>
+<p>onUnsubscribed 会在父类的 cancel 方法中调用，所以我们调用 cancel 就会改变 wip 的值：</p>
+<h4 id="FlowableCreate-BaseEmitter-1"><a href="#FlowableCreate-BaseEmitter-1" class="headerlink" title="FlowableCreate.BaseEmitter"></a>FlowableCreate.BaseEmitter</h4><blockquote>
+<p>cancel</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">cancel</span><span class="hljs-params">()</span> </span>&#123;
+    serial.dispose();
+    onUnsubscribed();
+&#125;</code></pre>
+<p>好了，第一个问题说完了，我们来看看第2个问题：</p>
+<p>首先我们回到 demo 中，既然 create 方法中没有调用 request 的地方，那么我们只能从 subscribe 方法入手了。</p>
+<h4 id="Flowable-1"><a href="#Flowable-1" class="headerlink" title="Flowable"></a>Flowable</h4><blockquote>
+<p>io.reactivex.Flowable#subscribe(io.reactivex.functions.Consumer&lt;? super T&gt;)</p>
+</blockquote>
+<pre><code class="hljs aspectj"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-function">Disposable <span class="hljs-title">subscribe</span><span class="hljs-params">(Consumer&lt;? <span class="hljs-keyword">super</span> T&gt; onNext)</span> </span>&#123;
+    <span class="hljs-keyword">return</span> subscribe(onNext, Functions.ON_ERROR_MISSING,
+            Functions.EMPTY_ACTION, FlowableInternalHelper.RequestMax.INSTANCE);
+&#125;</code></pre>
+<p>它调用了名方法：</p>
+<blockquote>
+<p>io.reactivex.Flowable#subscribe(io.reactivex.functions.Consumer&lt;? super T&gt;, io.reactivex.functions.Consumer&lt;? super java.lang.Throwable&gt;, io.reactivex.functions.Action, io.reactivex.functions.Consumer&lt;? super org.reactivestreams.Subscription&gt;)</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Disposable <span class="hljs-title">subscribe</span><span class="hljs-params">(Consumer&lt;? <span class="hljs-keyword">super</span> T&gt; onNext, Consumer&lt;? <span class="hljs-keyword">super</span> Throwable&gt; onError,</span></span>
+<span class="hljs-function"><span class="hljs-params">        Action onComplete, Consumer&lt;? <span class="hljs-keyword">super</span> Subscription&gt; onSubscribe)</span> </span>&#123;
+    ObjectHelper.requireNonNull(onNext, <span class="hljs-string">&quot;onNext is null&quot;</span>);
+    ObjectHelper.requireNonNull(onError, <span class="hljs-string">&quot;onError is null&quot;</span>);
+    ObjectHelper.requireNonNull(onComplete, <span class="hljs-string">&quot;onComplete is null&quot;</span>);
+    ObjectHelper.requireNonNull(onSubscribe, <span class="hljs-string">&quot;onSubscribe is null&quot;</span>);
+
+    LambdaSubscriber&lt;T&gt; ls = <span class="hljs-keyword">new</span> LambdaSubscriber&lt;T&gt;(onNext, onError, onComplete, onSubscribe);
+
+    subscribe(ls);
+
+    <span class="hljs-keyword">return</span> ls;
+&#125;</code></pre>
+<p>创建了一个 LambdaSubscriber 对象，并调用了 subscribe 方法，将 ls 传递了进去。</p>
+<p>所以这个方法其实就是将我们的 consumer 包装成了 LambdaSubscriber，然后调用真正的 subscribe 方法。</p>
+<h4 id="LambdaSubscriber"><a href="#LambdaSubscriber" class="headerlink" title="LambdaSubscriber"></a>LambdaSubscriber</h4><p>看看 LambdaSubscriber 类：</p>
+<blockquote>
+<p>构造方法</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LambdaSubscriber</span><span class="hljs-params">(Consumer&lt;? <span class="hljs-keyword">super</span> T&gt; onNext, Consumer&lt;? <span class="hljs-keyword">super</span> Throwable&gt; onError,</span></span>
+<span class="hljs-function"><span class="hljs-params">        Action onComplete,</span></span>
+<span class="hljs-function"><span class="hljs-params">        Consumer&lt;? <span class="hljs-keyword">super</span> Subscription&gt; onSubscribe)</span> </span>&#123;
+    <span class="hljs-keyword">super</span>();
+    <span class="hljs-keyword">this</span>.onNext = onNext;
+    <span class="hljs-keyword">this</span>.onError = onError;
+    <span class="hljs-keyword">this</span>.onComplete = onComplete;
+    <span class="hljs-keyword">this</span>.onSubscribe = onSubscribe;
+&#125;</code></pre>
+<p>保存了一些变量，onSubscribe 值得注意，因为这个 Consumer 在订阅的时候会回调，是调用 request 的最好时机。</p>
+<p>直接看 onSubscribe 的实现。</p>
+<blockquote>
+<p>onSubscribe</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onSubscribe</span><span class="hljs-params">(Subscription s)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (SubscriptionHelper.setOnce(<span class="hljs-keyword">this</span>, s)) &#123;
+        <span class="hljs-keyword">try</span> &#123;
+            onSubscribe.accept(<span class="hljs-keyword">this</span>);
+        &#125; <span class="hljs-keyword">catch</span> (Throwable ex) &#123;
+            Exceptions.throwIfFatal(ex);
+            s.cancel();
+            onError(ex);
+        &#125;
+    &#125;
+&#125;</code></pre>
+<p>这里调用了 onSubscribe 对象的 accept 方法。我们看看这个对象的实现吧。</p>
+<h4 id="FlowableInternalHelper-RequestMax-INSTANCE"><a href="#FlowableInternalHelper-RequestMax-INSTANCE" class="headerlink" title="FlowableInternalHelper.RequestMax.INSTANCE"></a>FlowableInternalHelper.RequestMax.INSTANCE</h4><p>从前面的代码中（Flowable.subscribe()方法中），我们知道 onSubscribe 对象是 FlowableInternalHelper.RequestMax.INSTANCE。所以看看这个类的代码吧。</p>
+<blockquote>
+<p>FlowableInternalHelper.RequestMax.INSTANCE</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">RequestMax</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Consumer</span>&lt;<span class="hljs-title">Subscription</span>&gt; </span>&#123;
+    INSTANCE;
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">accept</span><span class="hljs-params">(Subscription t)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+        t.request(Long.MAX_VALUE);
+    &#125;
+&#125;</code></pre>
+<p>嗯，果然是这里调用了 request 方法。</p>
+<p>到这里，Flowable 的分析就告一段落。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/RxJava2/">RxJava2</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-RxJava2/">Android-源码解析-RxJava2</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/RxJava2%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%882.5%EF%BC%89/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RxJava2 源码分析（三）</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/0003-%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">
+                        <span class="hidden-mobile">0003-抽象数据类型</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="vcomments"></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('vcomments', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function () {
+        new Valine({
+          el: "#vcomments",
+          app_id: "oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI",
+          app_key: "FllNdPfQPCLcrJVVXHGyakPQ",
+          placeholder: "说点什么",
+          path: window.location.pathname,
+          avatar: "retro",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: false,
+          recordIP: false,
+          serverURLs: "",
+        });
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a target="_blank" href="https://valine.js.org" rel="nofollow noopener noopener">comments powered by Valine.</a>
+  </noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    document.addEventListener('DOMContentLoaded', function() {
+      window.NProgress && window.NProgress.inc();
+    })
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,748 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" type="image/png" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  <title>0002-监控页面的销毁 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.5","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"copy_btn":true,"image_zoom":{"enable":true},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="0002-监控页面的销毁">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-09-25 00:00" pubdate>
+        2019年9月25日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      56
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">0002-监控页面的销毁</h1>
+            
+            <div class="markdown-body">
+              <h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>首先，还是要说一下使用，非常的简单：</p>
+<pre><code class="hljs groovy">debugImplementation <span class="hljs-string">&#x27;com.squareup.leakcanary:leakcanary-android:1.6.3&#x27;</span>
+releaseImplementation <span class="hljs-string">&#x27;com.squareup.leakcanary:leakcanary-android-no-op:1.6.3&#x27;</span>
+<span class="hljs-comment">// Optional, if you use support library fragments:</span>
+debugImplementation <span class="hljs-string">&#x27;com.squareup.leakcanary:leakcanary-support-fragment:1.6.3&#x27;</span></code></pre>
+<p>我这里依赖的版本是 1.6.3，所以源码分析也是基于这个版本的。最新的 2.0 版变化也是很大的，但是核心原理差不多，分析原理还是老一点的版本比较好，思路更清晰，逻辑分支更少。</p>
+<p>releaseImplementation 表示打 release 版本的时候会依赖这个包。<code>leakcanary-android-no-op</code> 这个依赖包的名字意思也很明显，这个依赖包里面只有两个类，而且类的方法都是空方法，里面啥都不做，因为如果在 release 版也依赖 LeakCanary 的话，用户就会很奇怪了，而且会影响性能。当然你也可以选择在打 release 包的时候将依赖包与相关代码移除，这样就是比较麻烦。</p>
+<p><code>leakcanary-support-fragment</code> 这个依赖包是表示如果你的 Fragment 使用了 support 包里面的 Fragment，那么就应该使用这个依赖包，具体为啥，源码里面分析，这个依赖包里面也就一个类。</p>
+<h2 id="监控页面的方法"><a href="#监控页面的方法" class="headerlink" title="监控页面的方法"></a>监控页面的方法</h2><p>我们想要监控页面（Activity 与 Fragment），需要做如下配置：</p>
+<pre><code class="hljs java"><span class="hljs-comment">// this 是 Application 对象</span>
+LeakCanary.install(<span class="hljs-keyword">this</span>);</code></pre>
+<p>因为，LeakCanary 会单独开一个进程用来做 .hprof 文件分析，所以需要排除分析进程。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initCanary</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (LeakCanary.isInAnalyzerProcess(<span class="hljs-keyword">this</span>)) &#123;
+        <span class="hljs-keyword">return</span>;
+    &#125;
+    LeakCanary.install(<span class="hljs-keyword">this</span>);
+    BlockCanary.install(<span class="hljs-keyword">this</span>, <span class="hljs-keyword">new</span> AppBlockCanaryHelper()).start();
+&#125;</code></pre>
+<p>里面判断进程的逻辑可以自行去了解一下。</p>
+<p>想要监控其他对象，需要做如下配置：</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BaseService</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Service</span> </span>&#123;
+
+  <span class="hljs-meta">@Override</span> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onDestroy</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">super</span>.onDestroy();
+    RefWatcher refWatcher = MyApp.getRefWatcher();
+    <span class="hljs-comment">// 可以传入任何对象</span>
+    refWatcher.watch(<span class="hljs-keyword">this</span>);
+  &#125;
+&#125;</code></pre>
+<p>这里使用了 RefWatcher 来监控 Service。同样的，你也可以监控其他对象，比如 Bitmap，数组 等。</p>
+<h2 id="如何做到对页面的监控的"><a href="#如何做到对页面的监控的" class="headerlink" title="如何做到对页面的监控的"></a>如何做到对页面的监控的</h2><p>监控 Activity 比较简单，我们都能想的到，使用 <code>ActivityLifecycleCallbacks</code> 即可。源码里面也是这样实现的。但是 Fragment 是如何监控的呢？？？</p>
+<p>下面，我们开始分析源码。</p>
+<blockquote>
+<p>com.squareup.leakcanary.LeakCanary#install</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-meta">@NonNull</span> <span class="hljs-function">RefWatcher <span class="hljs-title">install</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> Application application)</span> </span>&#123;
+  <span class="hljs-keyword">return</span> refWatcher(application).listenerServiceClass(DisplayLeakService.class)
+      .excludedRefs(AndroidExcludedRefs.createAppDefaults().build())
+      .buildAndInstall();
+&#125;</code></pre>
+<p>一个链式调用。</p>
+<p><code>refWatcher</code> 是创建一个 Builder 对象。</p>
+<p><code>listenerServiceClass</code> 是起一个 Service，当然这里还没有真正的启动，只是做了准备工作，因为是 builder 模式，所以至少需要调用 build 后才会启动。</p>
+<p><code>excludedRefs</code> 是排除一些引用，这是啥意思呢，是因为 Android SDK 本身也会导致一些内存泄露问题，所以需要将这些问题排除，显然，这个类会一直更新，我们也可以贡献一下，比如我们会在华为的手机上遇到“键盘导致的泄露的问题”，但是实际上是没有泄露的，别的手机都没有出现过这个问题，而且代码最终到了 SDK 里面。有兴趣的可以去看看这个类 <code>com.squareup.leakcanary.AndroidExcludedRefs</code>。</p>
+<p><code>buildAndInstall</code> 才是核心代码，我们往下看。</p>
+<blockquote>
+<p>com.squareup.leakcanary.AndroidRefWatcherBuilder#buildAndInstall</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-meta">@NonNull</span> <span class="hljs-function">RefWatcher <span class="hljs-title">buildAndInstall</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (LeakCanaryInternals.installedRefWatcher != <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnsupportedOperationException(<span class="hljs-string">&quot;buildAndInstall() should only be called once.&quot;</span>);
+  &#125;
+  RefWatcher refWatcher = build();
+  <span class="hljs-keyword">if</span> (refWatcher != DISABLED) &#123;
+    <span class="hljs-keyword">if</span> (enableDisplayLeakActivity) &#123;
+      LeakCanaryInternals.setEnabledAsync(context, DisplayLeakActivity.class, <span class="hljs-keyword">true</span>);
+    &#125;
+    <span class="hljs-keyword">if</span> (watchActivities) &#123;
+      ActivityRefWatcher.install(context, refWatcher);
+    &#125;
+    <span class="hljs-keyword">if</span> (watchFragments) &#123;
+      FragmentRefWatcher.Helper.install(context, refWatcher);
+    &#125;
+  &#125;
+  LeakCanaryInternals.installedRefWatcher = refWatcher;
+  <span class="hljs-keyword">return</span> refWatcher;
+&#125;</code></pre>
+<p>buildAndInstall 这个方法只让调用一次。下面的 3 个if 才是核心。</p>
+<h3 id="com-squareup-leakcanary-internal-LeakCanaryInternals-setEnabledAsync"><a href="#com-squareup-leakcanary-internal-LeakCanaryInternals-setEnabledAsync" class="headerlink" title="com.squareup.leakcanary.internal.LeakCanaryInternals#setEnabledAsync"></a>com.squareup.leakcanary.internal.LeakCanaryInternals#setEnabledAsync</h3><p>先看第一个：</p>
+<pre><code class="hljs java">LeakCanaryInternals.setEnabledAsync(context, DisplayLeakActivity.class, <span class="hljs-keyword">true</span>);</code></pre>
+<p>这行代码的作用与桌面启动图标有关系。我们先看依赖库的 AndroidManifest.xml 文件：</p>
+<pre><code class="hljs xml">&lt;activity
+    android:name=&quot;com.squareup.leakcanary.internal.DisplayLeakActivity&quot;
+    android:enabled=&quot;false&quot;
+    android:icon=&quot;@mipmap/leak_canary_icon&quot;
+    android:label=&quot;@string/leak_canary_display_activity_label&quot;
+    android:process=&quot;:leakcanary&quot;
+    android:taskAffinity=&quot;com.squareup.leakcanary.$&#123;applicationId&#125;&quot;
+    android:theme=&quot;@style/leak_canary_LeakCanary.Base&quot; &gt;
+    <span class="hljs-tag">&lt;<span class="hljs-name">intent-filter</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">action</span> <span class="hljs-attr">android:name</span>=<span class="hljs-string">&quot;android.intent.action.MAIN&quot;</span> /&gt;</span>
+
+        <span class="hljs-tag">&lt;<span class="hljs-name">category</span> <span class="hljs-attr">android:name</span>=<span class="hljs-string">&quot;android.intent.category.LAUNCHER&quot;</span> /&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">intent-filter</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">activity</span>&gt;</span></code></pre>
+<p>可以看到，这个依赖库里面也设置了一个 LAUNCHER 页，加上我们的 App 也有一个，那么就有两个了启动页了。但是注意这里 activity 的 enable 属性配置的是 false，所以这个启动页图标一开始不会显示，只有调用了 install 方法，执行了 <code>setEnabledAsync</code> 方法才会显示。里面的逻辑较简单就部分析了，注意一下这个方法是异步的，开了一个线程。</p>
+<h3 id="com-squareup-leakcanary-ActivityRefWatcher-install"><a href="#com-squareup-leakcanary-ActivityRefWatcher-install" class="headerlink" title="com.squareup.leakcanary.ActivityRefWatcher#install"></a>com.squareup.leakcanary.ActivityRefWatcher#install</h3><p>第二个 if，这里就是使用 <code>ActivityLifecycleCallbacks</code>。</p>
+<blockquote>
+<p>com.squareup.leakcanary.ActivityRefWatcher#install</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">install</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> Context context, <span class="hljs-meta">@NonNull</span> RefWatcher refWatcher)</span> </span>&#123;
+  Application application = (Application) context.getApplicationContext();
+  ActivityRefWatcher activityRefWatcher = <span class="hljs-keyword">new</span> ActivityRefWatcher(application, refWatcher);
+
+  application.registerActivityLifecycleCallbacks(activityRefWatcher.lifecycleCallbacks);
+&#125;</code></pre>
+<p>其实就是调用了 Application 的 registerActivityLifecycleCallbacks 方法。核心内容在 ActivityRefWatcher 这个类中。</p>
+<blockquote>
+<p>com.squareup.leakcanary.ActivityRefWatcher</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Application.ActivityLifecycleCallbacks lifecycleCallbacks =
+    <span class="hljs-keyword">new</span> ActivityLifecycleCallbacksAdapter() &#123;
+      <span class="hljs-meta">@Override</span> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onActivityDestroyed</span><span class="hljs-params">(Activity activity)</span> </span>&#123;
+        refWatcher.watch(activity);
+      &#125;
+    &#125;;</code></pre>
+<p>它有一个成员变量，叫 lifecycleCallbacks，也是上一个方法用到的。ActivityLifecycleCallbacksAdapter 是 </p>
+<p>ActivityLifecycleCallbacks 的一个空实现，里面啥都没做，只是为了减少无关方法的复写。</p>
+<p>所以 ActivityRefWatcher 的作用就是：创建了一个 ActivityLifecycleCallbacks 监听，在 onActivityDestroyed 回调里面，调用了 <code>refWatcher.watch(activity);</code> 这行代码。</p>
+<p>最终，还是到了 <code>com.squareup.leakcanary.RefWatcher#watch(java.lang.Object)</code> 这个方法，如果你对前面的代码还有影响，可以发现，我们监控 Service 等对象，也是调用的这个方法。</p>
+<p>所以，看了这么多，本质上还是调用了 <code>com.squareup.leakcanary.RefWatcher#watch(java.lang.Object)</code>。只不过一个是在统一的地方调用，一个是手动的一处一处的调用。</p>
+<h3 id="com-squareup-leakcanary-internal-FragmentRefWatcher-Helper-install"><a href="#com-squareup-leakcanary-internal-FragmentRefWatcher-Helper-install" class="headerlink" title="com.squareup.leakcanary.internal.FragmentRefWatcher.Helper#install"></a>com.squareup.leakcanary.internal.FragmentRefWatcher.Helper#install</h3><p>这个方法就是实现了 Fragment 的监控。看看它是如何实现的。</p>
+<blockquote>
+<p>com.squareup.leakcanary.internal.FragmentRefWatcher.Helper#install</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">install</span><span class="hljs-params">(Context context, RefWatcher refWatcher)</span> </span>&#123;
+  List&lt;FragmentRefWatcher&gt; fragmentRefWatchers = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+
+  <span class="hljs-keyword">if</span> (SDK_INT &gt;= O) &#123;
+    fragmentRefWatchers.add(<span class="hljs-keyword">new</span> AndroidOFragmentRefWatcher(refWatcher));
+  &#125;
+
+  <span class="hljs-keyword">try</span> &#123;
+    Class&lt;?&gt; fragmentRefWatcherClass = Class.forName(SUPPORT_FRAGMENT_REF_WATCHER_CLASS_NAME);
+    Constructor&lt;?&gt; constructor =
+        fragmentRefWatcherClass.getDeclaredConstructor(RefWatcher.class);
+    FragmentRefWatcher supportFragmentRefWatcher =
+        (FragmentRefWatcher) constructor.newInstance(refWatcher);
+    fragmentRefWatchers.add(supportFragmentRefWatcher);
+  &#125; <span class="hljs-keyword">catch</span> (Exception ignored) &#123;
+  &#125;
+
+  <span class="hljs-keyword">if</span> (fragmentRefWatchers.size() == <span class="hljs-number">0</span>) &#123;
+    <span class="hljs-keyword">return</span>;
+  &#125;
+
+  Helper helper = <span class="hljs-keyword">new</span> Helper(fragmentRefWatchers);
+
+  Application application = (Application) context.getApplicationContext();
+  application.registerActivityLifecycleCallbacks(helper.activityLifecycleCallbacks);
+&#125;</code></pre>
+<p>这个方法里面先是创建了两个 <code>FragmentRefWatcher</code> 对象，一个是 <code>AndroidOFragmentRefWatcher</code>，一个是 <code>SUPPORT_FRAGMENT_REF_WATCHER_CLASS_NAME</code>。</p>
+<p>最后，又注册了一个  ActivityLifecycleCallbacks，注意这里的 ActivityLifecycleCallbacks 是 Helper 自己的，看看它做了什么：</p>
+<blockquote>
+<p>com.squareup.leakcanary.internal.FragmentRefWatcher.Helper#activityLifecycleCallbacks</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Application.ActivityLifecycleCallbacks activityLifecycleCallbacks =
+    <span class="hljs-keyword">new</span> ActivityLifecycleCallbacksAdapter() &#123;
+      <span class="hljs-meta">@Override</span> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onActivityCreated</span><span class="hljs-params">(Activity activity, Bundle savedInstanceState)</span> </span>&#123;
+        <span class="hljs-keyword">for</span> (FragmentRefWatcher watcher : fragmentRefWatchers) &#123;
+          watcher.watchFragments(activity);
+        &#125;
+      &#125;
+    &#125;;</code></pre>
+<p>其实就是在 Activity 创建完成之后，调用了 FragmentRefWatcher 的方法。上面我们分析过，FragmentRefWatcher  有两个实例对象。</p>
+<h3 id="AndroidOFragmentRefWatcher"><a href="#AndroidOFragmentRefWatcher" class="headerlink" title="AndroidOFragmentRefWatcher"></a>AndroidOFragmentRefWatcher</h3><p>我们先分析 <code>AndroidOFragmentRefWatcher</code> 做了什么。</p>
+<blockquote>
+<p>com.squareup.leakcanary.internal.AndroidOFragmentRefWatcher#watchFragments</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">watchFragments</span><span class="hljs-params">(Activity activity)</span> </span>&#123;
+  FragmentManager fragmentManager = activity.getFragmentManager();
+  fragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, <span class="hljs-keyword">true</span>);
+&#125;</code></pre>
+<p>这里出现了一个我没见过的方法，没想到 Fragment 也能像 Activity 一样注册监听，学到了。同理，我们应该也能猜到，这个监听里面做了什么。</p>
+<blockquote>
+<p>com.squareup.leakcanary.internal.AndroidOFragmentRefWatcher#fragmentLifecycleCallbacks</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> FragmentManager.FragmentLifecycleCallbacks fragmentLifecycleCallbacks =
+    <span class="hljs-keyword">new</span> FragmentManager.FragmentLifecycleCallbacks() &#123;
+
+      <span class="hljs-meta">@Override</span> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onFragmentViewDestroyed</span><span class="hljs-params">(FragmentManager fm, Fragment fragment)</span> </span>&#123;
+        View view = fragment.getView();
+        <span class="hljs-keyword">if</span> (view != <span class="hljs-keyword">null</span>) &#123;
+          refWatcher.watch(view);
+        &#125;
+      &#125;
+
+      <span class="hljs-meta">@Override</span>
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onFragmentDestroyed</span><span class="hljs-params">(FragmentManager fm, Fragment fragment)</span> </span>&#123;
+        refWatcher.watch(fragment);
+      &#125;
+    &#125;;</code></pre>
+<p>这里监控了两个对象，一个是 Fragment 本身，一个是 Fragment 的 rootView。</p>
+<h3 id="SUPPORT-FRAGMENT-REF-WATCHER-CLASS-NAME"><a href="#SUPPORT-FRAGMENT-REF-WATCHER-CLASS-NAME" class="headerlink" title="SUPPORT_FRAGMENT_REF_WATCHER_CLASS_NAME"></a>SUPPORT_FRAGMENT_REF_WATCHER_CLASS_NAME</h3><p>还有一个 SUPPORT_FRAGMENT_REF_WATCHER_CLASS_NAME。</p>
+<p>上面的逻辑分析中，如果你看的仔细的话，会发现我们获取 FragmentManager 实例的时候，使用的是 getFragmentManager 方法，而不是 getSupportFragmentManager 方法。就是说，AndroidOFragmentRefWatcher 是针对原生的 Fragment 的，而 SUPPORT_FRAGMENT_REF_WATCHER_CLASS_NAME 就应该是针对 support 包里面的 Fragment 的。</p>
+<p>还有一个要理解的地方就是，在创建 SUPPORT_FRAGMENT_REF_WATCHER_CLASS_NAME 实例的时候，使用了反射，这是因为这个 Fragment 需要添加额外的依赖<code>leakcanary-support-fragment</code>，所以才使用的反射。</p>
+<p>我们还是看看代码吧：</p>
+<blockquote>
+<p>com.squareup.leakcanary.internal.SupportFragmentRefWatcher</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SupportFragmentRefWatcher</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">FragmentRefWatcher</span> </span>&#123;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RefWatcher refWatcher;
+
+  SupportFragmentRefWatcher(RefWatcher refWatcher) &#123;
+    <span class="hljs-keyword">this</span>.refWatcher = refWatcher;
+  &#125;
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> FragmentManager.FragmentLifecycleCallbacks fragmentLifecycleCallbacks =
+      <span class="hljs-keyword">new</span> FragmentManager.FragmentLifecycleCallbacks() &#123;
+
+        <span class="hljs-meta">@Override</span> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onFragmentViewDestroyed</span><span class="hljs-params">(FragmentManager fm, Fragment fragment)</span> </span>&#123;
+          View view = fragment.getView();
+          <span class="hljs-keyword">if</span> (view != <span class="hljs-keyword">null</span>) &#123;
+            refWatcher.watch(view);
+          &#125;
+        &#125;
+
+        <span class="hljs-meta">@Override</span> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onFragmentDestroyed</span><span class="hljs-params">(FragmentManager fm, Fragment fragment)</span> </span>&#123;
+          refWatcher.watch(fragment);
+        &#125;
+      &#125;;
+
+  <span class="hljs-meta">@Override</span> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">watchFragments</span><span class="hljs-params">(Activity activity)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (activity <span class="hljs-keyword">instanceof</span> FragmentActivity) &#123;
+      FragmentManager supportFragmentManager =
+          ((FragmentActivity) activity).getSupportFragmentManager();
+      supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, <span class="hljs-keyword">true</span>);
+    &#125;
+  &#125;
+&#125;</code></pre>
+<p>与 AndroidOFragmentRefWatcher 的代码几乎是一样的。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/LeakCanary/">LeakCanary</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-LeakCanary/">Android源码解析-LeakCanary</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/09/29/blog_bak/Blog/Java/Annotation-Processor-%E7%9A%84%E5%BA%94%E7%94%A8/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Annotation Processor 的应用</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/09/25/blog_bak/Blog/Android/Handler/">
+                        <span class="hidden-mobile">Handler</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="vcomments"></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('vcomments', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function () {
+        new Valine({
+          el: "#vcomments",
+          app_id: "oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI",
+          app_key: "FllNdPfQPCLcrJVVXHGyakPQ",
+          placeholder: "说点什么",
+          path: window.location.pathname,
+          avatar: "retro",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: false,
+          recordIP: false,
+          serverURLs: "",
+        });
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a target="_blank" href="https://valine.js.org" rel="nofollow noopener noopener">comments powered by Valine.</a>
+  </noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    document.addEventListener('DOMContentLoaded', function() {
+      window.NProgress && window.NProgress.inc();
+    })
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>
