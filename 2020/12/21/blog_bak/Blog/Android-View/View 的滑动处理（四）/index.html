@@ -1,0 +1,703 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" type="image/png" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  <title>View 的滑动处理（四） - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.5","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"copy_btn":true,"image_zoom":{"enable":true},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="View 的滑动处理（四）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-12-21 00:00" pubdate>
+        2020年12月21日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      45
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">View 的滑动处理（四）</h1>
+            
+            <div class="markdown-body">
+              <p>看下面这个布局：</p>
+<pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">androidx.constraintlayout.widget.ConstraintLayout</span> <span class="hljs-attr">xmlns:android</span>=<span class="hljs-string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span>
+<span class="hljs-tag">    <span class="hljs-attr">xmlns:tools</span>=<span class="hljs-string">&quot;http://schemas.android.com/tools&quot;</span></span>
+<span class="hljs-tag">    <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;match_parent&quot;</span></span>
+<span class="hljs-tag">    <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;match_parent&quot;</span></span>
+<span class="hljs-tag">    <span class="hljs-attr">tools:context</span>=<span class="hljs-string">&quot;.MainActivity&quot;</span>&gt;</span>
+
+    &lt;ScrollView
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;&gt;
+
+        &lt;LinearLayout
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:orientation=&quot;vertical&quot;&gt;
+
+            &lt;Button
+                android:layout_width=&quot;match_parent&quot;
+                android:layout_height=&quot;120dp&quot;
+                android:gravity=&quot;center&quot;
+                android:text=&quot;btn_01&quot; /&gt;
+
+
+            &lt;androidx.recyclerview.widget.RecyclerView
+                android:id=&quot;@+id/recycler_view&quot;
+                android:layout_width=&quot;match_parent&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:background=&quot;@color/teal_200&quot; /&gt;
+
+            &lt;Button
+                android:layout_width=&quot;match_parent&quot;
+                android:layout_height=&quot;120dp&quot;
+                android:gravity=&quot;center&quot;
+                android:text=&quot;btn_01&quot; /&gt;
+
+            &lt;Button
+                android:layout_width=&quot;match_parent&quot;
+                android:layout_height=&quot;120dp&quot;
+                android:gravity=&quot;center&quot;
+                android:text=&quot;btn_01&quot; /&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">LinearLayout</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">ScrollView</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">androidx.constraintlayout.widget.ConstraintLayout</span>&gt;</span></code></pre>
+<p>忽略，其他无关的部分，其实就是一个 ScrollView 嵌套了一个 RecyclerView。</p>
+<p>按照事件拦截机制来看，当 RecyclerView 滑动到底部的时候，应该就不能滑动了，而且 ScrollView 也无法滑动才对。</p>
+<p>但是实际行为却不是这样的，实际上它们的滑动效果可以无缝链接，当 RecyclerView 滑动到底部的时候，继续滑动时，ScrollView 会滑动。这震惊了我，决定看看源码，看看到底是怎么回事，这单纯用事件拦截机制是无法解释的。</p>
+<p>因为 ScrollView 与 RecyclerView 是没什么关系的，除非 ScrollView 能判断 RecyclerView 滑动到了底部，然后拦截事件，自己再处理滑动事件。这样逻辑就缠绕到一起了，显然不可能。</p>
+<p>在第一篇里面，我们是介绍了嵌套滑动的相关概念，这里就很像嵌套滑动，但是我看了类之间的关系，发现 ScrollView 根本没有实现相关接口，这就又没了线索，所以只能使用老办法，一点一点的看 RecyclerView 是如何处理滑动事件的，然后追踪可疑的地方。</p>
+<p>然后看到了这样的调用链：</p>
+<pre><code class="hljs leaf">androidx.recyclerview.widget.RecyclerView#onTouchEvent
+-&gt;androidx.recyclerview.widget.RecyclerView<span class="hljs-function"><span class="hljs-keyword">#</span><span class="hljs-title">dispatchNestedPreScroll</span><span class="hljs-params">(<span class="hljs-variable">int</span>, <span class="hljs-variable">int</span>, <span class="hljs-variable">int</span>[], <span class="hljs-variable">int</span>[], <span class="hljs-variable">int</span>)</span></span>
+--&gt;androidx.core.view.NestedScrollingChildHelper<span class="hljs-function"><span class="hljs-keyword">#</span><span class="hljs-title">dispatchNestedPreScroll</span><span class="hljs-params">(<span class="hljs-variable">int</span>, <span class="hljs-variable">int</span>, <span class="hljs-variable">int</span>[], <span class="hljs-variable">int</span>[], <span class="hljs-variable">int</span>)</span></span></code></pre>
+<p>这个方法里面，就有一个很有意思的东西：</p>
+<blockquote>
+<p>androidx.core.view.NestedScrollingChildHelper#dispatchNestedPreScroll(int, int, int[], int[], int)</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">dispatchNestedPreScroll</span><span class="hljs-params">(<span class="hljs-keyword">int</span> dx, <span class="hljs-keyword">int</span> dy, <span class="hljs-meta">@Nullable</span> <span class="hljs-keyword">int</span>[] consumed,</span></span>
+<span class="hljs-function"><span class="hljs-params">        <span class="hljs-meta">@Nullable</span> <span class="hljs-keyword">int</span>[] offsetInWindow, <span class="hljs-meta">@NestedScrollType</span> <span class="hljs-keyword">int</span> type)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (isNestedScrollingEnabled()) &#123;
+        <span class="hljs-comment">// ① 这里获取了 parent，在上面的例子中，这个parent 就是 ScrollView</span>
+        <span class="hljs-keyword">final</span> ViewParent parent = getNestedScrollingParentForType(type);
+        <span class="hljs-keyword">if</span> (parent == <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+        &#125;
+
+        <span class="hljs-keyword">if</span> (dx != <span class="hljs-number">0</span> || dy != <span class="hljs-number">0</span>) &#123;
+            ...
+            <span class="hljs-comment">// ② 这里处理的嵌套滑动的逻辑    </span>
+            ViewParentCompat.onNestedPreScroll(parent, mView, dx, dy, consumed, type);
+
+            ...
+            <span class="hljs-keyword">return</span> consumed[<span class="hljs-number">0</span>] != <span class="hljs-number">0</span> || consumed[<span class="hljs-number">1</span>] != <span class="hljs-number">0</span>;
+        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (offsetInWindow != <span class="hljs-keyword">null</span>) &#123;
+            offsetInWindow[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;
+            offsetInWindow[<span class="hljs-number">1</span>] = <span class="hljs-number">0</span>;
+        &#125;
+    &#125;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+&#125;</code></pre>
+<p>我们先看注释①：</p>
+<p>问题一：RecyclerView 是如何知道 ScrollView 是 parent 的？</p>
+<p>追踪链如下：</p>
+<pre><code class="hljs css"><span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#mNestedScrollingParentTouch</span>
+<span class="hljs-selector-tag">-</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#setNestedScrollingParentForType</span>
+<span class="hljs-selector-tag">--</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#startNestedScroll</span>(<span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>)
+<span class="hljs-selector-tag">---</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#setNestedScrollingParentForType</span></code></pre>
+<p>所以，parent 的赋值逻辑如下：</p>
+<blockquote>
+<p>androidx.core.view.NestedScrollingChildHelper#startNestedScroll(int, int)</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">startNestedScroll</span><span class="hljs-params">(<span class="hljs-meta">@ScrollAxis</span> <span class="hljs-keyword">int</span> axes, <span class="hljs-meta">@NestedScrollType</span> <span class="hljs-keyword">int</span> type)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (hasNestedScrollingParent(type)) &#123;
+        <span class="hljs-comment">// Already in progress</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    &#125;
+    <span class="hljs-keyword">if</span> (isNestedScrollingEnabled()) &#123;
+        ViewParent p = mView.getParent();
+        View child = mView;
+        <span class="hljs-keyword">while</span> (p != <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-keyword">if</span> (ViewParentCompat.onStartNestedScroll(p, child, mView, axes, type)) &#123;
+                setNestedScrollingParentForType(type, p);
+                ViewParentCompat.onNestedScrollAccepted(p, child, mView, axes, type);
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+            &#125;
+            <span class="hljs-keyword">if</span> (p <span class="hljs-keyword">instanceof</span> View) &#123;
+                child = (View) p;
+            &#125;
+            p = p.getParent();
+        &#125;
+    &#125;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+&#125;</code></pre>
+<p>这里的逻辑，就是不断的向上寻找 parent，直到 <code>androidx.core.view.ViewParentCompat#onStartNestedScroll(android.view.ViewParent, android.view.View, android.view.View, int, int)</code> 这个方法返回 true。看看这个方法的逻辑：</p>
+<blockquote>
+<p>androidx.core.view.ViewParentCompat#onStartNestedScroll(android.view.ViewParent, android.view.View, android.view.View, int, int)</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">onStartNestedScroll</span><span class="hljs-params">(ViewParent parent, View child, View target,</span></span>
+<span class="hljs-function"><span class="hljs-params">        <span class="hljs-keyword">int</span> nestedScrollAxes, <span class="hljs-keyword">int</span> type)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (parent <span class="hljs-keyword">instanceof</span> NestedScrollingParent2) &#123;
+        <span class="hljs-comment">// First try the NestedScrollingParent2 API</span>
+        <span class="hljs-keyword">return</span> ((NestedScrollingParent2) parent).onStartNestedScroll(child, target,
+                nestedScrollAxes, type);
+    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (type == ViewCompat.TYPE_TOUCH) &#123;
+        <span class="hljs-comment">// Else if the type is the default (touch), try the NestedScrollingParent API</span>
+        <span class="hljs-keyword">if</span> (Build.VERSION.SDK_INT &gt;= <span class="hljs-number">21</span>) &#123;
+            <span class="hljs-keyword">try</span> &#123;
+                <span class="hljs-comment">// 看这里，看这里</span>
+                <span class="hljs-keyword">return</span> parent.onStartNestedScroll(child, target, nestedScrollAxes);
+            &#125; <span class="hljs-keyword">catch</span> (AbstractMethodError e) &#123;
+                Log.e(TAG, <span class="hljs-string">&quot;ViewParent &quot;</span> + parent + <span class="hljs-string">&quot; does not implement interface &quot;</span>
+                        + <span class="hljs-string">&quot;method onStartNestedScroll&quot;</span>, e);
+            &#125;
+        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (parent <span class="hljs-keyword">instanceof</span> NestedScrollingParent) &#123;
+            <span class="hljs-keyword">return</span> ((NestedScrollingParent) parent).onStartNestedScroll(child, target,
+                    nestedScrollAxes);
+        &#125;
+    &#125;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+&#125;</code></pre>
+<p>因为，ScrollView 是没有实现 NestedScrolling 相关接口的，所以，这里我们看 else if 中的逻辑，最后调用到了 ViewParent 的 onStartNestedScroll 方法。</p>
+<p>看看这个方法有哪些类实现了，结果就有 ScrollView （ViewGroup 也实现了，只不过返回的是 false）。</p>
+<blockquote>
+<p>android.widget.ScrollView#onStartNestedScroll</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">onStartNestedScroll</span><span class="hljs-params">(View child, View target, <span class="hljs-keyword">int</span> nestedScrollAxes)</span> </span>&#123;
+    <span class="hljs-keyword">return</span> (nestedScrollAxes &amp; SCROLL_AXIS_VERTICAL) != <span class="hljs-number">0</span>;
+&#125;</code></pre>
+<p>到了这里，答案就开始浮现出来了，虽然，ScollView 没有实现 NestedScrolling  相关接口，但是它的接口（ViewParent）里面也有相关的方法，所以，最终它也可以做到嵌套滑动。</p>
+<p>我们回忆一下嵌套滑动的核心逻辑：</p>
+<pre><code class="hljs markdown">在一个move产生后：
+
+<span class="hljs-bullet">1.</span> child 先询问 parent，能够消耗多少，没有消耗完
+<span class="hljs-bullet">2.</span> child 自己消耗，没有消耗完
+<span class="hljs-bullet">3.</span> child 再次询问 parent，我这还有没消耗完的，你能消耗多少，如果 parent 还是没有消耗完
+<span class="hljs-bullet">4.</span> child 自己处理
+</code></pre>
+<p>根据这个逻辑，我们追踪<code>androidx.core.view.ViewParentCompat#onNestedPreScroll(android.view.ViewParent, android.view.View, int, int, int[], int)</code>这个方法，调用链如下：</p>
+<pre><code class="hljs css"><span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.recyclerview</span><span class="hljs-selector-class">.widget</span><span class="hljs-selector-class">.RecyclerView</span><span class="hljs-selector-id">#onTouchEvent</span>
+<span class="hljs-selector-tag">-</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.recyclerview</span><span class="hljs-selector-class">.widget</span><span class="hljs-selector-class">.RecyclerView</span><span class="hljs-selector-id">#scrollByInternal</span>
+<span class="hljs-selector-tag">--</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.recyclerview</span><span class="hljs-selector-class">.widget</span><span class="hljs-selector-class">.RecyclerView</span><span class="hljs-selector-id">#dispatchNestedScroll</span>(<span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span><span class="hljs-selector-attr">[]</span>, <span class="hljs-selector-tag">int</span>)
+<span class="hljs-selector-tag">---</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#dispatchNestedScroll</span>(<span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span><span class="hljs-selector-attr">[]</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span><span class="hljs-selector-attr">[]</span>)
+<span class="hljs-selector-tag">----</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#dispatchNestedScrollInternal</span>
+<span class="hljs-selector-tag">-----</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.ViewParentCompat</span><span class="hljs-selector-id">#onNestedScroll</span>(<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.ViewParent</span>, <span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.View</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span><span class="hljs-selector-attr">[]</span>)
+<span class="hljs-selector-tag">------</span>&gt;<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.ViewParent</span><span class="hljs-selector-id">#onNestedScroll</span>
+<span class="hljs-selector-tag">-------</span>&gt;<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.widget</span><span class="hljs-selector-class">.ScrollView</span><span class="hljs-selector-id">#onNestedScroll</span></code></pre>
+<p>这样，一个嵌套滑动的流程就完成了。</p>
+<blockquote>
+<p>android.widget.ScrollView#onNestedScroll</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onNestedScroll</span><span class="hljs-params">(View target, <span class="hljs-keyword">int</span> dxConsumed, <span class="hljs-keyword">int</span> dyConsumed,</span></span>
+<span class="hljs-function"><span class="hljs-params">        <span class="hljs-keyword">int</span> dxUnconsumed, <span class="hljs-keyword">int</span> dyUnconsumed)</span> </span>&#123;
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> oldScrollY = mScrollY;
+    <span class="hljs-comment">// 这里是让 ScrollView 滚动</span>
+    scrollBy(<span class="hljs-number">0</span>, dyUnconsumed);
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> myConsumed = mScrollY - oldScrollY;
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> myUnconsumed = dyUnconsumed - myConsumed;
+    dispatchNestedScroll(<span class="hljs-number">0</span>, myConsumed, <span class="hljs-number">0</span>, myUnconsumed, <span class="hljs-keyword">null</span>);
+&#125;</code></pre>
+<p>最后总结一下：</p>
+<p>首先是，事件拦截事件分发事件到 RecycleView，RecycleView先消耗move事件，拉到底部后，RecycleView无法消耗move事件了，然后通过 NestedScrolling 机制，将move距离往上分发到 ScrollView，ScrollView 即可滑动。</p>
+<p>所以，如果我们想要实现一个支持嵌套滑动的控件，现在有两种方式了，一种是实现 NestedScrolling 接口，一种是直接复写 ViewGroup 里面的相关方法。不过这两种方式的接口都是一样的。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/View-%E7%9A%84%E6%BB%91%E5%8A%A8/">View 的滑动</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android-View/">Android-View</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/12/15/blog_bak/Blog/%E6%8A%98%E8%85%BE/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/">
+                        <span class="hidden-mobile">博客搭建</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="vcomments"></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('vcomments', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function () {
+        new Valine({
+          el: "#vcomments",
+          app_id: "oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI",
+          app_key: "FllNdPfQPCLcrJVVXHGyakPQ",
+          placeholder: "说点什么",
+          path: window.location.pathname,
+          avatar: "retro",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: false,
+          recordIP: false,
+          serverURLs: "",
+        });
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a target="_blank" href="https://valine.js.org" rel="nofollow noopener noopener">comments powered by Valine.</a>
+  </noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    document.addEventListener('DOMContentLoaded', function() {
+      window.NProgress && window.NProgress.inc();
+    })
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>
