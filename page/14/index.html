@@ -470,31 +470,28 @@ public class Node&lt;T&gt; &#123;
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0024-%E5%89%96%E6%9E%90%E5%90%8C%E6%AD%A5%E5%99%A8/" target="_blank">
-          <img src="/cover/23.jpg" srcset="/img/loading.gif" alt="0024-剖析同步器">
+        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0023-CAS/" target="_blank">
+          <img src="/cover/23.jpg" srcset="/img/loading.gif" alt="0023-CAS">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0024-%E5%89%96%E6%9E%90%E5%90%8C%E6%AD%A5%E5%99%A8/">0024-剖析同步器</a>
+        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0023-CAS/">0023-CAS</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0024-%E5%89%96%E6%9E%90%E5%90%8C%E6%AD%A5%E5%99%A8/">
+        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0023-CAS/">
           
           
             
           
-          前面，我们设计了简易版的信号量、锁等，它们虽然功能不一样，但是内部的差距却差不多。换句话说，它们内部的的基础部分是相同（或相似）的。了解这些基础部件能在设计同步器的时候给我们大大的帮助。这就是本文要细说的内容。
-大部分同步器都是用来保护某个区域（临界区）的代码，这些代码可能会被多线程并发访问。要实现这个目标，同步器一般要支持下列功能：
+          在说 CAS 之前先说一下乐观锁的定义：
 
-状态
-访问条件
-状态变化
-通知策略
-Test-and-Set
+乐观锁总是假设最好的情况，每次去操作数据都认为不会被别的线程修改数据，所以在每次操作数据的时候都不会给数据加锁，即在线程对数据进行操作的时候，别的线程不会阻塞仍然可以对数据进行操作，只有在需要更新数据的时候才会去判断数据是否被别的线程修改过，如果数据被修改过则会拒绝操作并且返回错误信息给用户。
+
+CAS是乐观锁的一种实现，说起来很抽象，其实还是很简单的，
         </a>
       </p>
 
@@ -531,28 +528,31 @@ Test-and-Set
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0023-CAS/" target="_blank">
-          <img src="/cover/23.jpg" srcset="/img/loading.gif" alt="0023-CAS">
+        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0024-%E5%89%96%E6%9E%90%E5%90%8C%E6%AD%A5%E5%99%A8/" target="_blank">
+          <img src="/cover/23.jpg" srcset="/img/loading.gif" alt="0024-剖析同步器">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0023-CAS/">0023-CAS</a>
+        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0024-%E5%89%96%E6%9E%90%E5%90%8C%E6%AD%A5%E5%99%A8/">0024-剖析同步器</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0023-CAS/">
+        <a href="/2019/08/23/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0024-%E5%89%96%E6%9E%90%E5%90%8C%E6%AD%A5%E5%99%A8/">
           
           
             
           
-          在说 CAS 之前先说一下乐观锁的定义：
+          前面，我们设计了简易版的信号量、锁等，它们虽然功能不一样，但是内部的差距却差不多。换句话说，它们内部的的基础部分是相同（或相似）的。了解这些基础部件能在设计同步器的时候给我们大大的帮助。这就是本文要细说的内容。
+大部分同步器都是用来保护某个区域（临界区）的代码，这些代码可能会被多线程并发访问。要实现这个目标，同步器一般要支持下列功能：
 
-乐观锁总是假设最好的情况，每次去操作数据都认为不会被别的线程修改数据，所以在每次操作数据的时候都不会给数据加锁，即在线程对数据进行操作的时候，别的线程不会阻塞仍然可以对数据进行操作，只有在需要更新数据的时候才会去判断数据是否被别的线程修改过，如果数据被修改过则会拒绝操作并且返回错误信息给用户。
-
-CAS是乐观锁的一种实现，说起来很抽象，其实还是很简单的，
+状态
+访问条件
+状态变化
+通知策略
+Test-and-Set
         </a>
       </p>
 
