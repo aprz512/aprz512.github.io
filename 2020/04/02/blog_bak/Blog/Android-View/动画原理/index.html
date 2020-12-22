@@ -237,10 +237,12 @@
             <div class="markdown-body">
               <p>Android 的动画分为两种：一种是补间动画，一种是属性动画。</p>
 <h3 id="补间动画"><a href="#补间动画" class="headerlink" title="补间动画"></a>补间动画</h3><p>补间动画，很简答，就是我们使用的各种 Animation。</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/1924341-e091160e76fc0dbe.png?imageMogr2/auto-orient/strip|imageView2/2/w/554/format/webp" srcset="/img/loading.gif" alt=""></p>
+<pre><code class="hljs java">ScaleAnimation animation = <span class="hljs-keyword">new</span> ScaleAnimation(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
+animation.setDuration(<span class="hljs-number">300</span>);
+view.startAnimation(animation);</code></pre>
 <p>这段代码就可以执行一个缩放动画，那么你知道补间动画到底是怎么运行的吗？</p>
 <p>我们先来看一张图：</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/1924341-baa80bd0e507de89.png?imageMogr2/auto-orient/strip|imageView2/2/w/670/format/webp" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/aprz512/pic4aprz512/master/Blog/Android-View/View/1541341-4d6f77035fc31769.webp" srcset="/img/loading.gif" alt=""></p>
 <p>这是 View 的绘制流程，它与动画有什么关系呢？我们看一下 draw 方法的源码：</p>
 <blockquote>
 <p>android.view.View#draw(android.graphics.Canvas, android.view.ViewGroup, long)</p>
@@ -295,7 +297,7 @@ concatMatrix = a.willChangeTransformationMatrix();
 &#125;
 transformToApply = parent.getChildTransformation();</code></pre>
 <p>这个 transformToApply 很像我们要找的东西，因为如果让你做动画，你怎么做呢？我们该如何将一个View平移？？有几种方案，一种是直接改变View的位置，一种是改变 child 画布的位置。而 Transformation 里面有一个 matrix 是可以进行变化画布的。</p>
-<p>我们最终这个 transformToApply，会发现如下代码：</p>
+<p>我们追踪这个 transformToApply，会发现如下代码：</p>
 <pre><code class="hljs java"><span class="hljs-comment">// Undo the scroll translation, apply the transformation matrix,</span>
 <span class="hljs-comment">// then redo the scroll translate to get the correct result.</span>
 canvas.translate(-transX, -transY);
