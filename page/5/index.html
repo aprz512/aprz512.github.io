@@ -179,58 +179,6 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/07/12/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/008-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E6%8F%92%E6%A1%A9%E9%80%BB%E8%BE%91/" target="_blank">
-          <img src="/cover/12.jpg" srcset="/img/loading.gif" alt="008-Matrix源码分析：插桩逻辑">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/07/12/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/008-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E6%8F%92%E6%A1%A9%E9%80%BB%E8%BE%91/">008-Matrix源码分析：插桩逻辑</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/07/12/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/008-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E6%8F%92%E6%A1%A9%E9%80%BB%E8%BE%91/">
-          
-          
-            
-          
-          前面几篇基本上将 matrix-trace-canary 的功能分析完毕了，只剩下插桩部分没有说，这里就来分析一下。
-先上个图，了解一下流程。
-
-正式开始之前，需要了解的预备知识：Transform。不清楚的这个的，看着会很蛋疼，天赋异禀除外。
-从插件的配置开始，要使用这个插件，我们需要引用它：
-classpath (&quot;com.tencent:matrix:1.0.1&quot;)&#1
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-07-12 00:00" pubdate>
-              2020-07-12
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Matrix/">Matrix</a>
-            
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2020/07/06/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/007-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AStartupTracer%20%E7%9B%91%E6%8E%A7%E5%86%B7%E5%90%AF%E5%8A%A8%E6%97%B6%E9%97%B4/" target="_blank">
           <img src="/cover/6.jpg" srcset="/img/loading.gif" alt="007-Matrix源码分析：StartupTracer 监控冷启动时间">
         </a>
@@ -483,6 +431,56 @@ https://github.com/Tencent/matrix/wiki/Matrix-Android-TraceCanary
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/06/30/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/002-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AUIThreadMonitor%E7%9B%91%E6%B5%8B%E4%B8%BB%E7%BA%BF%E7%A8%8B/" target="_blank">
+          <img src="/cover/30.jpg" srcset="/img/loading.gif" alt="002-Matrix源码分析：UIThreadMonitor监测主线程">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/06/30/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/002-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AUIThreadMonitor%E7%9B%91%E6%B5%8B%E4%B8%BB%E7%BA%BF%E7%A8%8B/">002-Matrix源码分析：UIThreadMonitor监测主线程</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/06/30/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/002-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AUIThreadMonitor%E7%9B%91%E6%B5%8B%E4%B8%BB%E7%BA%BF%E7%A8%8B/">
+          
+          
+            
+          
+          常说的一个问题：为啥Looper有个死循环却不会阻塞主线程？？？
+这是因为我们所谓的主线程就是这个死循环。我们的每一帧都是封装成了消息然后被分发，在主线程处理，主线程是不断的在处理这些消息，如果什么时候有个特别耗时的消息来了，那么主线程就会卡死。
+上面说了一个题外话，我们现在来看看如何监测主线程。了解这个类还需要一点预备知识：
+FrameDisplayEventReceiver 在收到 VSYNC
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-06-30 00:00" pubdate>
+              2020-06-30
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Matrix/">Matrix</a>
+            
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2020/06/30/blog_bak/Blog/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/HttpDnsLib/HttpDnsLib%E5%88%86%E6%9E%90/" target="_blank">
           <img src="/cover/30.jpg" srcset="/img/loading.gif" alt="HttpDnsLib分析">
         </a>
@@ -523,56 +521,6 @@ https://github.com/CNSRE/HTTPDNSLib
             <i class="iconfont icon-category"></i>
             
               <a href="/categories/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/">网络优化</a>
-            
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/06/30/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/002-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AUIThreadMonitor%E7%9B%91%E6%B5%8B%E4%B8%BB%E7%BA%BF%E7%A8%8B/" target="_blank">
-          <img src="/cover/30.jpg" srcset="/img/loading.gif" alt="002-Matrix源码分析：UIThreadMonitor监测主线程">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/06/30/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/002-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AUIThreadMonitor%E7%9B%91%E6%B5%8B%E4%B8%BB%E7%BA%BF%E7%A8%8B/">002-Matrix源码分析：UIThreadMonitor监测主线程</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/06/30/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/002-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AUIThreadMonitor%E7%9B%91%E6%B5%8B%E4%B8%BB%E7%BA%BF%E7%A8%8B/">
-          
-          
-            
-          
-          常说的一个问题：为啥Looper有个死循环却不会阻塞主线程？？？
-这是因为我们所谓的主线程就是这个死循环。我们的每一帧都是封装成了消息然后被分发，在主线程处理，主线程是不断的在处理这些消息，如果什么时候有个特别耗时的消息来了，那么主线程就会卡死。
-上面说了一个题外话，我们现在来看看如何监测主线程。了解这个类还需要一点预备知识：
-FrameDisplayEventReceiver 在收到 VSYNC
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-06-30 00:00" pubdate>
-              2020-06-30
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Matrix/">Matrix</a>
             
           </div>
         
@@ -671,6 +619,58 @@ UDP 协议是无连接协议。它无需在传输层对数据包进行确认，�
             <i class="iconfont icon-date"></i>
             <time datetime="2020-06-18 00:00" pubdate>
               2020-06-18
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/">网络优化</a>
+            
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/06/17/blog_bak/Blog/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B005%EF%BC%9A%E5%AE%9E%E7%8E%B0%E5%9F%BA%E4%BA%8ETCP%E7%9A%84%E9%95%BF%E8%BF%9E%E6%8E%A5/" target="_blank">
+          <img src="/cover/17.jpg" srcset="/img/loading.gif" alt="网络编程005：实现基于TCP的长连接">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/06/17/blog_bak/Blog/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B005%EF%BC%9A%E5%AE%9E%E7%8E%B0%E5%9F%BA%E4%BA%8ETCP%E7%9A%84%E9%95%BF%E8%BF%9E%E6%8E%A5/">网络编程005：实现基于TCP的长连接</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/06/17/blog_bak/Blog/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B005%EF%BC%9A%E5%AE%9E%E7%8E%B0%E5%9F%BA%E4%BA%8ETCP%E7%9A%84%E9%95%BF%E8%BF%9E%E6%8E%A5/">
+          
+          
+            
+          
+          Socket 的基本用法Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信。
+先看服务端的使用：
+ServerSocket serverSocket = new ServerSocket(port);
+Socket client = serverSocket.accept();
+InputStream in = client.getInputStream();
+Ou
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-06-17 00:00" pubdate>
+              2020-06-17
             </time>
           </div>
         
