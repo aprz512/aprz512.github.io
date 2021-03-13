@@ -17,7 +17,7 @@
   <meta name="description" content="">
   <meta name="author" content="aprz512">
   <meta name="keywords" content="">
-  <title>flutter的BLOC模式 - 二手程序员</title>
+  <title>0004-真正执行监测的类 - 二手程序员</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
 
@@ -162,7 +162,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="flutter的BLOC模式">
+            <span class="h2" id="subtitle" title="0004-真正执行监测的类">
               
             </span>
 
@@ -172,8 +172,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2019-12-02 00:00" pubdate>
-        2019年12月2日 凌晨
+      <time datetime="2021-03-13 00:00" pubdate>
+        2021年3月13日 凌晨
       </time>
     </span>
   
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.9k 字
+      1k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       大约 
-      7
+      4
        分钟
     </span>
   
@@ -232,80 +232,152 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">flutter的BLOC模式</h1>
+            <h1 style="display: none">0004-真正执行监测的类</h1>
             
             <div class="markdown-body">
-              <p>学习 Flutter 已经差不多两周，使用 BLOC 模式写了一个简单的 App，回想起来，居然与 Android 开发还挺相似的。可能是因为我们的应用本来就是使用 Google 推荐的框架，所以发现 BLOC 模式与我们应用的模式居然是一模一样，这可真的没有夸张，就是将 ViewModel 的名字改成了 BLOC 而已。</p>
-<p>下面，从几个方面来说说自己对 Flutter 的感觉吧。</p>
-<h3 id="Dart语言"><a href="#Dart语言" class="headerlink" title="Dart语言"></a>Dart语言</h3><p>现在的语言越来越多了，但是真正学起来会发现，其实上手都很简单，觉得语言由百花齐放慢慢的趋向于大一统。</p>
-<p>不是说语言会变得单一，而是说它们的用法开始越来越像了。像我在大学接触 C++ 的时候，简直痛苦的不行。花了2个月，看了半本 C++ Primer，书上的习题都自己敲过，然后过了半年，全忘光了，一点没剩下。</p>
-<p>我自己觉得，如果你对 Java 比较精通，不用看 dart 的语法，强行阅读，也是可以读的通的。你再有点 kotlin 的知识，简直如虎添翼。其他的细微末节，平时多看看项目，查查资料就好了。</p>
-<p>但是，如果想深入了解，我似乎还没有找到什么好的资料。比如，Dart 的类加载机制，它的全局变量是如何工作的，是与 kotlin 一样吗？</p>
-<h3 id="界面编写"><a href="#界面编写" class="headerlink" title="界面编写"></a>界面编写</h3><p>Flutter 编写界面，是真的难受。尤其是从 Android 开发转过来的，界面写起来的感觉与用 Java 代码写 Android 的界面一样。不过使用 Dart 写起来，还是方便不少的，而且 Flutter 对 Widget 封装的比较好，所以基本只需要填填属性值就好了，与 XML 一样。</p>
-<p>因为是使用的 Dart 来编写界面，也没有提供界面预览的方式，所以如果你想要改一个界面，还得先运行起来看一下它长什么样。然后再慢慢的看代码，慢慢改。</p>
-<p>里面的一些控件的用法与 CSS 很像，熟悉 html 开发的，应该会比较有亲切感。</p>
-<p>在 Flutter 中，刚开始接触很容易产生万物皆为 Widget 的感觉，在编写界面的时候，也是一个 Widget “嵌套” 一个 Widget，会导致代码层次嵌套的特别深，所以需要把握控件的粒度。</p>
-<h3 id="界面绘制"><a href="#界面绘制" class="headerlink" title="界面绘制"></a>界面绘制</h3><p>flutter 有自己的绘制引擎。我们将开发者模式打开，想查看过度绘制与布局边界，都是看不了的，因为它走的不是 Android 的绘制逻辑。</p>
-<p>Flutter 与 Android 还有一个更大的不同之处在于，Flutter 中的 widget 可以理解为是不可变的。举个例子：</p>
-<p>在 Android 中，我们想要显示一个文字，使用 TextView 控件就好了，当我们想要将文字改变的时候，自需要调用这个控件的 setText 方法即可。</p>
-<p>但是，在 Flutter 中，我们想要显示一串文字，可以使用 Text 控件，但是当我们想要改变显示的文字的时候，只能重新创建一个新的 Text 控件，替换原来的 Text 控件。</p>
-<p>虽然感觉不可思议，但是实际上却非常简单，Flutter 里面会自动重新走一遍创建 Text 的逻辑，所以会自动生成新的对象。</p>
-<p>所以，我们在 build 方法中写的东西，相当于是一个蓝图，而 flutter 会依照这个蓝图创建出多个对象出来。同时需要好好思考，如何传递数据，以便创建出来的对象都不相同。就拿 Text 来说，每次 build 会创建不同的 Text 出来，但是如果你的 Text 的属性都是固定的，虽然每次都会创建出不同的 Text 对象，但是它们显示的却是同样的文字，所以需要将显示的文字传递进来。</p>
-<p>当然，还有更多可以探索的东西，就不细说了，给两个链接：</p>
-<p> <a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=wE7khGHVkYY&amp;feature=youtu.be">https://www.youtube.com/watch?v=wE7khGHVkYY&amp;feature=youtu.be</a> </p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=AqCMFXEmf3w">https://www.youtube.com/watch?v=AqCMFXEmf3w</a></p>
-<p>这两个视频都讲的非常的不错，看懂了之后，至少一般的界面逻辑，你都看得懂，知道为什么。</p>
-<h3 id="BLOC-模式"><a href="#BLOC-模式" class="headerlink" title="BLOC 模式"></a>BLOC 模式</h3><p>界面的东西了解了之后，其他的就是如何搭建一个结构清晰的应用框架了。</p>
-<p>其实，像我们做一些简单的 App，似乎很难涉及到复杂的逻辑。一般都是请求后台，然后展示数据，很少会遇到比较复杂的功能。更加高级一点的，再写一个自定义控件，这也不过是对于绘制api的使用。</p>
-<p>说了这许多，还是回到 BLOC。这个模式与 MVVM 等都没有啥重大的区别，只要掌握了思想就好了。写出来的东西都是一样的。由于我们一般都是做的“简单App”，所以掌握了这个模式之后，写起来很是非常顺畅的，接手别人的代码也会变得很容易。</p>
-<p>我们先来看一张图：</p>
-<p><img src="https://miro.medium.com/max/1305/1*MqYPYKdNBiID0mZ-zyE-mA.png" srcset="/img/loading.gif" alt=""></p>
-<p>看过 Google jetpack 教程的，应该就很熟悉这张图了。</p>
-<p>界面相关的东西，我们就放到 ui 层，逻辑相关的放在 bloc 层，数据相关的放在 repository 层。</p>
-<p>由于我们的应用一般都是从网络请求数据，所以我将 Repository 与 Network Provider 合并层了一层。如果有用到缓存的话，还是不要合并，然后再实现 一个 Cache Provider 即可。</p>
-<p>应用结构目录如下：</p>
-<p><img src="1.png" srcset="/img/loading.gif" alt=""></p>
-<p>每个模块下，都有这样的一个结构，这样看起来就会比较清晰。</p>
-<p>下面再说说每个目录里面应该放什么。</p>
-<h4 id="bloc-目录"><a href="#bloc-目录" class="headerlink" title="bloc 目录"></a>bloc 目录</h4><p>对应于 android 的 viewModel 目录：</p>
-<pre><code class="hljs dart"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MoviesBloc</span> </span>&#123;
-  <span class="hljs-keyword">final</span> _repository = MovieRepository();
-  <span class="hljs-keyword">final</span> _moviesFetcher = PublishSubject&lt;ItemModel&gt;();
-
-  Observable&lt;ItemModel&gt; <span class="hljs-keyword">get</span> allMovies =&gt; _moviesFetcher.stream;
-
-  fetchAllMovies() <span class="hljs-keyword">async</span> &#123;
-    ItemModel itemModel = <span class="hljs-keyword">await</span> _repository.fetchMovieList();
-    _moviesFetcher.sink.add(itemModel);
+              <p><strong>上一篇</strong>我们分析了不少类，但是实际上它们做的<strong>工作主要是寻找监测点</strong>的工作，但是具体如何监测，都被委托给了 <code>ReachabilityWatcher</code> 这个接口。</p>
+<p>这个接口只有一个实现了，就是 <code>ObjectWatcher</code>。</p>
+<h3 id="ObjectWatcher"><a href="#ObjectWatcher" class="headerlink" title="ObjectWatcher"></a>ObjectWatcher</h3><p>我们先看 <code>expectWeaklyReachable</code> 这个方法，毕竟，委托的时候，就是调用的这个方法。</p>
+<blockquote>
+<p>leakcanary.ObjectWatcher#expectWeaklyReachable</p>
+</blockquote>
+<pre><code class="hljs kotlin"><span class="hljs-meta">@Synchronized</span> <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">expectWeaklyReachable</span><span class="hljs-params">(</span></span>
+<span class="hljs-function"><span class="hljs-params">  watchedObject: <span class="hljs-type">Any</span>,</span></span>
+<span class="hljs-function"><span class="hljs-params">  description: <span class="hljs-type">String</span></span></span>
+<span class="hljs-function"><span class="hljs-params">)</span></span> &#123;
+  <span class="hljs-keyword">if</span> (!isEnabled()) &#123;
+    <span class="hljs-keyword">return</span>
+  &#125;
+  <span class="hljs-comment">// 移除已经被回收的监测对象（包装后的KeyedWeakReference）</span>
+  removeWeaklyReachableObjects()
+  <span class="hljs-comment">// 生成 key，避免重复</span>
+  <span class="hljs-keyword">val</span> key = UUID.randomUUID()
+    .toString()
+  <span class="hljs-comment">// 记录开始监测的时间</span>
+  <span class="hljs-keyword">val</span> watchUptimeMillis = clock.uptimeMillis()
+  <span class="hljs-keyword">val</span> reference =
+    KeyedWeakReference(watchedObject, key, description, watchUptimeMillis, queue)
+  SharkLog.d &#123;
+    <span class="hljs-string">&quot;Watching &quot;</span> +
+      (<span class="hljs-keyword">if</span> (watchedObject <span class="hljs-keyword">is</span> Class&lt;*&gt;) watchedObject.toString() <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;instance of <span class="hljs-subst">$&#123;watchedObject.javaClass.name&#125;</span>&quot;</span>) +
+      (<span class="hljs-keyword">if</span> (description.isNotEmpty()) <span class="hljs-string">&quot; (<span class="hljs-variable">$description</span>)&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;&quot;</span>) +
+      <span class="hljs-string">&quot; with key <span class="hljs-variable">$key</span>&quot;</span>
   &#125;
 
-  dispose() &#123;
-    _moviesFetcher.close();
+  <span class="hljs-comment">// 添加到监测集合中</span>
+  watchedObjects[key] = reference
+  <span class="hljs-comment">// checkRetainedExecutor 在 AppWatcher 里面赋值</span>
+  <span class="hljs-comment">// 实际上它是利用了主线程的 handler，延迟 5s post 一个消息</span>
+  checkRetainedExecutor.execute &#123;
+    moveToRetained(key)
   &#125;
 &#125;</code></pre>
-<p>可以看的到，与 viewModel 的写法是一样的。只不过在 Android 中，我们现在使用了 LiveData 替换掉了 Rx，但是用法是一样的。</p>
-<p>Bloc 需要数据会从 Repository 里面取，取到之后放入到 stream 中，然后我们只需要监听 stream 返回的数据就可以更新界面了。</p>
-<h4 id="repository目录"><a href="#repository目录" class="headerlink" title="repository目录"></a>repository目录</h4><p>我这里是将 repository 与 data provider 合并了。</p>
-<pre><code class="hljs dart"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MovieRepository</span> </span>&#123;
+<p>这段逻辑与 1.x 的版本似乎差不多，没啥好说的。不过这也是内存泄露监测的核心原理，弱引用 + 引用队列。</p>
+<p>我们继续看：</p>
+<blockquote>
+<p>leakcanary.ObjectWatcher#moveToRetained</p>
+</blockquote>
+<pre><code class="hljs kotlin"><span class="hljs-comment">// TODO 这里为啥要加上  Synchronized 关键字</span>
+<span class="hljs-meta">@Synchronized</span> <span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">moveToRetained</span><span class="hljs-params">(key: <span class="hljs-type">String</span>)</span></span> &#123;
+  <span class="hljs-comment">// 真正开始确认是否发生了内存泄露，这里再次移除已经被gc回收的对象</span>
+  removeWeaklyReachableObjects()
+  <span class="hljs-keyword">val</span> retainedRef = watchedObjects[key]
+  <span class="hljs-comment">// 监测集合里面还存在，即有可能发生了泄露</span>
+  <span class="hljs-keyword">if</span> (retainedRef != <span class="hljs-literal">null</span>) &#123;
+    retainedRef.retainedUptimeMillis = clock.uptimeMillis()
+    <span class="hljs-comment">// onObjectRetainedListeners 里面的 listener 其实就是 InternalLeakCanary</span>
+    onObjectRetainedListeners.forEach &#123; it.onObjectRetained() &#125;
+  &#125;
+&#125;</code></pre>
+<p> 总的来说，ObjectWatcher 的作用其实就是做了一个过滤操作。从所有的监测对象里面，找出哪些是真正有可能泄露的，然后交给 InternalLeakCanary 去处理。</p>
+<h3 id="InternalLeakCanary"><a href="#InternalLeakCanary" class="headerlink" title="InternalLeakCanary"></a>InternalLeakCanary</h3><p>我们从 <code>onObjectRetained</code> 方法，一直跟踪下去，忽略一些无关逻辑，调用链如下：</p>
+<pre><code class="hljs css"><span class="hljs-selector-tag">leakcanary</span><span class="hljs-selector-class">.internal</span><span class="hljs-selector-class">.InternalLeakCanary</span><span class="hljs-selector-id">#onObjectRetained</span>
+<span class="hljs-selector-tag">leakcanary</span><span class="hljs-selector-class">.internal</span><span class="hljs-selector-class">.InternalLeakCanary</span><span class="hljs-selector-id">#scheduleRetainedObjectCheck</span>
+<span class="hljs-selector-tag">leakcanary</span><span class="hljs-selector-class">.internal</span><span class="hljs-selector-class">.HeapDumpTrigger</span><span class="hljs-selector-id">#scheduleRetainedObjectCheck</span></code></pre>
+<p>发现，它直接跑到了 HeapDumpTrigger 类的方法里面，从这个类的名字上来看，肯能需要开始 dump 内存映像然后做分析了。</p>
+<h3 id="HeapDumpTrigger"><a href="#HeapDumpTrigger" class="headerlink" title="HeapDumpTrigger"></a>HeapDumpTrigger</h3><blockquote>
+<p>leakcanary.internal.HeapDumpTrigger#scheduleRetainedObjectCheck</p>
+</blockquote>
+<pre><code class="hljs kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">scheduleRetainedObjectCheck</span><span class="hljs-params">(</span></span>
+<span class="hljs-function"><span class="hljs-params">  delayMillis: <span class="hljs-type">Long</span> = <span class="hljs-number">0</span>L</span></span>
+<span class="hljs-function"><span class="hljs-params">)</span></span> &#123;
+  <span class="hljs-comment">// 第一次执行该方法，checkScheduledAt = 0</span>
+  <span class="hljs-comment">// 执行完后，checkScheduledAt &gt; 0</span>
+  <span class="hljs-comment">// 等 backgroundHandler post 的 runnable 执行后，重新赋值为 0</span>
+  <span class="hljs-comment">// 也就是说，这个方法即使调用的很频繁，它也会一次 post 一个 runnable，等这个 runnable 执行完后在 post 下一个</span>
+  <span class="hljs-keyword">val</span> checkCurrentlyScheduledAt = checkScheduledAt
+  <span class="hljs-keyword">if</span> (checkCurrentlyScheduledAt &gt; <span class="hljs-number">0</span>) &#123;
+    <span class="hljs-keyword">return</span>
+  &#125;
+  checkScheduledAt = SystemClock.uptimeMillis() + delayMillis
+  <span class="hljs-comment">// backgroundHandler 是一个 HandlerThread 的 handler，在 InternalLeakCanary 的 invoke 方法中赋值</span>
+  backgroundHandler.postDelayed(&#123;
+    checkScheduledAt = <span class="hljs-number">0</span>
+    <span class="hljs-comment">// InternalLeakCanary 的 scheduleRetainedObjectCheck 调用过来时，delayMillis 是默认值 0</span>
+    checkRetainedObjects()
+  &#125;, delayMillis)
+&#125;</code></pre>
+<p>这里是做了一个过滤的操作，防止频繁调用。</p>
+<blockquote>
+<p>leakcanary.internal.HeapDumpTrigger#checkRetainedObjects</p>
+</blockquote>
+<pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">checkRetainedObjects</span><span class="hljs-params">()</span></span> &#123;
+  <span class="hljs-comment">// 从配置里面看是否可以 dump</span>
+  <span class="hljs-keyword">val</span> iCanHasHeap = HeapDumpControl.iCanHasHeap()
 
-  Future&lt;ItemModel&gt; fetchMovieList() <span class="hljs-keyword">async</span> &#123;
-    <span class="hljs-keyword">final</span> response = <span class="hljs-keyword">await</span> client.<span class="hljs-keyword">get</span>(<span class="hljs-string">&quot;<span class="hljs-subst">$_baseUrl</span>/popular?api_key=<span class="hljs-subst">$_apiKey</span>&quot;</span>);
-    <span class="hljs-keyword">if</span> (response.statusCode == <span class="hljs-number">200</span>) &#123;
-      <span class="hljs-comment">// If the call to the server was successful, parse the JSON</span>
-      <span class="hljs-keyword">return</span> ItemModel.fromJson(json.decode(response.body));
-    &#125; <span class="hljs-keyword">else</span> &#123;
-      <span class="hljs-comment">// If that call was not successful, throw an error.</span>
-      <span class="hljs-keyword">throw</span> Exception(<span class="hljs-string">&#x27;Failed to load post&#x27;</span>);
-    &#125;
+  <span class="hljs-keyword">val</span> config = configProvider()
+
+  <span class="hljs-comment">// TODO 不能 dump，暂时先跳过这个逻辑</span>
+  ...
+
+  <span class="hljs-comment">// 拿到监测集合中还存在的对象</span>
+  <span class="hljs-keyword">var</span> retainedReferenceCount = objectWatcher.retainedObjectCount
+
+  <span class="hljs-comment">// 触发一次 gc，看看有没有误报的</span>
+  <span class="hljs-keyword">if</span> (retainedReferenceCount &gt; <span class="hljs-number">0</span>) &#123;
+    gcTrigger.runGc()
+    retainedReferenceCount = objectWatcher.retainedObjectCount
   &#125;
 
+  <span class="hljs-comment">// checkRetainedCount 返回true,表示怀疑泄露的对象还没超过阈值,等下一次检测</span>
+  <span class="hljs-keyword">if</span> (checkRetainedCount(retainedReferenceCount, config.retainedVisibleThreshold)) <span class="hljs-keyword">return</span>
+
+  <span class="hljs-keyword">val</span> now = SystemClock.uptimeMillis()
+  <span class="hljs-keyword">val</span> elapsedSinceLastDumpMillis = now - lastHeapDumpUptimeMillis
+  <span class="hljs-comment">// 两次 dump 的时间小于 1 分钟</span>
+  <span class="hljs-keyword">if</span> (elapsedSinceLastDumpMillis &lt; WAIT_BETWEEN_HEAP_DUMPS_MILLIS) &#123;
+    onRetainInstanceListener.onEvent(DumpHappenedRecently)
+    <span class="hljs-comment">// 发一个通知</span>
+    showRetainedCountNotification(
+      objectCount = retainedReferenceCount,
+      contentText = application.getString(R.string.leak_canary_notification_retained_dump_wait)
+    )
+    <span class="hljs-comment">// 延迟到下一次检测</span>
+    scheduleRetainedObjectCheck(
+      delayMillis = WAIT_BETWEEN_HEAP_DUMPS_MILLIS - elapsedSinceLastDumpMillis
+    )
+    <span class="hljs-keyword">return</span>
+  &#125;
+
+  <span class="hljs-comment">// 准备 dump,取消通知</span>
+  dismissRetainedCountNotification()
+  <span class="hljs-keyword">val</span> visibility = <span class="hljs-keyword">if</span> (applicationVisible) <span class="hljs-string">&quot;visible&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;not visible&quot;</span>
+  dumpHeap(
+    retainedReferenceCount = retainedReferenceCount,
+    retry = <span class="hljs-literal">true</span>,
+    reason = <span class="hljs-string">&quot;<span class="hljs-variable">$retainedReferenceCount</span> retained objects, app is <span class="hljs-variable">$visibility</span>&quot;</span>
+  )
 &#125;</code></pre>
-<p>client 是网络请求对象。</p>
-<p>这里才是真正发送请求的地方，只需要写请求逻辑即可。</p>
-<h4 id="models目录"><a href="#models目录" class="headerlink" title="models目录"></a>models目录</h4><p>这个不用多说，就是存放 json 对应的对象的。有一个蛋疼的地方，dart 似乎没有类似 Gson 的库，因为它不让使用反射，所以只能自己手动解析 Json。不过还好有人写了对应的Json解析插件，自动生成代码。</p>
-<h4 id="ui目录"><a href="#ui目录" class="headerlink" title="ui目录"></a>ui目录</h4><p>这里就是存放app的页面的地方，对应的 android 的 activity/fragment 目录。</p>
-<p>bloc 模式差不多就是这些东西了，从 Jetpack 转过来还是非常容易入手的，都是 Google 的一套东西，用起来也很舒服。</p>
-<p>我的进度似乎就到这里了，其余的就是慢慢熟悉里面的 api，熟悉各种控件的特殊用法了。</p>
+<p>这个方法里面就是真正 dump 内存快照了。</p>
+<p>那么，到了这里一个流程就分析完了。回想一下，这个版本的结构很分明：</p>
+<ul>
+<li>初始化是一块</li>
+<li>watchers 是一块，专门用来寻找监测点</li>
+<li>objectWatcher 是一块，它排除已经被回收的对象</li>
+<li>dump 是一块，发通知， dump 内存</li>
+<li>shark 是一块，分析 dump 出来的内存快照</li>
+</ul>
+<p>后面计划添加一下其他类的分析，然后搞 shark 源码分析。</p>
 
             </div>
             <hr>
@@ -315,7 +387,7 @@
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/flutter/">flutter</a>
+                      <a class="hover-with-bg" href="/categories/LeakCanary/">LeakCanary</a>
                     
                   </div>
                 
@@ -323,7 +395,7 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/flutter/">flutter</a>
+                      <a class="hover-with-bg" href="/tags/Android%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-LeakCanary/">Android源码解析-LeakCanary</a>
                     
                   </div>
                 
@@ -336,18 +408,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2020/01/01/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Fragment%E6%A1%86%E6%9E%B6%E6%80%BB%E8%A7%88/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Fragment框架总览</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2019/10/12/blog_bak/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/0031-%E4%B8%B2/">
-                        <span class="hidden-mobile">0031-串</span>
+                      <a href="/2021/03/11/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/LeakCanary/0002-%E8%87%AA%E5%8A%A8%E5%88%9D%E5%A7%8B%E5%8C%96/">
+                        <span class="hidden-mobile">0002-自动初始化</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

@@ -509,8 +509,78 @@ nativePollOnce(ptr, nextPollTimeoutMillis);
 pendingIdleHandlerCount = <span class="hljs-number">0</span>;</code></pre>
 <p>可以看到，调用一次之后，就将 count 设置为 0，下次就不会调用了，直到再次触发 next 方法。</p>
 <p>可以看一下<a target="_blank" rel="noopener" href="https://blog.csdn.net/tencent_bugly/article/details/78395717">这篇文章</a>的使用。</p>
-<h3 id="同步分割栏"><a href="#同步分割栏" class="headerlink" title="同步分割栏"></a>同步分割栏</h3><p>所谓“同步分割栏”，可以被理解为一个特殊Message，它的target域为null。它不能通过sendMessageAtTime()等函数打入到消息队列里，而只能通过调用Looper的postSyncBarrier()来打入。</p>
+<p>有一个需要注意的地方，如果我们设置了 IdleHandler，而且在它的 <code>queueIdle</code>方法的返回值里面返回了 true。那么当消息队列为空的时候，这个方法会被不断的回调吗？</p>
+<p>答案是不是，也只会被回调一次。但是当消息队列再次为空时，会被回调。我们看看源码：</p>
+<pre><code class="hljs java"><span class="hljs-meta">@UnsupportedAppUsage</span>
+<span class="hljs-function">Message <span class="hljs-title">next</span><span class="hljs-params">()</span> </span>&#123;
+    
+	<span class="hljs-comment">// 开始的时候，对这两个变量赋值</span>
+	<span class="hljs-comment">// 表示没有 IdleHandler</span>
+    <span class="hljs-keyword">int</span> pendingIdleHandlerCount = -<span class="hljs-number">1</span>;
+    <span class="hljs-comment">// 睡眠时间为 0</span>
+    <span class="hljs-keyword">int</span> nextPollTimeoutMillis = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">for</span> (;;) &#123;
+        
+        nativePollOnce(ptr, nextPollTimeoutMillis);
+
+        <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;
+            <span class="hljs-comment">// 消息队列不为空</span>
+            <span class="hljs-keyword">if</span> (msg != <span class="hljs-keyword">null</span>) &#123;
+                ...
+            &#125; <span class="hljs-keyword">else</span> &#123;
+                <span class="hljs-comment">// 消息队列为空，表示无限制睡眠，等待唤醒</span>
+                nextPollTimeoutMillis = -<span class="hljs-number">1</span>;
+            &#125;
+
+            ...
+
+            <span class="hljs-comment">// 第一次循环进来，pendingIdleHandlerCount 的值为 -1</span>
+            <span class="hljs-comment">// 然后判断消息队列是否为空（无消息或者无可执行消息）</span>
+            <span class="hljs-comment">// 为空，就给 pendingIdleHandlerCount 赋值</span>
+            <span class="hljs-keyword">if</span> (pendingIdleHandlerCount &lt; <span class="hljs-number">0</span>
+                    &amp;&amp; (mMessages == <span class="hljs-keyword">null</span> || now &lt; mMessages.when)) &#123;
+                pendingIdleHandlerCount = mIdleHandlers.size();
+            &#125;
+            <span class="hljs-comment">// 没有 IdleHandler，直接继续循环</span>
+            <span class="hljs-keyword">if</span> (pendingIdleHandlerCount &lt;= <span class="hljs-number">0</span>) &#123;
+                <span class="hljs-comment">// No idle handlers to run.  Loop and wait some more.</span>
+                mBlocked = <span class="hljs-keyword">true</span>;
+                <span class="hljs-keyword">continue</span>;
+            &#125;
+
+            ...
+        &#125;
+
+        <span class="hljs-comment">// 调用 queueIdle 方法</span>
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; pendingIdleHandlerCount; i++) &#123;
+            ...
+            <span class="hljs-keyword">try</span> &#123;
+                keep = idler.queueIdle();
+            &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+                Log.wtf(TAG, <span class="hljs-string">&quot;IdleHandler threw exception&quot;</span>, t);
+            &#125;
+			<span class="hljs-comment">// 如果 queueIdle 返回了 false，就移除监听</span>
+            <span class="hljs-keyword">if</span> (!keep) &#123;
+                <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;
+                    mIdleHandlers.remove(idler);
+                &#125;
+            &#125;
+        &#125;
+
+        <span class="hljs-comment">// 重置变量，这里将 pendingIdleHandlerCount 赋值为 0</span>
+        <span class="hljs-comment">// 那么，下一次循环的时候，由于将睡眠时间设置为了0</span>
+        <span class="hljs-comment">// 但是仍然没有消息，但是 pendingIdleHandlerCount 为 0，那么就不会进入 queueIdle 的回调逻辑</span>
+        <span class="hljs-comment">// 会进入无限制睡眠状态</span>
+        pendingIdleHandlerCount = <span class="hljs-number">0</span>;
+        nextPollTimeoutMillis = <span class="hljs-number">0</span>;
+    &#125;
+&#125;</code></pre>
+<h3 id="同步分割栏"><a href="#同步分割栏" class="headerlink" title="同步分割栏"></a>同步分割栏</h3><p>所谓“同步分割栏”，可以被理解为一个<strong>特殊Message</strong>，它的target域为null。它不能通过sendMessageAtTime()等函数打入到消息队列里，而只能通过调用Looper的postSyncBarrier()来打入。</p>
 <p>“同步分割栏”是起什么作用的呢？它就像一个卡子，卡在消息链表中的某个位置，当消息循环不断从消息链表中摘取消息并进行处理时，一旦遇到这种“同步分割栏”，那么即使在分割栏之后还有若干已经到时的普通Message，也不会摘取这些消息了。请注意，此时只是不会摘取“普通Message”了，如果队列中还设置有“异步Message”，那么还是会摘取已到时的“异步Message”的。</p>
+<blockquote>
+<p>需要注意的一点是：</p>
+<p>同步分隔栏插入到消息链表中的时候，也是按照时间的顺序来插入的。也就是说，如果分隔栏的时间是 10ms 后执行，那么从现在到10ms后的这个时间段，消息链表中的同步消息也能被执行。</p>
+</blockquote>
 <p>在Android的消息机制里，“普通Message”和“异步Message”也就是这点儿区别啦，也就是说，如果消息列表中根本没有设置“同步分割栏”的话，那么“普通Message”和“异步Message”的处理就没什么大的不同了。</p>
 <p>将普通消息变成异步消息，只需要调用一个方法就可以啦：</p>
 <blockquote>
@@ -549,9 +619,9 @@ pendingIdleHandlerCount = <span class="hljs-number">0</span>;</code></pre>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2019/09/25/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/LeakCanary/0001-%E5%89%8D%E8%A8%80/">
+                      <a href="/2019/09/29/blog_bak/Blog/Java/Annotation-Processor-%E7%9A%84%E5%BA%94%E7%94%A8/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">0001-前言</span>
+                        <span class="hidden-mobile">Annotation Processor 的应用</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -559,8 +629,8 @@ pendingIdleHandlerCount = <span class="hljs-number">0</span>;</code></pre>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2019/09/22/blog_bak/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/0042-%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84%E4%B9%8BDijkstra%E7%AE%97%E6%B3%95/">
-                        <span class="hidden-mobile">0042-最短路径之Dijkstra算法</span>
+                      <a href="/2019/09/25/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/LeakCanary/0001-%E5%89%8D%E8%A8%80/">
+                        <span class="hidden-mobile">0001-前言</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

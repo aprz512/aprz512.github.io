@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.5k 字
+      2k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       大约 
-      7
+      9
        分钟
     </span>
   
@@ -235,7 +235,11 @@
             <h1 style="display: none">View 的滑动处理（四）</h1>
             
             <div class="markdown-body">
-              <p>看下面这个布局：</p>
+              <blockquote>
+<p>这个例子可能举得不太恰当，应该用 NestedScrollView距离，因为在不同的版本上，下面的例子有不同的滑动效果。</p>
+<p>例子基于 API 28</p>
+</blockquote>
+<p>看下面这个布局：</p>
 <pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
 <span class="hljs-tag">&lt;<span class="hljs-name">androidx.constraintlayout.widget.ConstraintLayout</span> <span class="hljs-attr">xmlns:android</span>=<span class="hljs-string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span>
 <span class="hljs-tag">    <span class="hljs-attr">xmlns:tools</span>=<span class="hljs-string">&quot;http://schemas.android.com/tools&quot;</span></span>
@@ -281,9 +285,59 @@
 <span class="hljs-tag">&lt;/<span class="hljs-name">androidx.constraintlayout.widget.ConstraintLayout</span>&gt;</span></code></pre>
 <p>忽略，其他无关的部分，其实就是一个 ScrollView 嵌套了一个 RecyclerView。</p>
 <p>按照事件拦截机制来看，当 RecyclerView 滑动到底部的时候，应该就不能滑动了，而且 ScrollView 也无法滑动才对。</p>
-<p>但是实际行为却不是这样的，实际上它们的滑动效果可以无缝链接，当 RecyclerView 滑动到底部的时候，继续滑动时，ScrollView 会滑动。这震惊了我，决定看看源码，看看到底是怎么回事，这单纯用事件拦截机制是无法解释的。</p>
-<p>因为 ScrollView 与 RecyclerView 是没什么关系的，除非 ScrollView 能判断 RecyclerView 滑动到了底部，然后拦截事件，自己再处理滑动事件。这样逻辑就缠绕到一起了，显然不可能。</p>
-<p>在第一篇里面，我们是介绍了嵌套滑动的相关概念，这里就很像嵌套滑动，但是我看了类之间的关系，发现 ScrollView 根本没有实现相关接口，这就又没了线索，所以只能使用老办法，一点一点的看 RecyclerView 是如何处理滑动事件的，然后追踪可疑的地方。</p>
+<p>但是实际行为却不是这样的，实际上它们的滑动效果可以无缝链接，当 RecyclerView 滑动到底部的时候，继续滑动时，ScrollView 会滑动。惊了，决定看看源码，看看到底是怎么回事，这单纯用事件拦截机制是无法解释的。除非这两个控件强耦合。</p>
+<p>那么，现在有几个问题是无法解释的：</p>
+<ul>
+<li>滑动 RecyclerView 的时候，为什么不是 ScrollView 拦截这个滑动事件？它是怎么做到的？</li>
+<li>RecyclerView 滑动到底部的时候，ScrollView 是如何接着滑动的？</li>
+</ul>
+<h3 id="第一个问题"><a href="#第一个问题" class="headerlink" title="第一个问题"></a>第一个问题</h3><p>我们看 ScrollView 的 <code>android.widget.ScrollView#onInterceptTouchEvent</code> 方法：</p>
+<blockquote>
+<p>android.widget.ScrollView#onInterceptTouchEvent</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">if</span> ((action == MotionEvent.ACTION_MOVE) &amp;&amp; (mIsBeingDragged)) &#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+&#125;</code></pre>
+<p>它决定是否拦截事件，主要取决于 <code>mIsBeingDragged</code> 这个变量。由于在这个滑动事件中，ScrollView 只会走 onInterceptTouchEvent 这个方法，所以我们只用看这个方法里面的逻辑，它里面 mIsBeingDragged 的赋值逻辑如下：</p>
+<pre><code class="hljs java"><span class="hljs-keyword">case</span> MotionEvent.ACTION_MOVE: &#123;
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> y = (<span class="hljs-keyword">int</span>) ev.getY(pointerIndex);
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> yDiff = Math.abs(y - mLastMotionY);
+    <span class="hljs-keyword">if</span> (yDiff &gt; mTouchSlop &amp;&amp; (getNestedScrollAxes() &amp; SCROLL_AXIS_VERTICAL) == <span class="hljs-number">0</span>) &#123;
+        mIsBeingDragged = <span class="hljs-keyword">true</span>;</code></pre>
+<p>可以看到，mIsBeingDragged 的值取决于 getNestedScrollAxes() 这个方法的值。</p>
+<p>那么，这个<code>getNestedScrollAxes() &amp; SCROLL_AXIS_VERTICAL) == 0</code> 条件啥时候为 true 呢？答案是当 <code>`getNestedScrollAxes()</code>不等于 SCROLL_AXIS_VERTICAL 的时候，也就是<strong>嵌套滑动方向不是竖直滑动的时候</strong>。</p>
+<p>那么，我们看这个方法的逻辑：</p>
+<blockquote>
+<p>android.view.ViewGroup#getNestedScrollAxes</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getNestedScrollAxes</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">return</span> mNestedScrollAxes;
+&#125;</code></pre>
+<p>简单的返回了一个成员变量，看他在哪里赋值的：</p>
+<pre><code class="hljs css"><span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.ViewGroup</span><span class="hljs-selector-id">#onNestedScrollAccepted</span>
+<span class="hljs-selector-tag">-androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.ViewParentCompat</span><span class="hljs-selector-id">#onNestedScrollAccepted</span>(<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.ViewParent</span>, <span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.View</span>, <span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.View</span>, <span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>)
+<span class="hljs-selector-tag">--androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#startNestedScroll</span>(<span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>)
+<span class="hljs-selector-tag">---androidx</span><span class="hljs-selector-class">.recyclerview</span><span class="hljs-selector-class">.widget</span><span class="hljs-selector-class">.RecyclerView</span><span class="hljs-selector-id">#startNestedScroll</span>(<span class="hljs-selector-tag">int</span>, <span class="hljs-selector-tag">int</span>)
+<span class="hljs-selector-tag">----androidx</span><span class="hljs-selector-class">.recyclerview</span><span class="hljs-selector-class">.widget</span><span class="hljs-selector-class">.RecyclerView</span><span class="hljs-selector-id">#onInterceptTouchEvent</span>
+
+<span class="hljs-selector-tag">----androidx</span><span class="hljs-selector-class">.recyclerview</span><span class="hljs-selector-class">.widget</span><span class="hljs-selector-class">.RecyclerView</span><span class="hljs-selector-id">#onTouchEvent</span></code></pre>
+<p>跟着这个调用链，可以知道，当 RecyclerView 的 onTouchEvent 方法执行的时候，就赋值为 <code>SCROLL_AXIS_VERTICAL</code>。</p>
+<pre><code class="hljs java"><span class="hljs-keyword">int</span> nestedScrollAxis = ViewCompat.SCROLL_AXIS_NONE;
+<span class="hljs-keyword">if</span> (canScrollHorizontally) &#123;
+    nestedScrollAxis |= ViewCompat.SCROLL_AXIS_HORIZONTAL;
+&#125;
+<span class="hljs-keyword">if</span> (canScrollVertically) &#123;
+    nestedScrollAxis |= ViewCompat.SCROLL_AXIS_VERTICAL;
+&#125;
+startNestedScroll(nestedScrollAxis, TYPE_TOUCH);</code></pre>
+<p>所以，ScrollView 的 mIsBeingDragged 一直为 false，它就不拦截事件。</p>
+<p>整个流程就是：</p>
+<ul>
+<li>down 事件产生，传递到 recyclerView，recyclerView 的 child 没有能消费这个事件的，它自己处理了，调用到它自己的  onTouchEvent 方法</li>
+<li>通过 NestedScrolling 的一些接口，通知父控件嵌套滑动方向为 SCROLL_AXIS_VERTICAL</li>
+<li>move 事件到来时，由于嵌套滑动方向是竖直的，ScrollView 就不拦截</li>
+</ul>
+<h3 id="第二个问题"><a href="#第二个问题" class="headerlink" title="第二个问题"></a>第二个问题</h3><p>在第一篇里面，我们是介绍了嵌套滑动的相关概念，这里就很像嵌套滑动。</p>
 <p>然后看到了这样的调用链：</p>
 <pre><code class="hljs leaf">androidx.recyclerview.widget.RecyclerView#onTouchEvent
 -&gt;androidx.recyclerview.widget.RecyclerView<span class="hljs-function"><span class="hljs-keyword">#</span><span class="hljs-title">dispatchNestedPreScroll</span><span class="hljs-params">(<span class="hljs-variable">int</span>, <span class="hljs-variable">int</span>, <span class="hljs-variable">int</span>[], <span class="hljs-variable">int</span>[], <span class="hljs-variable">int</span>)</span></span>
@@ -317,6 +371,18 @@
 &#125;</code></pre>
 <p>我们先看注释①：</p>
 <p>问题一：RecyclerView 是如何知道 ScrollView 是 parent 的？</p>
+<blockquote>
+<p>androidx.core.view.NestedScrollingChildHelper#getNestedScrollingParentForType</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> ViewParent <span class="hljs-title">getNestedScrollingParentForType</span><span class="hljs-params">(<span class="hljs-meta">@NestedScrollType</span> <span class="hljs-keyword">int</span> type)</span> </span>&#123;
+    <span class="hljs-keyword">switch</span> (type) &#123;
+        <span class="hljs-keyword">case</span> TYPE_TOUCH:
+            <span class="hljs-keyword">return</span> mNestedScrollingParentTouch;
+        <span class="hljs-keyword">case</span> TYPE_NON_TOUCH:
+            <span class="hljs-keyword">return</span> mNestedScrollingParentNonTouch;
+    &#125;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+&#125;</code></pre>
 <p>追踪链如下：</p>
 <pre><code class="hljs css"><span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#mNestedScrollingParentTouch</span>
 <span class="hljs-selector-tag">-</span>&gt;<span class="hljs-selector-tag">androidx</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.view</span><span class="hljs-selector-class">.NestedScrollingChildHelper</span><span class="hljs-selector-id">#setNestedScrollingParentForType</span>

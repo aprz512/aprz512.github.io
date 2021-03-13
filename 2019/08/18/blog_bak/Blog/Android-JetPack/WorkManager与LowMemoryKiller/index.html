@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.4k 字
+      1.6k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       大约 
-      5
+      6
        分钟
     </span>
   
@@ -235,7 +235,7 @@
             <h1 style="display: none">WorkManager 与 LowMemoryKiller 理解</h1>
             
             <div class="markdown-body">
-              <p>今天在查看bugly的时候，发现了如下错误：</p>
+              <h3 id="Service"><a href="#Service" class="headerlink" title="Service"></a>Service</h3><p>今天在查看bugly的时候，发现了如下错误：</p>
 <pre><code class="hljs reasonml">android.app.RemoteServiceException
 <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Context</span>.</span></span>start<span class="hljs-constructor">ForegroundService()</span> did not <span class="hljs-keyword">then</span> call <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Service</span>.</span></span>start<span class="hljs-constructor">Foreground()</span></code></pre>
 <p>发现是由于WorkManager引起的，原因是由于我们刚刚引入了WorkManager，不想对原来的代码改动太大，所以只是将AlarmManager替换成了WorkManager。</p>
@@ -325,16 +325,18 @@
 <p>说了这么多，得出一个结论：苍天已死，黄天当立。</p>
 <p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-JetPack/WorkManager/1_ISeFOxwzOKMzsoz3SMm9Nw.png?raw=true" srcset="/img/loading.gif" alt=""></p>
 <p>既然Service已经不再能够实现它的主要目的（在后台长时间的运行任务），所以最好就不要在使用它了。</p>
-<h2 id="WorkManager-：-Just-because-work-should-be-easy-to-do"><a href="#WorkManager-：-Just-because-work-should-be-easy-to-do" class="headerlink" title="WorkManager ： Just because work should be easy to do."></a>WorkManager ： Just because work should be easy to do.</h2><blockquote>
-<p>WorkManager可以简化开发人员的工作，它提供了一流的api。</p>
-<p>它适用于即使应用程序不再位于前台也应运行的后台作业。</p>
-<p>在可能的情况下，它使用JobScheduler或Firebase JobDispatcher来完成工作。</p>
-<p>如果你的应用程序在前台，它甚至会尝试直接在你的进程中完成工作。</p>
-</blockquote>
-<p><strong>WorkManger 的使用可以查看最后面的官方文档，讲的非常详细，这里并不介绍。</strong></p>
-<p>WorkManger 的体系结构如下：</p>
-<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-JetPack/WorkManager/1_VkznGM_XrSK9kmOujJCV6w.png?raw=true" srcset="/img/loading.gif" alt=""></p>
-<p>可以看到，WorkManger 在 enqueue work 的时候，将 work 保存到了数据库中（使用 room），用于满足条件之后再执行。所以，如果遇到报数据库相关的错误，而你的项目又没有相关代码，记得检查这里。</p>
+<h3 id="WorkManager"><a href="#WorkManager" class="headerlink" title="WorkManager"></a>WorkManager</h3><h4 id="特点与使用场景"><a href="#特点与使用场景" class="headerlink" title="特点与使用场景"></a>特点与使用场景</h4><p><strong>特点：</strong></p>
+<ol>
+<li>保证任务一定会被执行<br>WorkManager有自己的数据库，每一个任务的信息与任务状态，都会保存在本地数据库中。所以即使程序没有在运行，或者在设备重启等情况下，WorkManager依然可以保证任务的执行，只是不保证任务立即被执行。</li>
+<li>合理使用设备资源<br>在执行很多周期性或非立即执行的任务时，WorkManager提供我们API，帮助我们合理利用设备资源，避免不必要的内存，流量，电量等消耗。</li>
+</ol>
+<p><strong>适用场景：</strong></p>
+<ol>
+<li>可延迟进行的任务<br>a.满足某些条件才执行的任务，如需要在充电时才执行的任务。<br>b.用户无感知或可延迟感知的任务，如同步配置信息，同步资源，同步通讯录等。</li>
+<li>定期重复性任务，但时效性要求不高的，如定期log上传，数据备份等。</li>
+<li>退出应用后还应继续执行的未完成任务。</li>
+</ol>
+<p>可以看出，WorkManger 与 Service 的使用场景并不完全重合。比如，我们的应用像采集用户的 GPS 信息，在旧 Android 时代，是一个很轻松的事情，做个保活就可以了，但是现在，Service 有了很大的限制，而且国产 ROM 也不允许app在后台运行太长时间（5分钟，不能再多了）。现在虽然出了  WorkManager，但是它也无法实现这个功能，因为，它不保证任务立即被执行，这样的话，采集出来的数据没有意义。</p>
 <h1 id="参考文档"><a href="#参考文档" class="headerlink" title="# 参考文档"></a># 参考文档</h1><p><a target="_blank" rel="noopener" href="https://medium.com/google-developer-experts/services-the-life-with-without-and-worker-6933111d62a6">Services. The life with/without. And WorkManager.</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.wolfcstech.com/2015/10/04/lowmemorykiller/">Android low memory killer 机制</a></p>
 <p><a target="_blank" rel="noopener" href="https://developer.android.com/topic/libraries/architecture/workmanager">Schedule tasks with WorkManager</a></p>
@@ -362,9 +364,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2019/08/18/blog_bak/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/0052-2-3%E6%A0%91/">
+                      <a href="/2019/08/18/blog_bak/Blog/Android-JetPack/Navigation%20%E7%9A%84%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">0052-2-3树</span>
+                        <span class="hidden-mobile">Navigation 的使用记录</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -372,8 +374,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2019/08/18/blog_bak/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E9%9D%A2%E8%AF%95%E4%B8%AD%E7%9A%84%E7%AE%97%E6%B3%95/">
-                        <span class="hidden-mobile">0053-面试中的算法</span>
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/Drawable%20%E4%BB%8B%E7%BB%8D/">
+                        <span class="hidden-mobile">Drawable 介绍</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

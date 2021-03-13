@@ -1,0 +1,680 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" type="image/png" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  <title>0002-自动初始化 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.5","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"copy_btn":true,"image_zoom":{"enable":true},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="0002-自动初始化">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-03-11 00:00" pubdate>
+        2021年3月11日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      952 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      4
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">0002-自动初始化</h1>
+            
+            <div class="markdown-body">
+              <blockquote>
+<p>源码版本 2.6 </p>
+<p>AS 版本 4.1.1</p>
+</blockquote>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p><strong>新版的使用</strong>就非常的简单了：</p>
+<pre><code class="hljs gradle"><span class="hljs-keyword">dependencies</span> &#123;
+  <span class="hljs-comment">// debugImplementation because LeakCanary should only run in debug builds.</span>
+  debugImplementation <span class="hljs-string">&#x27;com.squareup.leakcanary:leakcanary-android:2.6&#x27;</span>
+&#125;</code></pre>
+<p>只需要添加一个依赖就好了。旧版的话，还需要添加一个 release 的依赖，而且需要在 Application 里面手动初始化。因为需要在 Application 手动初始化，所以才必须添加 release 的依赖，只不过 release 里面的类都是空方法而已。</p>
+<p>那么新版为何不需要做初始化呢？</p>
+<h3 id="自动初始化"><a href="#自动初始化" class="headerlink" title="自动初始化"></a>自动初始化</h3><p>我们看下面的一段源码：</p>
+<blockquote>
+<p>android.app.ActivityThread#handleBindApplication</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-meta">@UnsupportedAppUsage</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handleBindApplication</span><span class="hljs-params">(AppBindData data)</span> </span>&#123;
+    ...
+    
+    Application app;
+    <span class="hljs-keyword">final</span> StrictMode.ThreadPolicy savedPolicy = StrictMode.allowThreadDiskWrites();
+    <span class="hljs-keyword">final</span> StrictMode.ThreadPolicy writesAllowedPolicy = StrictMode.getThreadPolicy();
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// ① 创建 app 对象</span>
+        app = data.info.makeApplication(data.restrictedBackupMode, <span class="hljs-keyword">null</span>);
+
+        ...
+
+        <span class="hljs-keyword">if</span> (!data.restrictedBackupMode) &#123;
+            <span class="hljs-keyword">if</span> (!ArrayUtils.isEmpty(data.providers)) &#123;
+                <span class="hljs-comment">// ② 安装 contentProviders</span>
+                installContentProviders(app, data.providers);
+            &#125;
+        &#125;
+
+        ...
+
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-comment">// ③ 调用 app 的 onCreate 方法</span>
+            mInstrumentation.callApplicationOnCreate(app);
+        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+            ...
+        &#125;
+        ...
+    &#125;
+    ...
+&#125;</code></pre>
+<p>可以看到在 Application 的 onCreate 方法执行之前，调用了 <code>installContentProviders</code> 这个方法。</p>
+<p>继续看这个方法：</p>
+<blockquote>
+<p>android.app.ActivityThread#installContentProviders</p>
+</blockquote>
+<p>它的调用链：</p>
+<pre><code class="hljs css"><span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.app</span><span class="hljs-selector-class">.ActivityThread</span><span class="hljs-selector-id">#installContentProviders</span>
+<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.app</span><span class="hljs-selector-class">.ActivityThread</span><span class="hljs-selector-id">#installProvider</span>
+<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.content</span><span class="hljs-selector-class">.ContentProvider</span><span class="hljs-selector-id">#attachInfo</span>
+<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.content</span><span class="hljs-selector-class">.ContentProvider</span><span class="hljs-selector-id">#attachInfo</span>(<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.content</span><span class="hljs-selector-class">.Context</span>, <span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.content</span><span class="hljs-selector-class">.pm</span><span class="hljs-selector-class">.ProviderInfo</span>, <span class="hljs-selector-tag">boolean</span>)
+<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.content</span><span class="hljs-selector-class">.ContentProvider</span><span class="hljs-selector-id">#onCreate</span></code></pre>
+<p>所以，ContentProvider 的 onCreate 方法在 Application 的 onCreate 方法之前执行。</p>
+<p>一般情况下，我们会将初始化代码写到 Application 的 onCreate 方法里面，是因为这个回调最先执行，那么我们将初始化代码移到 ContentProvider 的 onCreate 方法里面也是可以的。</p>
+<blockquote>
+<p>这里需要注意一个问题，如果所有的初始化都这样做，那么会拖慢启动速度，jetpack 有个库是为了解决这个问题的，同时也证明了 Google 对于在 ContentProvider 做初始化的做法是比较支持的。</p>
+</blockquote>
+<p>有了这个基础知识，我们再回头看 LeakCanary 的初始化。在工程的 External Libraries 里面：</p>
+<pre><code class="hljs less"><span class="hljs-attribute">Gradle</span>:com.squareup.<span class="hljs-attribute">leakcanary</span>:<span class="hljs-attribute">leakcanary-object-watcher-android</span>:<span class="hljs-number">2.6</span><span class="hljs-variable">@aar</span></code></pre>
+<p>看它的 <code>AndroidManifest.xml</code> 文件里面：</p>
+<pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">application</span>&gt;</span>
+    &lt;provider
+        android:name=&quot;leakcanary.internal.AppWatcherInstaller$MainProcess&quot;
+        android:authorities=&quot;$&#123;applicationId&#125;.leakcanary-installer&quot;
+        android:enabled=&quot;@bool/leak_canary_watcher_auto_install&quot;
+        android:exported=&quot;false&quot; /&gt;
+<span class="hljs-tag">&lt;/<span class="hljs-name">application</span>&gt;</span></code></pre>
+<p>有一个 ContentProvider，看源码：</p>
+<pre><code class="hljs kotlin"><span class="hljs-comment">/**</span>
+<span class="hljs-comment"> * Content providers are loaded before the application class is created. [AppWatcherInstaller] is</span>
+<span class="hljs-comment"> * used to install [leakcanary.AppWatcher] on application start.</span>
+<span class="hljs-comment"> */</span>
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">sealed</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AppWatcherInstaller</span> : <span class="hljs-type">ContentProvider</span></span>() &#123;
+
+  <span class="hljs-comment">/**</span>
+<span class="hljs-comment">   * [MainProcess] automatically sets up the LeakCanary code that runs in the main app process.</span>
+<span class="hljs-comment">   */</span>
+  <span class="hljs-keyword">internal</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainProcess</span> : <span class="hljs-type">AppWatcherInstaller</span></span>()
+
+  <span class="hljs-comment">/**</span>
+<span class="hljs-comment">   * When using the `leakcanary-android-process` artifact instead of `leakcanary-android`,</span>
+<span class="hljs-comment">   * [LeakCanaryProcess] automatically sets up the LeakCanary code</span>
+<span class="hljs-comment">   */</span>
+  <span class="hljs-keyword">internal</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LeakCanaryProcess</span> : <span class="hljs-type">AppWatcherInstaller</span></span>()
+
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCreate</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Boolean</span> &#123;
+    <span class="hljs-keyword">val</span> application = context!!.applicationContext <span class="hljs-keyword">as</span> Application
+    AppWatcher.manualInstall(application)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+  &#125;
+
+  。。。
+&#125;</code></pre>
+<p>这里有两个子类：</p>
+<ul>
+<li><p>MainProcess</p>
+</li>
+<li><p>LeakCanaryProcess</p>
+</li>
+</ul>
+<p>指的是，LeakCanary 想要运行在哪个进程。如果我们依赖的时候，使用的是：</p>
+<pre><code class="hljs scheme"><span class="hljs-symbol">&#x27;com.squareup.leakcanary:leakcanary-android:2.6</span>&#x27;</code></pre>
+<p>则运行在主进程。如果我们依赖使用的是：</p>
+<pre><code class="hljs scheme"><span class="hljs-symbol">&#x27;com.squareup.leakcanary:leakcanary-android-process:2.6</span>&#x27;</code></pre>
+<p>那么就会单独开启一个进程来做内存泄露分析。</p>
+<p>看<code>onCreate</code>里面的逻辑：</p>
+<blockquote>
+<p>leakcanary.internal.AppWatcherInstaller#onCreate</p>
+</blockquote>
+<pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCreate</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Boolean</span> &#123;
+  <span class="hljs-keyword">val</span> application = context!!.applicationContext <span class="hljs-keyword">as</span> Application
+  AppWatcher.manualInstall(application)
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+&#125;</code></pre>
+<p>就一行代码，继续：</p>
+<pre><code class="hljs kotlin"><span class="hljs-meta">@JvmOverloads</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">manualInstall</span><span class="hljs-params">(</span></span>
+<span class="hljs-function"><span class="hljs-params">  application: <span class="hljs-type">Application</span>,</span></span>
+<span class="hljs-function"><span class="hljs-params">  retainedDelayMillis: <span class="hljs-type">Long</span> = TimeUnit.SECONDS.toMillis(<span class="hljs-number">5</span>)</span></span>,
+  watchersToInstall: List&lt;InstallableWatcher&gt; = appDefaultWatchers(application)
+) &#123;
+  checkMainThread()
+  check(!isInstalled) &#123;
+    <span class="hljs-string">&quot;AppWatcher already installed&quot;</span>
+  &#125;
+  check(retainedDelayMillis &gt;= <span class="hljs-number">0</span>) &#123;
+    <span class="hljs-string">&quot;retainedDelayMillis <span class="hljs-variable">$retainedDelayMillis</span> must be at least 0 ms&quot;</span>
+  &#125;
+  <span class="hljs-keyword">this</span>.retainedDelayMillis = retainedDelayMillis
+  <span class="hljs-keyword">if</span> (application.isDebuggableBuild) &#123;
+    LogcatSharkLog.install()
+  &#125;
+  <span class="hljs-comment">// Requires AppWatcher.objectWatcher to be set</span>
+  LeakCanaryDelegate.loadLeakCanary(application)
+
+  watchersToInstall.forEach &#123;
+    it.install()
+  &#125;
+&#125;
+</code></pre>
+<p>这个方法有很多注释，其中有一条说：</p>
+<blockquote>
+<p>如果你想自己调用这个 manualInstall 方法，那么需要先禁止 ContentProvider。</p>
+<p>如何禁止，注释上有。</p>
+<p>但是有一个疑问，如果自己调用这个方法的话，那 release 版本不是会报错？？？</p>
+</blockquote>
+<p>这个方法有3个参数，后面两个参数是默认的，第3个参数是重点，里面有各种各样的 watcher，用来检测内存泄露的。只需要调用 Watcher 的 install 方法即可。</p>
+<p>Watcher 的分析下一篇再说。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/LeakCanary/">LeakCanary</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-LeakCanary/">Android源码解析-LeakCanary</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/03/13/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/LeakCanary/0004-%E7%9C%9F%E6%AD%A3%E6%89%A7%E8%A1%8C%E7%9B%91%E6%B5%8B%E7%9A%84%E7%B1%BB/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">0004-真正执行监测的类</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/03/11/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/LeakCanary/0003-%E7%9B%91%E6%B5%8B%E9%A1%B5%E9%9D%A2%E4%B8%8EView%E6%98%AF%E5%90%A6%E6%B3%84%E9%9C%B2%E7%9A%84Watcher/">
+                        <span class="hidden-mobile">0003-监测页面与View是否泄露的Watcher</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="vcomments"></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('vcomments', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function () {
+        new Valine({
+          el: "#vcomments",
+          app_id: "oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI",
+          app_key: "FllNdPfQPCLcrJVVXHGyakPQ",
+          placeholder: "说点什么",
+          path: window.location.pathname,
+          avatar: "retro",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: false,
+          recordIP: false,
+          serverURLs: "",
+        });
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a target="_blank" href="https://valine.js.org" rel="nofollow noopener noopener">comments powered by Valine.</a>
+  </noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    document.addEventListener('DOMContentLoaded', function() {
+      window.NProgress && window.NProgress.inc();
+    })
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

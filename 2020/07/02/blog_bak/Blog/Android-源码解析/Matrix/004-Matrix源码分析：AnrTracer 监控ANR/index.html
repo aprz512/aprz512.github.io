@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2k 字
+      2.2k 字
     </span>
   
 
@@ -507,6 +507,12 @@ StringBuilder logcatBuilder = <span class="hljs-keyword">new</span> StringBuilde
 <p>将方法堆栈裁剪完之后，就可以打印输出了。这个类的核心就介绍完毕了。</p>
 <p>哦，对了，还有一个较重要的函数：<code>com.tencent.matrix.trace.util.TraceDataUtils#getTreeKey(java.util.List&lt;com.tencent.matrix.trace.items.MethodItem&gt;, long)</code></p>
 <p>这个就是为堆栈生成一个 key，因为上报到后台，没有一个 key 的话很麻烦，而且将堆栈简化为key，可以更容易的做处理。具体就是：分析出主要耗时的那一级函数，作为代表卡顿堆栈的key。就是上图的下半部分。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>如果主线程中的一个Message的处理超过了 5000ms，那么既有可能会发生 anr，所以我们可以这样做：</p>
+<ul>
+<li>在 dispatchBegin 的时候，记录一下 long 数组的索引（以 post 延迟5s消息的方式）</li>
+<li>在 dispatchEnd 的时候，记录一下 long 数组的索引（将消息移除，如果间隔超过了5s，就会执行下面的逻辑）</li>
+<li>拿到这两个索引之间的数据，然后分析调用堆栈以及耗时</li>
+</ul>
 
             </div>
             <hr>
