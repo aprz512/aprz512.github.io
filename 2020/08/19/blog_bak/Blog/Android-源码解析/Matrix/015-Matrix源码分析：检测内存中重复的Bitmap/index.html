@@ -1,0 +1,537 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>015-Matrix源码分析：检测内存中重复的Bitmap - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="015-Matrix源码分析：检测内存中重复的Bitmap">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-08-19 00:00" pubdate>
+        2020年8月19日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      5
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">015-Matrix源码分析：检测内存中重复的Bitmap</h1>
+            
+            <div class="markdown-body">
+              <p>在分析activity的引用链的时候，我们还可以顺便分析一下，内存中有没有重复的Bitmap，如果有的话，就可以看看是什么原因导致的，这样对优化内存有帮助。</p>
+<p>分析该任务的类是 <code>DuplicatedBitmapAnalyzer</code>。用过 as 的都知道它有一个 profiler功能，里面可以对CPU/网络/内存做分析。而内存分析的话，它也提供了 dump 与分析 hprof 文件的功能。</p>
+<p>所以，我们查看这个模块的相关源码的话，就可以找到这个类：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://android.googlesource.com/platform/tools/base/+/studio-master-dev/perflib/src/main/java/com/android/tools/perflib/heap/memoryanalyzer/DuplicatedBitmapAnalyzerTask.java">https://android.googlesource.com/platform/tools/base/+/studio-master-dev/perflib/src/main/java/com/android/tools/perflib/heap/memoryanalyzer/DuplicatedBitmapAnalyzerTask.java</a></p>
+</blockquote>
+<p>里面是使用了一个算法来分析内存中的相同的bitmap。</p>
+<p>先看看上面链接的这个类，然后再看 matrix 的这个类，会更好一点，因为 matrix 的这个类加了不少东西，导致方法很长，看起来就不好懂。</p>
+<p>那我们就先分析 google 的那个类，它的逻辑很纯粹，好理解这个算法。</p>
+<p>先说一下这个算法是如何做的：</p>
+<p>首先，要判断两个 Bitmap 是否是一样的，只需要判断它的 mBuffer 字段是不是一样的，所以就归结为<strong>比较两个 byte 数组是否一样</strong>。</p>
+<p>内存中的 Bitmap 对象那么多，怎么才能列举出所有相等的 mBuffer 呢？</p>
+<p>第一步，将 mBuffer 按照 mBuffer[0] 的值进行分组。假设，得到了 8 组。</p>
+<p>第二部，遍历上面得到的 8 组内容，对每组按照 mBuffer[1] 的值再进行分组。</p>
+<p>重复上面的过程。一直到有 mBuffer 已经被遍历完了，就检查一下被遍历完成的集合大小，是否大于1。如果大于1，则说明这个集合里面的 mBuffer 是一样的。所以就找到了所有的相同的 mBuffer。下面是具体的实现代码：</p>
+<blockquote>
+<p>DuplicatedBitmapAnalyzerTask#analyze</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">int</span> columnIndex = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">while</span> (!commonPrefixSets.isEmpty()) &#123;<br>    <span class="hljs-keyword">for</span> (Set&lt;ArrayInstance&gt; commonPrefixArrays : commonPrefixSets) &#123;<br>        Map&lt;Object, Set&lt;ArrayInstance&gt;&gt; entryClassifier = <span class="hljs-keyword">new</span> HashMap&lt;&gt;(<br>                commonPrefixArrays.size());<br>        <span class="hljs-keyword">for</span> (ArrayInstance arrayInstance : commonPrefixArrays) &#123;<br>            Object element = cachedValues.get(arrayInstance)[columnIndex];<br>            <span class="hljs-keyword">if</span> (entryClassifier.containsKey(element)) &#123;<br>                entryClassifier.get(element).add(arrayInstance);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                Set&lt;ArrayInstance&gt; instanceSet = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();<br>                instanceSet.add(arrayInstance);<br>                entryClassifier.put(element, instanceSet);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">for</span> (Set&lt;ArrayInstance&gt; branch : entryClassifier.values()) &#123;<br>            <span class="hljs-keyword">if</span> (branch.size() &lt;= <span class="hljs-number">1</span>) &#123;<br>                <span class="hljs-comment">// Unique branch, ignore it and it won&#x27;t be counted towards duplication.</span><br>                <span class="hljs-keyword">continue</span>;<br>            &#125;<br>            Set&lt;ArrayInstance&gt; terminatedArrays = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();<br>            <span class="hljs-comment">// Move all ArrayInstance that we have hit the end of to the candidate result list.</span><br>            <span class="hljs-keyword">for</span> (ArrayInstance instance : branch) &#123;<br>                <span class="hljs-keyword">if</span> (instance.getLength() == columnIndex + <span class="hljs-number">1</span>) &#123;<br>                    terminatedArrays.add(instance);<br>                &#125;<br>            &#125;<br>            branch.removeAll(terminatedArrays);<br>            <span class="hljs-comment">// Exact duplicated arrays found.</span><br>            <span class="hljs-keyword">if</span> (terminatedArrays.size() &gt; <span class="hljs-number">1</span>) &#123;<br>                <span class="hljs-keyword">int</span> byteArraySize = -<span class="hljs-number">1</span>;<br>                ArrayList&lt;Instance&gt; duplicateBitmaps = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br>                <span class="hljs-keyword">for</span> (ArrayInstance terminatedArray : terminatedArrays) &#123;<br>                    duplicateBitmaps.add(byteArrayToBitmapMap.get(terminatedArray));<br>                    byteArraySize = terminatedArray.getLength();<br>                &#125;<br>                results.add(<br>                        <span class="hljs-keyword">new</span> DuplicatedBitmapEntry(<span class="hljs-keyword">new</span> ArrayList&lt;&gt;(duplicateBitmaps),<br>                                byteArraySize));<br>            &#125;<br>            <span class="hljs-comment">// If there are ArrayInstances that have identical prefixes and haven&#x27;t hit the</span><br>            <span class="hljs-comment">// end, add it back for the next iteration.</span><br>            <span class="hljs-keyword">if</span> (branch.size() &gt; <span class="hljs-number">1</span>) &#123;<br>                reducedPrefixSets.add(branch);<br>            &#125;<br>        &#125;<br>    &#125;<br>    commonPrefixSets.clear();<br>    commonPrefixSets.addAll(reducedPrefixSets);<br>    reducedPrefixSets.clear();<br>    columnIndex++;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其实还有一种找出重复 mBuffer  的方式，比较简单，就是对 mBuffer 进行 md5或者hash。比如下面的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 处理 heap，找出有相同 buffer 的 bitmap 的 instance，存放在 map 中。</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> objMap 存放相同 buffer 的 instance 的map</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> heap 待处理的 heap</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> classObj 这里是  bitmap 的封装对象</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">analyzeHeapForSameBuffer</span><span class="hljs-params">(Map&lt;String, ArrayList&lt;ObjNode&gt;&gt; objMap,</span></span><br><span class="hljs-params"><span class="hljs-function">                                Heap heap, ClassObj classObj)</span></span>&#123;<br>    List&lt;Instance&gt; instances = classObj.getHeapInstances(heap.getId());<br>    <span class="hljs-keyword">for</span> (Instance instance : instances)&#123;<br>        ArrayInstance buffer = HahaHelper.fieldValue(HahaHelper.classInstanceValues(instance), <span class="hljs-string">&quot;mBuffer&quot;</span>);<br>        <span class="hljs-keyword">byte</span>[] bytes = HahaHelper.getByteArray(buffer);<br>        <span class="hljs-keyword">try</span> &#123;<br>            String md5String = Md5Helper.getMd5(bytes);<br>            <span class="hljs-keyword">if</span>(objMap.containsKey(md5String))&#123;<br>                objMap.get(md5String).add(getObjNode(instance));<br>            &#125;<span class="hljs-keyword">else</span> &#123;<br>                ArrayList&lt;ObjNode&gt; objNodes = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br>                objNodes.add(getObjNode(instance));<br>                objMap.put(md5String, objNodes);<br>            &#125;<br>        &#125;<span class="hljs-keyword">catch</span> (Exception e)&#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>重复的图片找到之后，再找到引用链（与分析 activity 的引用链一样），然后将这些信息保存起来。这里还保存了 mBuffer，用于还原图片，便于开发者寻找问题。</p>
+<blockquote>
+<p>com.tencent.matrix.resource.analyzer.CLIMain#analyzeAndStoreResult</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 使用 bitmap 的 buffer 还原成图片</span><br><span class="hljs-comment">// Store bitmap buffer.</span><br><span class="hljs-keyword">final</span> List&lt;DuplicatedBitmapEntry&gt; duplicatedBmpEntries = duplicatedBmpResult.getDuplicatedBitmapEntries();<br><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> duplicatedBmpEntryCount = duplicatedBmpEntries.size();<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; duplicatedBmpEntryCount; ++i) &#123;<br>    <span class="hljs-keyword">final</span> DuplicatedBitmapEntry entry = duplicatedBmpEntries.get(i);<br>    <span class="hljs-keyword">final</span> BufferedImage img = BitmapDecoder.getBitmap(<br>            <span class="hljs-keyword">new</span> HprofBitmapProvider(entry.getBuffer(), entry.getWidth(), entry.getHeight()));<br>    <span class="hljs-comment">// Since bmp format is not compatible with alpha channel, we export buffer as png instead.</span><br>    <span class="hljs-keyword">final</span> String pngName = bufferContentsRootDirName + <span class="hljs-string">&quot;/&quot;</span> + entry.getBufferHash() + <span class="hljs-string">&quot;.png&quot;</span>;<br>    <span class="hljs-keyword">try</span> &#123;<br>        zos.putNextEntry(<span class="hljs-keyword">new</span> ZipEntry(pngName));<br>        ImageIO.write(img, <span class="hljs-string">&quot;png&quot;</span>, zos);<br>        zos.flush();<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            zos.closeEntry();<br>        &#125; <span class="hljs-keyword">catch</span> (Throwable ignored) &#123;<br>            <span class="hljs-comment">// Ignored.</span><br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>最后就是输出 json 信息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">final</span> JSONObject duplicatedBmpResultJson = <span class="hljs-keyword">new</span> JSONObject();<br>duplicatedBmpResult.encodeToJSON(duplicatedBmpResultJson);<br></code></pre></td></tr></table></figure>
+
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Matrix/">Matrix</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/08/19/blog_bak/Blog/C++/001-%E8%AF%AD%E6%B3%95%E6%8D%A1%E6%BC%8F/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">001-语法捡漏</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/08/18/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/014-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E4%BD%BF%E7%94%A8haha%E5%BA%93%E6%89%BE%E5%87%BA%E6%B3%84%E6%BC%8F%E7%9A%84%E5%BC%95%E7%94%A8%E9%93%BE/">
+                        <span class="hidden-mobile">014-Matrix源码分析：使用haha库找出泄漏的引用链</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

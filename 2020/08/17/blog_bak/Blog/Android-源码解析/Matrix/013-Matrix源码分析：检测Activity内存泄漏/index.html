@@ -1,0 +1,558 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>013-Matrix源码分析：检测Activity内存泄漏 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="013-Matrix源码分析：检测Activity内存泄漏">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-08-17 00:00" pubdate>
+        2020年8月17日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      8
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">013-Matrix源码分析：检测Activity内存泄漏</h1>
+            
+            <div class="markdown-body">
+              <p>Matrix的框架抽象了一个 Plugin 类。我们可以继承这个类来实现我们想做的功能。使用的时候只需要：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">TracePlugin tracePlugin = (<span class="hljs-keyword">new</span> TracePlugin(traceConfig));<br>builder.plugin(tracePlugin);<br></code></pre></td></tr></table></figure>
+
+<p>matrix-resource-canary-android这个module里面就提供了一个 ResourcePlugin。其主要作用就是检测 APP 中的 activity 泄漏，然后 dump 出 hprof 文件，再裁剪 hprof 文件，最后上传。</p>
+<p>检测 activity 泄漏，通常会想到 leakcanary，这个module 也是在 leakcanary 的基础上进行了二次开发，我们看看源码。</p>
+<p>核心代码在 ActivityRefWatcher 里面。</p>
+<h3 id="start"><a href="#start" class="headerlink" title="start"></a>start</h3><p>plugin 里面分别调用了 watcher 的 start stop等方法，这些方法属于 plugin 的生命周期，从这里入手逻辑会更清晰。</p>
+<p>首先既然要检测泄漏，那么必然要监听 activity 的 destroy 方法，老一套，使用了 ActivityLifecycleCallbacks：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"> <span class="hljs-meta">@Override</span><br> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onActivityDestroyed</span><span class="hljs-params">(Activity activity)</span> </span>&#123;<br>     <span class="hljs-comment">// 该方法里面的逻辑也很简单，就是将activity的信息添加到一个集合中</span><br>     <span class="hljs-comment">// 后面会开启扫描任务扫描这个集合</span><br>     pushDestroyedActivityInfo(activity);<br><span class="hljs-comment">/*     synchronized (mDestroyedActivityInfos) &#123;</span><br><span class="hljs-comment">         mDestroyedActivityInfos.notifyAll();</span><br><span class="hljs-comment">     &#125;*/</span><br> &#125;<br></code></pre></td></tr></table></figure>
+
+<p>在 LeakCanary 里面，我们判断是否泄漏是延迟了 5S，而且还加上了 gc，再去判断对象是否还存在。</p>
+<p>Matrix的判断方式有点不一样，往下看。</p>
+<h3 id="RetryableTask"><a href="#RetryableTask" class="headerlink" title="RetryableTask"></a>RetryableTask</h3><p>在start的时候，也开启了一个task，这个task是运行在 HandlerThread 中，也就是一个线程了。</p>
+<p>我们分析看这个 task 做了啥：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 创建一个 weak 引用，触发 gc，看有没有被回收，触发 gc，系统不一定会叼你</span><br><span class="hljs-keyword">final</span> WeakReference&lt;Object&gt; sentinelRef = <span class="hljs-keyword">new</span> WeakReference&lt;&gt;(<span class="hljs-keyword">new</span> Object());<br>triggerGc();<br><span class="hljs-keyword">if</span> (sentinelRef.get() != <span class="hljs-keyword">null</span>) &#123;<br>    <span class="hljs-comment">// System ignored our gc request, we will retry later.</span><br>    MatrixLog.d(TAG, <span class="hljs-string">&quot;system ignore our gc request, wait for next detection.&quot;</span>);<br>    <span class="hljs-keyword">return</span> Status.RETRY;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个 task 做了很多处理，减少泄漏误判情况，比如，这里它创建了一个弱引用，用来判断 gc 是否真的执行了。需要注意一下，这个 task 是有返回值的，Status.RETRY 表示这个 task 会再次执行。</p>
+<p>接下来就是扫描上面说的那个集合：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// activity 已经被回收了</span><br><span class="hljs-keyword">if</span> (destroyedActivityInfo.mActivityRef.get() == <span class="hljs-keyword">null</span>) &#123;<br>    <span class="hljs-comment">// The activity was recycled by a gc triggered outside.</span><br>    MatrixLog.v(TAG, <span class="hljs-string">&quot;activity with key [%s] was already recycled.&quot;</span>, destroyedActivityInfo.mKey);<br>    infoIt.remove();<br>    <span class="hljs-keyword">continue</span>;<br>&#125;<br>++destroyedActivityInfo.mDetectedCount;<br><br><span class="hljs-comment">// 泄露检测测试超过一定次数才认为是真的泄露了</span><br><span class="hljs-keyword">if</span> (destroyedActivityInfo.mDetectedCount &lt; mMaxRedetectTimes<br>        || !mResourcePlugin.getConfig().getDetectDebugger()) &#123;<br>    <span class="hljs-comment">// Although the sentinel tell us the activity should have been recycled,</span><br>    <span class="hljs-comment">// system may still ignore it, so try again until we reach max retry times.</span><br>    MatrixLog.i(TAG, <span class="hljs-string">&quot;activity with key [%s] should be recycled but actually still \n&quot;</span><br>                    + <span class="hljs-string">&quot;exists in %s times, wait for next detection to confirm.&quot;</span>,<br>            destroyedActivityInfo.mKey, destroyedActivityInfo.mDetectedCount);<br>    <span class="hljs-keyword">continue</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里也是减少误判，只有当一个 activity 泄漏到了一定次数后，才会认为它是真的泄漏了。</p>
+<p>后面的逻辑，就是根据不同的模式来进行不同的逻辑处理，这个插件支持的模式如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">DumpMode</span> </span>&#123;<br>    NO_DUMP, AUTO_DUMP, MANUAL_DUMP, SILENCE_DUMP<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里只介绍 AUTO_DUMP 模式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 如果是 AUTO_DUMP 模式，那么就去自动分析 heap 文件了，与 LeakCanary 类似</span><br><span class="hljs-keyword">final</span> File hprofFile = mHeapDumper.dumpHeap();<br><span class="hljs-keyword">if</span> (hprofFile != <span class="hljs-keyword">null</span>) &#123;<br>    markPublished(destroyedActivityInfo.mActivityName);<br>    <span class="hljs-comment">// dump hprof 文件</span><br>    <span class="hljs-keyword">final</span> HeapDump heapDump = <span class="hljs-keyword">new</span> HeapDump(hprofFile, destroyedActivityInfo.mKey, destroyedActivityInfo.mActivityName);<br>    <span class="hljs-comment">// 处理 dump 出来的 hprof 文件</span><br>    mHeapDumpHandler.process(heapDump);<br>    infoIt.remove();<br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    MatrixLog.i(TAG, <span class="hljs-string">&quot;heap dump for further analyzing activity with key [%s] was failed, just ignore.&quot;</span>,<br>                destroyedActivityInfo.mKey);<br>    infoIt.remove();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们看看它是怎么处理 hprof 文件的，我之前以为这个模式会与 LeakCanary一样会使用 haha 库来分析泄漏引用链，但是看了源码后，发现没有，这里只是做了 hprof 文件的裁剪。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">shrinkHprofAndReport</span><span class="hljs-params">(Context context, HeapDump heapDump)</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> Intent intent = <span class="hljs-keyword">new</span> Intent(context, CanaryWorkerService.class);<br>    intent.setAction(ACTION_SHRINK_HPROF);<br>    intent.putExtra(EXTRA_PARAM_HEAPDUMP, heapDump);<br>    enqueueWork(context, CanaryWorkerService.class, JOB_ID, intent);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>将裁剪任务交给了 JobIntentService。虽然里面有个 MatrixJobIntentService，但是基本上是拷贝的 JobIntentService，在里面做了一些 try catch 操作。</p>
+<p>接下来，分析它具体的裁剪代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java">is = <span class="hljs-keyword">new</span> FileInputStream(hprofIn);<br>os = <span class="hljs-keyword">new</span> BufferedOutputStream(<span class="hljs-keyword">new</span> FileOutputStream(hprofOut));<br><span class="hljs-keyword">final</span> HprofReader reader = <span class="hljs-keyword">new</span> HprofReader(<span class="hljs-keyword">new</span> BufferedInputStream(is));<br><span class="hljs-comment">// 这里是做了一个访问者模式，所以，核心代码都在 visitor 里面</span><br><span class="hljs-comment">// 不了解 hprof 的结构。里面的代码没法看</span><br>reader.accept(<span class="hljs-keyword">new</span> HprofInfoCollectVisitor());<br><span class="hljs-comment">// Reset.</span><br>is.getChannel().position(<span class="hljs-number">0</span>);<br>reader.accept(<span class="hljs-keyword">new</span> HprofKeptBufferCollectVisitor());<br><span class="hljs-comment">// Reset.</span><br>is.getChannel().position(<span class="hljs-number">0</span>);<br>reader.accept(<span class="hljs-keyword">new</span> HprofBufferShrinkVisitor(<span class="hljs-keyword">new</span> HprofWriter(os)));<br></code></pre></td></tr></table></figure>
+
+<p>由于我对 hprof 结构也不熟悉，查了些文档也收获不大，所以就不细说了。</p>
+<p>里面的逻辑大致分为几步：</p>
+<ul>
+<li><p>收集 hprof 文件的 bitmap 与 string 对象（索引id）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">visitStringRecord</span><span class="hljs-params">(ID id, String text, <span class="hljs-keyword">int</span> timestamp, <span class="hljs-keyword">long</span> length)</span> </span>&#123;<br>    <span class="hljs-comment">// 主要是处理了 Bitmap 与 String 这两个类</span><br><br>    <span class="hljs-comment">// Bitmap 有个 mBuffer 字段与 mRecycled 字段</span><br>    <span class="hljs-comment">// Bitmap在android sdk &lt; 26之前（&gt; 2.3），存儲像素的byte數組是放在Java層的，26之後是放在native層的。</span><br><br>    <span class="hljs-comment">// String 有个 value 字段</span><br>    <span class="hljs-comment">// String在android sdk &lt; 23之前，存儲字符的byte數組是放在Java層的，23之後是放在native層的。</span><br><br>    <span class="hljs-keyword">if</span> (mBitmapClassNameStringId == <span class="hljs-keyword">null</span> &amp;&amp; <span class="hljs-string">&quot;android.graphics.Bitmap&quot;</span>.equals(text)) &#123;<br>        mBitmapClassNameStringId = id;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mMBufferFieldNameStringId == <span class="hljs-keyword">null</span> &amp;&amp; <span class="hljs-string">&quot;mBuffer&quot;</span>.equals(text)) &#123;<br>        mMBufferFieldNameStringId = id;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mMRecycledFieldNameStringId == <span class="hljs-keyword">null</span> &amp;&amp; <span class="hljs-string">&quot;mRecycled&quot;</span>.equals(text)) &#123;<br>        mMRecycledFieldNameStringId = id;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mStringClassNameStringId == <span class="hljs-keyword">null</span> &amp;&amp; <span class="hljs-string">&quot;java.lang.String&quot;</span>.equals(text)) &#123;<br>        mStringClassNameStringId = id;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mValueFieldNameStringId == <span class="hljs-keyword">null</span> &amp;&amp; <span class="hljs-string">&quot;value&quot;</span>.equals(text)) &#123;<br>        mValueFieldNameStringId = id;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure></li>
+<li><p>收集 string 与 bitmap 的字段（索引id），重要的是 bitmap 的 mBuffer 的索引</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 找到Bitmap實例</span><br><span class="hljs-keyword">if</span> (mBmpClassId != <span class="hljs-keyword">null</span> &amp;&amp; mBmpClassId.equals(typeId)) &#123;<br>    ID bufferId = <span class="hljs-keyword">null</span>;<br>    Boolean isRecycled = <span class="hljs-keyword">null</span>;<br>    <span class="hljs-keyword">final</span> ByteArrayInputStream bais = <span class="hljs-keyword">new</span> ByteArrayInputStream(instanceData);<br>    <span class="hljs-keyword">for</span> (Field field : mBmpClassInstanceFields) &#123;<br>        <span class="hljs-keyword">final</span> ID fieldNameStringId = field.nameId;<br>        <span class="hljs-keyword">final</span> Type fieldType = Type.getType(field.typeId);<br>        <span class="hljs-keyword">if</span> (fieldType == <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">&quot;visit bmp instance failed, lost type def of typeId: &quot;</span> + field.typeId);<br>        &#125;<br>        <span class="hljs-comment">// 找到這個實例mBuffer字段的索引id</span><br>        <span class="hljs-keyword">if</span> (mMBufferFieldNameStringId.equals(fieldNameStringId)) &#123;<br>            bufferId = (ID) IOUtil.readValue(bais, fieldType, mIdSize);<br>        &#125;<br>        <span class="hljs-comment">// 找到這個實例mRecycled的boolean值(基礎數據類型，沒有引用關係)</span><br>        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mMRecycledFieldNameStringId.equals(fieldNameStringId)) &#123;<br>            isRecycled = (Boolean) IOUtil.readValue(bais, fieldType, mIdSize);<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (bufferId == <span class="hljs-keyword">null</span> || isRecycled == <span class="hljs-keyword">null</span>) &#123;<br>            IOUtil.skipValue(bais, fieldType, mIdSize);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>    bais.close();<br>    <span class="hljs-comment">// 確認Bitmap沒有被回收</span><br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> reguardAsNotRecycledBmp = (isRecycled == <span class="hljs-keyword">null</span> || !isRecycled);<br>    <span class="hljs-keyword">if</span> (bufferId != <span class="hljs-keyword">null</span> &amp;&amp; reguardAsNotRecycledBmp &amp;&amp; !bufferId.equals(mNullBufferId)) &#123;<br>        <span class="hljs-comment">// 將mBuffer對應的byte數組索引id加入集合</span><br>        mBmpBufferIds.add(bufferId);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure></li>
+<li><p>去除<strong>非 bitmap 的 buffer</strong>与<strong>重复的bitmap的buffer</strong>（String 的除外）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (deduplicatedId != <span class="hljs-keyword">null</span> &amp;&amp; !bufferId.equals(deduplicatedId) &amp;&amp; !bufferId.equals(mNullBufferId)) &#123;<br>    <span class="hljs-comment">// 让重复的 buf 指向同一个</span><br>    modifyIdInBuffer(instanceData, bufferIdPos, deduplicatedId);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 重複的byte數組索引 重定向之後的 索引id</span><br><span class="hljs-keyword">final</span> ID deduplicatedID = mBmpBufferIdToDeduplicatedIdMap.get(id);<br><span class="hljs-comment">// Discard non-bitmap or duplicated bitmap buffer but keep reference key.</span><br><span class="hljs-comment">// 将非 bitmap 数组也给裁了</span><br><span class="hljs-keyword">if</span> (deduplicatedID == <span class="hljs-keyword">null</span> || !id.equals(deduplicatedID)) &#123;<br>    <span class="hljs-comment">// 这里判断了 string</span><br>    <span class="hljs-comment">// 也就是说，Hprof文件裁剪的過程主要是裁剪了重複Bitmap的byte[]數據，String 是用来判断的</span><br>    <span class="hljs-keyword">if</span> (!mStringValueIds.contains(id)) &#123;<br>        <span class="hljs-comment">// 这里直接 return，没有调用 super 方法，</span><br>        <span class="hljs-comment">// 即没有调用 `com.tencent.matrix.resource.hproflib.HprofWriter.HprofHeapDumpWriter.visitHeapDumpPrimitiveArray` 的方法，</span><br>        <span class="hljs-comment">// 所以不会写入数组信息</span><br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>&#125;<br><span class="hljs-keyword">super</span>.visitHeapDumpPrimitiveArray(tag, id, stackId, numElements, typeId, elements);<br></code></pre></td></tr></table></figure>
+
+<p>经过这些步骤之后，hprof 文件就裁剪完成了。</p>
+</li>
+</ul>
+<p>裁剪完成之后，会执行 CanaryResultService，回调到：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doReportHprofResult</span><span class="hljs-params">(String resultPath, String activityName)</span> </span>&#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">final</span> JSONObject resultJson = <span class="hljs-keyword">new</span> JSONObject();<br><span class="hljs-comment">//            resultJson = DeviceUtil.getDeviceInfo(resultJson, getApplication());</span><br>			<span class="hljs-comment">// resultPath 裁剪后的hprof压缩文件路径</span><br>            resultJson.put(SharePluginInfo.ISSUE_RESULT_PATH, resultPath);<br>            resultJson.put(SharePluginInfo.ISSUE_ACTIVITY_NAME, activityName);<br>            Plugin plugin =  Matrix.with().getPluginByClass(ResourcePlugin.class);<br><br>            <span class="hljs-keyword">if</span> (plugin != <span class="hljs-keyword">null</span>) &#123;<br>                plugin.onDetectIssue(<span class="hljs-keyword">new</span> Issue(resultJson));<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (Throwable thr) &#123;<br>            MatrixLog.printErrStackTrace(TAG, thr, <span class="hljs-string">&quot;unexpected exception, skip reporting.&quot;</span>);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>最终会调用，plugin 的 onDetectIssue 方法，这里我们可以进行对应的处理。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Matrix/">Matrix</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/08/18/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/014-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E4%BD%BF%E7%94%A8haha%E5%BA%93%E6%89%BE%E5%87%BA%E6%B3%84%E6%BC%8F%E7%9A%84%E5%BC%95%E7%94%A8%E9%93%BE/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">014-Matrix源码分析：使用haha库找出泄漏的引用链</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/08/12/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/012-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E4%BD%BF%E7%94%A8%E6%8F%92%E4%BB%B6%E6%9D%A5%E5%88%A0%E9%99%A4ApkChecker%E6%9F%A5%E5%87%BA%E7%9A%84%E6%97%A0%E7%94%A8%E8%B5%84%E6%BA%90/">
+                        <span class="hidden-mobile">012-Matrix源码分析：使用插件来删除ApkChecker查出的无用资源</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

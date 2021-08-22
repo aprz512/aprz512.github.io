@@ -1,0 +1,659 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>016-Matrix源码分析：监测IO情况 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="016-Matrix源码分析：监测IO情况">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-08-31 00:00" pubdate>
+        2020年8月31日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      4.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      21
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">016-Matrix源码分析：监测IO情况</h1>
+            
+            <div class="markdown-body">
+              <blockquote>
+<p>经过一个星期的 C++ 基本语法的学习，终于可以继续分析了，好不容易写了 15 篇，被个 C++ 拦住了就笑死人了。</p>
+</blockquote>
+<p>IO的监测功能由以下3个库实现：</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs gauss"><span class="hljs-keyword">matrix</span>-io-canary<br><span class="hljs-keyword">matrix</span>-android-<span class="hljs-keyword">lib</span><br><span class="hljs-keyword">matrix</span>-android-commons<br></code></pre></td></tr></table></figure>
+
+<p>matrix-io-canary 里面的是核心代码。</p>
+<p>这个库里面提供了一下几个功能：</p>
+<ul>
+<li>主线程IO，设定了一些阈值，超过就报警（最大读写时间超过 13ms，一次连续读写时间超过 500ms）</li>
+<li>重复读IO（这个感觉有点鸡肋，可能是我没搞懂使用场景）</li>
+<li>buffer太小的IO行为</li>
+</ul>
+<p>在分析这些功能是如何实现的之前，我们想一下，该如何监测应用中的的IO呢？</p>
+<p>我们通常读取文件，都是通过 FileInputStream 等类来实现的，他们的内部是调用了 native 函数，最终会调用到 <code>libjavacore.so</code> 中的 <code>read/write</code> 方法，所以，我们只需要 hook 这俩个函数就好了。所以，最终的问题转化为如何hook 指定 .so 中的函数？？？</p>
+<p>解决上面的问题需要用到 elf 文件格式的知识，以及 .so 的加载与链接知识。这些在《程序员的自我修养-链接、装载与库》中都有详细的描述，可以看看，我花了几天时间差不多看明白了。这里就简单的说一下这个过程。</p>
+<h3 id="so相关"><a href="#so相关" class="headerlink" title=".so相关"></a>.so相关</h3><blockquote>
+<p>没有阅读 《程序员的自我修养-链接、装载与库》 这本书的相关章节的话，这段内容几乎看不懂。</p>
+</blockquote>
+<p>.so 是一个 ELF 文件格式的文件。</p>
+<p>.so 是共享库，也就是说它加载到内存后，是可以多个进程共享的。但是这个文件的加载比较特殊，并不是与普通文件一样，一股脑的全部放到内存就行了。</p>
+<p>简单的来说，它里面有多个段，指令（就是存放函数代码，它是只读的）放在一个段，这个是可以共享的。而有些段不是共享的，它是每个进程各自一份，比如全局偏移表（.got），这个里面存放的就是变量函数的地址，因为每个进程都有自己的虚拟内存，所以共享库函数的地址也是不一样的。</p>
+<p>与 .got 相关的还有一个 .plt，它是用来懒绑定的，就是说函数到真正使用的时候，才会绑定地址，因为有的函数根本就不会被调用。</p>
+<h3 id="hook-函数"><a href="#hook-函数" class="headerlink" title="hook 函数"></a>hook 函数</h3><p>这里的 hook 有两种选择，一种是 java 层，一种是 native 层。</p>
+<p>但是 java 层有些缺点：</p>
+<ul>
+<li>兼容性差。Java Hook 需要每个 Android 版本去兼容，特别是 Android P 增加对非公开 API 限制。</li>
+<li>无法监控 Native 代码。</li>
+<li>I/O 操作调用非常频繁，因为使用动态代理和 Java 的大量字符串操作，导致性能比较差，无法达到线上使用的标准。</li>
+</ul>
+<p>所以，采用的是 native 的方式。最终是从 libc.so 中的这几个函数中选定 Hook 的目标函数（当然，遍历所有已经加载的 library，全部替换更好）。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">open</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *pathname, <span class="hljs-keyword">int</span> flags, <span class="hljs-keyword">mode_t</span> mode)</span></span>;<br><span class="hljs-function"><span class="hljs-keyword">ssize_t</span> <span class="hljs-title">read</span><span class="hljs-params">(<span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">void</span> *buf, <span class="hljs-keyword">size_t</span> size)</span></span>;<br><span class="hljs-function"><span class="hljs-keyword">ssize_t</span> <span class="hljs-title">write</span><span class="hljs-params">(<span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">const</span> <span class="hljs-keyword">void</span> *buf, <span class="hljs-keyword">size_t</span> size)</span></span>; <span class="hljs-function">write_cuk</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">close</span><span class="hljs-params">(<span class="hljs-keyword">int</span> fd)</span></span>;<br></code></pre></td></tr></table></figure>
+
+<p>不同版本的 Android 系统实现有所不同，在 Android 7.0 之后，我们还需要替换下面这三个方法。</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs sqf">open64<br><span class="hljs-variable">__read_chk</span><br><span class="hljs-variable">__write_chk</span><br></code></pre></td></tr></table></figure>
+
+
+
+<p>爱奇艺开源的 xhook 可以 hook .so 中的函数，Github 上有相关信息，有兴趣的可以去看源码。</p>
+<p>先上一张图，再看一下使用方式：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/ba36f8e259427bde06bc44861905c63c.png?raw=true" srcset="/img/loading.gif" lazyload alt="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/ba36f8e259427bde06bc44861905c63c.png?raw=true"></p>
+<h4 id="open"><a href="#open" class="headerlink" title="open"></a>open</h4><blockquote>
+<p>iocanary::Java_com_tencent_matrix_iocanary_core_IOCanaryJniBridge_doHook</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function">JNIEXPORT jboolean JNICALL</span><br><span class="hljs-function">    <span class="hljs-title">Java_com_tencent_matrix_iocanary_core_IOCanaryJniBridge_doHook</span><span class="hljs-params">(JNIEnv *env, jclass type)</span> </span>&#123;<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; TARGET_MODULE_COUNT; ++i) &#123;<br>        <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* so_name = TARGET_MODULES[i];<br><br>        <span class="hljs-keyword">void</span>* soinfo = <span class="hljs-built_in">xhook_elf_open</span>(so_name);<br><br>        <span class="hljs-comment">// 从 .so 里面 找到 open 函数，将open函数的地址指向 ProxyOpen，原来的函数地址保存到 original_open</span><br>        <span class="hljs-comment">// void** 相当于一个泛型</span><br>        <span class="hljs-built_in">xhook_hook_symbol</span>(soinfo, <span class="hljs-string">&quot;open&quot;</span>, (<span class="hljs-keyword">void</span>*)ProxyOpen, (<span class="hljs-keyword">void</span>**)&amp;original_open);<br>        ...<br><br>        <span class="hljs-built_in">xhook_elf_close</span>(soinfo);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> JNI_TRUE;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，使用还是挺简单的，先打开 .so 文件，然后传递需要hook的函数名，以及俩个函数指针就好了，我们看看 ProxyOpen 函数：</p>
+<blockquote>
+<p>iocanary::ProxyOpen</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">ProxyOpen</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *pathname, <span class="hljs-keyword">int</span> flags, <span class="hljs-keyword">mode_t</span> mode)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span>(!<span class="hljs-built_in">IsMainThread</span>()) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">original_open</span>(pathname, flags, mode);<br>    &#125;<br><br>    <span class="hljs-keyword">int</span> ret = <span class="hljs-built_in">original_open</span>(pathname, flags, mode);<br><br>    <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-built_in">DoProxyOpenLogic</span>(pathname, flags, mode, ret);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里，它只监测了<strong>主线程的IO</strong>（其他的代理方法都有这个逻辑，可能是其他线程有bug还是什么）。然后调用原来的 open 函数打开文件，拿到返回的文件描述符后，执行插入的代理逻辑：</p>
+<blockquote>
+<p>iocanary::DoProxyOpenLogic</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">DoProxyOpenLogic</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *pathname, <span class="hljs-keyword">int</span> flags, <span class="hljs-keyword">mode_t</span> mode, <span class="hljs-keyword">int</span> ret)</span> </span>&#123;<br>    JNIEnv* env = <span class="hljs-literal">NULL</span>;<br>    kJvm-&gt;<span class="hljs-built_in">GetEnv</span>((<span class="hljs-keyword">void</span>**)&amp;env, JNI_VERSION_1_6);<br>    <span class="hljs-keyword">if</span> (env == <span class="hljs-literal">NULL</span> || !kInitSuc) &#123;<br>        __android_log_print(ANDROID_LOG_ERROR, kTag, <span class="hljs-string">&quot;ProxyOpen env null or kInitSuc:%d&quot;</span>, kInitSuc);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">// 获取 java 层的 JavaContext 对象</span><br>        jobject java_context_obj = env-&gt;<span class="hljs-built_in">CallStaticObjectMethod</span>(kJavaBridgeClass, kMethodIDGetJavaContext);<br>        <span class="hljs-keyword">if</span> (<span class="hljs-literal">NULL</span> == java_context_obj) &#123;<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        <span class="hljs-comment">// 获取java层堆栈信息</span><br>        jstring j_stack = (jstring) env-&gt;<span class="hljs-built_in">GetObjectField</span>(java_context_obj, kFieldIDStack);<br>        <span class="hljs-comment">// 线程名</span><br>        jstring j_thread_name = (jstring) env-&gt;<span class="hljs-built_in">GetObjectField</span>(java_context_obj, kFieldIDThreadName);<br><br>        <span class="hljs-keyword">char</span>* thread_name = <span class="hljs-built_in">jstringToChars</span>(env, j_thread_name);<br>        <span class="hljs-keyword">char</span>* stack = <span class="hljs-built_in">jstringToChars</span>(env, j_stack);<br>        <span class="hljs-comment">// 创建 C++ 层的 JavaContex 对象</span><br>        <span class="hljs-function">JavaContext <span class="hljs-title">java_context</span><span class="hljs-params">(GetCurrentThreadId(), thread_name == <span class="hljs-literal">NULL</span> ? <span class="hljs-string">&quot;&quot;</span> : thread_name, stack == <span class="hljs-literal">NULL</span> ? <span class="hljs-string">&quot;&quot;</span> : stack)</span></span>;<br>        <span class="hljs-built_in">free</span>(stack);<br>        <span class="hljs-built_in">free</span>(thread_name);<br><br>        iocanary::IOCanary::<span class="hljs-built_in">Get</span>().<span class="hljs-built_in">OnOpen</span>(pathname, flags, mode, ret, java_context);<br><br>        env-&gt;<span class="hljs-built_in">DeleteLocalRef</span>(java_context_obj);<br>        env-&gt;<span class="hljs-built_in">DeleteLocalRef</span>(j_stack);<br>        env-&gt;<span class="hljs-built_in">DeleteLocalRef</span>(j_thread_name);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>kJavaBridgeClass 等变量在 JNI_OnLoad 的时候就已经初始化好了。这些都是用来创建 java 层的对象的。</p>
+<p>该函数就是创建出了一些必要的参数，然后调用了 OnOpen 方法，最终调用到</p>
+<blockquote>
+<p>IOInfoCollector::OnOpen</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c++"><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">IOInfoCollector::OnOpen</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *pathname, <span class="hljs-keyword">int</span> flags, <span class="hljs-keyword">mode_t</span> mode, <span class="hljs-keyword">int</span> open_ret,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-keyword">const</span> JavaContext &amp;java_context)</span> </span>&#123;<br>    <span class="hljs-comment">//__android_log_print(ANDROID_LOG_DEBUG, kTag, &quot;OnOpen fd:%d; path:%s&quot;, open_ret, pathname);</span><br><br>    <span class="hljs-comment">// 文件打开失败返回 -1，成功返回文件描述符，太奇葩了</span><br>    <span class="hljs-keyword">if</span> (open_ret == <span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// 这里刚开始会觉得很奇怪啊，为啥要使用 返回值作为key？？？因为 open_ret 是文件的描述符</span><br>    <span class="hljs-comment">// 文件已经被记录了</span><br>    <span class="hljs-keyword">if</span> (info_map_.<span class="hljs-built_in">find</span>(open_ret) != info_map_.<span class="hljs-built_in">end</span>()) &#123;<br>        <span class="hljs-comment">//__android_log_print(ANDROID_LOG_WARN, kTag, &quot;OnOpen fd:%d already in info_map_&quot;, open_ret);</span><br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// make_shared 会在堆上创建对象，返回一个智能指针</span><br>    std::shared_ptr&lt;IOInfo&gt; info = std::make_shared&lt;IOInfo&gt;(pathname, java_context);<br>    <span class="hljs-comment">// 记录</span><br>    info_map_.<span class="hljs-built_in">insert</span>(std::<span class="hljs-built_in">make_pair</span>(open_ret, info));<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>可以看到，每次打开一个文件的时候，都会将其记录到 map 中，key 是文件的路径，value 是一个IOInfo类型的指针。</p>
+<h4 id="read-write"><a href="#read-write" class="headerlink" title="read/write"></a>read/write</h4><p>我们使用同样的方式，可以追踪到 read/write 的相关hook逻辑：</p>
+<blockquote>
+<p>IOInfoCollector::CountRWInfo</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span></span><br><span class="hljs-function"><span class="hljs-title">IOInfoCollector::CountRWInfo</span><span class="hljs-params">(<span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">const</span> FileOpType &amp;fileOpType, <span class="hljs-keyword">long</span> op_size, <span class="hljs-keyword">long</span> rw_cost)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (info_map_.<span class="hljs-built_in">find</span>(fd) == info_map_.<span class="hljs-built_in">end</span>()) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">const</span> <span class="hljs-keyword">int64_t</span> now = <span class="hljs-built_in">GetSysTimeMicros</span>();<br><br>    info_map_[fd]-&gt;op_cnt_++;<br>    info_map_[fd]-&gt;op_size_ += op_size;<br>    info_map_[fd]-&gt;rw_cost_us_ += rw_cost;<br><br>    <span class="hljs-comment">// 记录单次最大的读写时间</span><br>    <span class="hljs-keyword">if</span> (rw_cost &gt; info_map_[fd]-&gt;max_once_rw_cost_time_μs_) &#123;<br>        info_map_[fd]-&gt;max_once_rw_cost_time_μs_ = rw_cost;<br>    &#125;<br><br>    <span class="hljs-comment">// 如果连续读写间隔小于   kContinualThreshold（8ms）</span><br>    <span class="hljs-keyword">if</span> (info_map_[fd]-&gt;last_rw_time_μs_ &gt; <span class="hljs-number">0</span> &amp;&amp;<br>        (now - info_map_[fd]-&gt;last_rw_time_μs_) &lt; kContinualThreshold) &#123;<br>        <span class="hljs-comment">// 本次连续读写时间</span><br>        info_map_[fd]-&gt;current_continual_rw_time_μs_ += rw_cost;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        info_map_[fd]-&gt;current_continual_rw_time_μs_ = rw_cost;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (info_map_[fd]-&gt;current_continual_rw_time_μs_ &gt;<br>        info_map_[fd]-&gt;max_continual_rw_cost_time_μs_) &#123;<br>        info_map_[fd]-&gt;max_continual_rw_cost_time_μs_ = info_map_[fd]-&gt;current_continual_rw_time_μs_;<br>    &#125;<br>    <span class="hljs-comment">// 记录读写时刻</span><br>    info_map_[fd]-&gt;last_rw_time_μs_ = now;<br><br>    <span class="hljs-comment">// 记录操作的 buffer 大小，这里是记录的最大值</span><br>    <span class="hljs-keyword">if</span> (info_map_[fd]-&gt;buffer_size_ &lt; op_size) &#123;<br>        info_map_[fd]-&gt;buffer_size_ = op_size;<br>    &#125;<br><br>    <span class="hljs-comment">// 如果对一个文件又读又写，记录第一次的读写类型？？？</span><br>    <span class="hljs-keyword">if</span> (info_map_[fd]-&gt;op_type_ == FileOpType::kInit) &#123;<br>        info_map_[fd]-&gt;op_type_ = fileOpType;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里面是记录了一些读写的数据。</p>
+<h4 id="close"><a href="#close" class="headerlink" title="close"></a>close</h4><blockquote>
+<p>IOInfoCollector::OnClose</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 返回 fd 对应的文件信息，在 info_map_ 中</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">std::shared_ptr&lt;IOInfo&gt; <span class="hljs-title">IOInfoCollector::OnClose</span><span class="hljs-params">(<span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">int</span> close_ret)</span> </span>&#123;<br><br>    <span class="hljs-keyword">if</span> (info_map_.<span class="hljs-built_in">find</span>(fd) == info_map_.<span class="hljs-built_in">end</span>()) &#123;<br>        <span class="hljs-comment">//__android_log_print(ANDROID_LOG_DEBUG, kTag, &quot;OnClose fd:%d not in info_map_&quot;, fd);</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// 从打开到关闭的耗时</span><br>    info_map_[fd]-&gt;total_cost_μs_ = <span class="hljs-built_in">GetSysTimeMicros</span>() - info_map_[fd]-&gt;start_time_μs_;<br>    <span class="hljs-comment">// 文件大小</span><br>    info_map_[fd]-&gt;file_size_ = <span class="hljs-built_in">GetFileSize</span>(info_map_[fd]-&gt;path_.<span class="hljs-built_in">c_str</span>());<br>    <span class="hljs-comment">// 其他信息在读写时记录了</span><br>    std::shared_ptr&lt;IOInfo&gt; info = info_map_[fd];<br>    info_map_.<span class="hljs-built_in">erase</span>(fd);<br><br>    <span class="hljs-keyword">return</span> info;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里也记录了一些信息，注意，这里返回了指针，然后 map 里面的键值对被擦除了。</p>
+<h3 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h3><p>经过上面对几个函数的hook，我们可以获取到读写文件时的详细信息。拿到这些信息之后，我们就可以进行相应的处理，判断该IO行为是否正常。</p>
+<p>我们从 plugin 的 start 开始分析整个流程。</p>
+<blockquote>
+<p>com.tencent.matrix.iocanary.core.IOCanaryCore#initDetectorsAndHookers</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initDetectorsAndHookers</span><span class="hljs-params">(IOConfig ioConfig)</span> </span>&#123;<br>    <span class="hljs-keyword">assert</span> ioConfig != <span class="hljs-keyword">null</span>;<br><br>    <span class="hljs-keyword">if</span> (ioConfig.isDetectFileIOInMainThread()<br>        || ioConfig.isDetectFileIOBufferTooSmall()<br>        || ioConfig.isDetectFileIORepeatReadSameFile()) &#123;<br>        IOCanaryJniBridge.install(ioConfig, <span class="hljs-keyword">this</span>);<br>    &#125;<br><br>    <span class="hljs-comment">// 监测 io 是否关闭了</span><br>    <span class="hljs-comment">//if only detect io closeable leak use CloseGuardHooker is Better</span><br>    <span class="hljs-keyword">if</span> (ioConfig.isDetectIOClosableLeak()) &#123;<br>        mCloseGuardHooker = <span class="hljs-keyword">new</span> CloseGuardHooker(<span class="hljs-keyword">this</span>);<br>        mCloseGuardHooker.hook();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们这里只分析第一个 if 里面的东西，第二个 if 里面的东西最后分析。</p>
+<p>在第一个 if 里面，就是判断了是否开启某些监测，开启了才调用相应代码。</p>
+<p>install 函数里面：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">install</span><span class="hljs-params">(IOConfig config, OnJniIssuePublishListener listener)</span> </span>&#123;<br>    MatrixLog.v(TAG, <span class="hljs-string">&quot;install sIsTryInstall:%b&quot;</span>, sIsTryInstall);<br>    <span class="hljs-keyword">if</span> (sIsTryInstall) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// 加载 .so 文件</span><br>    <span class="hljs-comment">//load lib</span><br>    <span class="hljs-keyword">if</span> (!loadJni()) &#123;<br>        MatrixLog.e(TAG, <span class="hljs-string">&quot;install loadJni failed&quot;</span>);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-comment">//set listener</span><br>    sOnIssuePublishListener = listener;<br><br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">//set config</span><br>        <span class="hljs-keyword">if</span> (config != <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-keyword">if</span> (config.isDetectFileIOInMainThread()) &#123;<br>                <span class="hljs-comment">// 调用 native 方法</span><br>                enableDetector(DetectorType.MAIN_THREAD_IO);<br>                <span class="hljs-comment">// ms to μs</span><br>                setConfig(ConfigKey.MAIN_THREAD_THRESHOLD, config.getFileMainThreadTriggerThreshold() * <span class="hljs-number">1000L</span>);<br>            &#125;<br><br>            <span class="hljs-keyword">if</span> (config.isDetectFileIOBufferTooSmall()) &#123;<br>                enableDetector(DetectorType.SMALL_BUFFER);<br>                setConfig(ConfigKey.SMALL_BUFFER_THRESHOLD, config.getFileBufferSmallThreshold());<br>            &#125;<br><br>            <span class="hljs-keyword">if</span> (config.isDetectFileIORepeatReadSameFile()) &#123;<br>                enableDetector(DetectorType.REPEAT_READ);<br>                setConfig(ConfigKey.REPEAT_READ_THRESHOLD, config.getFileRepeatReadThreshold());<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-comment">//hook</span><br>        doHook();<br><br>        sIsTryInstall = <span class="hljs-keyword">true</span>;<br>    &#125; <span class="hljs-keyword">catch</span> (Error e) &#123;<br>        MatrixLog.printErrStackTrace(TAG, e, <span class="hljs-string">&quot;call jni method error&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>该函数做了这些事：</p>
+<ul>
+<li><p>先加载对应的 .so 库</p>
+</li>
+<li><p>根据 config 设置对应的监听，enableDetector 是一个native 代码，最终会调用到</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">IOCanary::RegisterDetector</span><span class="hljs-params">(DetectorType type)</span> </span>&#123;<br>    <span class="hljs-built_in"><span class="hljs-keyword">switch</span></span> (type) &#123;<br>        <span class="hljs-keyword">case</span> DetectorType::kDetectorMainThreadIO:<br>            <span class="hljs-comment">// 添加到detector容器集合</span><br>            detectors_.<span class="hljs-built_in">push_back</span>(<span class="hljs-keyword">new</span> <span class="hljs-built_in">FileIOMainThreadDetector</span>());<br>            <span class="hljs-keyword">break</span>;<br>        ...<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>进行 hook，这里的 hook 就是上面说的 hook 函数部分了。</li>
+</ul>
+<p>这里，我们知道，监听设置了，但是监听什么时候被调用呢？我们看 IOCanary 的构造函数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c++">IOCanary::<span class="hljs-built_in">IOCanary</span>() &#123;<br>    exit_ = <span class="hljs-literal">false</span>;<br>    <span class="hljs-comment">// 创建一个线程，detect 是被调用的函数，其参数是 this（隐式参数）</span><br>    <span class="hljs-function">std::thread <span class="hljs-title">detect_thread</span><span class="hljs-params">(&amp;IOCanary::Detect, <span class="hljs-keyword">this</span>)</span></span>;<br>    <span class="hljs-comment">// 分离线程，线程单独运行</span><br>    detect_thread.<span class="hljs-built_in">detach</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里，它开启了一个线程，该线程运行的是 Detect 函数。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">IOCanary::Detect</span><span class="hljs-params">()</span> </span>&#123;<br>    std::vector&lt;Issue&gt; published_issues;<br>    <span class="hljs-comment">// 只要将 new 运算符返回的指针 p 交给一个 shared_ptr 对象“托管”，</span><br>    <span class="hljs-comment">// 就不必担心在哪里写delete p语句——实际上根本不需要编写这条语句，</span><br>    <span class="hljs-comment">// 托管 p 的 shared_ptr 对象在消亡时会自动执行delete p。</span><br>    <span class="hljs-comment">// 有点 java 的味道了</span><br>    std::shared_ptr&lt;IOInfo&gt; file_io_info;<br>    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>        published_issues.<span class="hljs-built_in">clear</span>();<br><br>        <span class="hljs-keyword">int</span> ret = <span class="hljs-built_in">TakeFileIOInfo</span>(file_io_info);<br><br>        <span class="hljs-comment">// exit_ 为0， 就跳出了</span><br>        <span class="hljs-keyword">if</span> (ret != <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br><br>        <span class="hljs-comment">// detectors_ 是监听集合</span><br>        <span class="hljs-comment">// 具体可见 IOCanary::RegisterDetector 方法</span><br>        <span class="hljs-comment">// 在对一个文件操作完毕之后，open -&gt; read/write -&gt; close，才会回调</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> detector : detectors_) &#123;<br>            detector-&gt;<span class="hljs-built_in">Detect</span>(env_, *file_io_info, published_issues);<br>        &#125;<br><br>        <span class="hljs-comment">// 调用回调方法</span><br>        <span class="hljs-comment">// 该监听是在 iocanary::JNI_OnLoad 里面设置的</span><br>        <span class="hljs-keyword">if</span> (issued_callback_ &amp;&amp; !published_issues.<span class="hljs-built_in">empty</span>()) &#123;<br>            <span class="hljs-built_in">issued_callback_</span>(published_issues);<br>        &#125;<br><br>        <span class="hljs-comment">// 释放指针</span><br>        file_io_info = <span class="hljs-literal">nullptr</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里面是一个生产者-消费者模式，Detect 扮演的是消费者的角色，它调用 TakeFileIOInfo 函数获取一个 IOInfo 的指针，然后对它进行处理，我们可以看到，在 for 里面，它将这个指针传递到了我们之前设置的监听函数的回调参数里面。这样，在监听的回调函数里面，我们就可以拿到本次IO的各种信息了。</p>
+<p>这里是生产者-消费者模式，所以我们还要搞清楚，谁是生产者。搜索，queue_cv_ 变量，我们可以发现如下代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">IOCanary::OnClose</span><span class="hljs-params">(<span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">int</span> close_ret)</span> </span>&#123;<br>    std::shared_ptr&lt;IOInfo&gt; info = collector_.<span class="hljs-built_in">OnClose</span>(fd, close_ret);<br>    <span class="hljs-keyword">if</span> (info == <span class="hljs-literal">nullptr</span>) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-built_in">OfferFileIOInfo</span>(info);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">IOCanary::OfferFileIOInfo</span><span class="hljs-params">(std::shared_ptr&lt;IOInfo&gt; file_io_info)</span> </span>&#123;<br>    <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(queue_mutex_)</span></span>;<br>    queue_.<span class="hljs-built_in">push_back</span>(file_io_info);<br>    <span class="hljs-comment">// 通知等待线程，添加进去了一个元素</span><br>    queue_cv_.<span class="hljs-built_in">notify_one</span>();<br>    lock.<span class="hljs-built_in">unlock</span>();<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 从 queue_ 里面获取队头的 file_io_info 对象</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">IOCanary::TakeFileIOInfo</span><span class="hljs-params">(std::shared_ptr&lt;IOInfo&gt; &amp;file_io_info)</span> </span>&#123;<br>    <span class="hljs-comment">// std::unique_lock对象以独占所有权的方式(unique owership)管理mutex对象的上锁和解锁操作，</span><br>    <span class="hljs-comment">// 即在unique_lock对象的声明周期内，它所管理的锁对象会一直保持上锁状态；</span><br>    <span class="hljs-comment">// 而unique_lock的生命周期结束之后，它所管理的锁对象会被解锁。</span><br>    <span class="hljs-function">std::unique_lock&lt;std::mutex&gt; <span class="hljs-title">lock</span><span class="hljs-params">(queue_mutex_)</span></span>;<br><br>    <span class="hljs-comment">// 如果队列为空，那就一直等待，开起来像是一个生产者-消费者模式</span><br>    <span class="hljs-keyword">while</span> (queue_.<span class="hljs-built_in">empty</span>()) &#123;<br>        <span class="hljs-comment">// wait 会释放锁</span><br>        queue_cv_.<span class="hljs-built_in">wait</span>(lock);<br>        <span class="hljs-keyword">if</span> (exit_) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 因为参数是引用，所以这里会改变传递进来的实参值</span><br>    file_io_info = queue_.<span class="hljs-built_in">front</span>();<br>    <span class="hljs-comment">// pop 居然没有返回 pop 出来的值，难怪要多加一句</span><br>    queue_.<span class="hljs-built_in">pop_front</span>();<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>OnClose 是我们的 hook 函数的代码，它在文件关闭的时候会被调用，所以结论就是文件关闭的时候，会返回（上面提到过）一个 IOInfo 的指针，然后将它放到队列中，通知等待线程开始执行，最后就回调到了我们的监听代码中。</p>
+<h3 id="主线程IO"><a href="#主线程IO" class="headerlink" title="主线程IO"></a>主线程IO</h3><p>我们看看主线程IO的监听代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">FileIOMainThreadDetector::Detect</span><span class="hljs-params">(<span class="hljs-keyword">const</span> IOCanaryEnv &amp;env, <span class="hljs-keyword">const</span> IOInfo &amp;file_io_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                      std::vector&lt;Issue&gt;&amp; issues)</span> </span>&#123;<br><br>    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">GetMainThreadId</span>() == file_io_info.java_context_.thread_id_) &#123;<br>        <span class="hljs-keyword">int</span> type = <span class="hljs-number">0</span>;<br>        <span class="hljs-comment">// 最大读写时间超过 13ms</span><br>        <span class="hljs-keyword">if</span> (file_io_info.max_once_rw_cost_time_μs_ &gt; IOCanaryEnv::kPossibleNegativeThreshold) &#123;<br>            type = <span class="hljs-number">1</span>;<br>        &#125;<br>        <span class="hljs-comment">// 一次连续读写时间超过 500ms</span><br>        <span class="hljs-keyword">if</span>(file_io_info.max_continual_rw_cost_time_μs_ &gt; env.<span class="hljs-built_in">GetMainThreadThreshold</span>()) &#123;<br>            type |= <span class="hljs-number">2</span>;<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (type != <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-function">Issue <span class="hljs-title">issue</span><span class="hljs-params">(kType, file_io_info)</span></span>;<br>            issue.repeat_read_cnt_ = type;  <span class="hljs-comment">//use repeat to record type</span><br>            <span class="hljs-built_in">PublishIssue</span>(issue, issues);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>没啥好说的，就是判断一些阈值而已。如果你想监测别的数据，可以自己设置一些监听。</p>
+<h3 id="重复读"><a href="#重复读" class="headerlink" title="重复读"></a>重复读</h3><p>这个监听我就不贴代码了，感觉它现在有点鸡肋，我的 note 分支里面有详细注释，有兴趣可以查看。</p>
+<p>其实，我觉得可以统计一下App在一次运行过程中，每个文件被读取的次数。反正你可以获取到每次IO的所有信息，想做什么就做什么。</p>
+<h3 id="小-Buffer-的io"><a href="#小-Buffer-的io" class="headerlink" title="小 Buffer 的io"></a>小 Buffer 的io</h3><p>我们知道，对于文件系统是以block为单位读写，对于磁盘是以page 为单位读写，看起来即使我们在应用程序上面使用很小的Buffer，在底层应该差别不大，那是不是这样呢？</p>
+<p>实际上不是的，因为如果 buffer 过小，会导致多次无用的系统调用，write与read的次数变多，这样性能就下降了，那么应该如何选择 buffer的大小呢？可以参考文件系统的 block size 的大小来决定。一般是 4K。</p>
+<p>那么又来了一个问题？buffer搞很大会咋样呢？实际上如果你自己测试一下的话，会发现4K往上的话，收益就开始变小了，甚至会降低。所以一般推荐 4K 以上，也不要搞太大。</p>
+<p>看一下监测小buffer的代码，很简单：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">FileIOSmallBufferDetector::Detect</span><span class="hljs-params">(<span class="hljs-keyword">const</span> IOCanaryEnv &amp;env, <span class="hljs-keyword">const</span> IOInfo &amp;file_io_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       std::vector&lt;Issue&gt; &amp;issues)</span> </span>&#123;<br>    <span class="hljs-comment">//__android_log_print(ANDROID_LOG_ERROR, &quot;FileIOSmallBufferDetector&quot;, &quot;Detect buffer_size:%d threshold:%d op_cnt:%d rw_cost:%d&quot;,</span><br>    <span class="hljs-comment">//                  file_io_info.buffer_size_, env.GetSmallBufferThreshold(), file_io_info.op_cnt_, file_io_info.max_continual_rw_cost_time_μs_);</span><br><br>    <span class="hljs-comment">// 读写次数 &gt; 20</span><br>    <span class="hljs-comment">// 读写总数量 / 读写次数 &lt; 4096</span><br>    <span class="hljs-comment">// 最大连续读写耗时 &gt;= 13ms</span><br>    <span class="hljs-keyword">if</span> (file_io_info.op_cnt_ &gt; env.kSmallBufferOpTimesThreshold<br>        &amp;&amp; (file_io_info.op_size_ / file_io_info.op_cnt_) &lt; env.<span class="hljs-built_in">GetSmallBufferThreshold</span>()<br>        &amp;&amp; file_io_info.max_continual_rw_cost_time_μs_ &gt;= env.kPossibleNegativeThreshold) &#123;<br><br>        <span class="hljs-built_in">PublishIssue</span>(<span class="hljs-built_in">Issue</span>(kType, file_io_info), issues);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="未关闭的文件"><a href="#未关闭的文件" class="headerlink" title="未关闭的文件"></a>未关闭的文件</h3><p>除了上面监测主线程的各种问题之外，该库还提供了一个特殊的功能，监测未关闭的文件操作。</p>
+<p>其大致原理是使用了 CloseGuard 类，这个类的用法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs java">   <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> CloseGuard mCloseGuard = CloseGuard.get();<br><br>...<br><br>   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">InputQueue</span><span class="hljs-params">()</span> </span>&#123;<br>       mPtr = nativeInit(<span class="hljs-keyword">new</span> WeakReference&lt;InputQueue&gt;(<span class="hljs-keyword">this</span>), Looper.myQueue());<br><br>       mCloseGuard.open(<span class="hljs-string">&quot;dispose&quot;</span>);<br>   &#125;<br><br>...<br>       <br><span class="hljs-meta">@Override</span><br>   <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">finalize</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>       <span class="hljs-keyword">try</span> &#123;<br>           dispose(<span class="hljs-keyword">true</span>);<br>       &#125; <span class="hljs-keyword">finally</span> &#123;<br>           <span class="hljs-keyword">super</span>.finalize();<br>       &#125;<br>   &#125;<br><br>   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">dispose</span><span class="hljs-params">()</span> </span>&#123;<br>       dispose(<span class="hljs-keyword">false</span>);<br>   &#125;<br><br>   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">dispose</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> finalized)</span> </span>&#123;<br>       <span class="hljs-keyword">if</span> (mCloseGuard != <span class="hljs-keyword">null</span>) &#123;<br>           <span class="hljs-keyword">if</span> (finalized) &#123;<br>               mCloseGuard.warnIfOpen();<br>           &#125;<br>           mCloseGuard.close();<br>       &#125;<br><br>       <span class="hljs-keyword">if</span> (mPtr != <span class="hljs-number">0</span>) &#123;<br>           nativeDispose(mPtr);<br>           mPtr = <span class="hljs-number">0</span>;<br>       &#125;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<p>用法还是挺简单的，就是利用了 finalize 方法。</p>
+<p>它先在构造方法里面，调用了 CloseGuard 的 open 方法，open方法里面记录了一个标识。假设，我们使用完该类后，没有调用该类的 dispose 方法，那么 CloseGuard  里面的标识就还存在，那么当该类被回收的时候，会触发 finalize 方法，然后执行到 CloseGuard.warnIfOpen 方法，这样就会弹出警告。</p>
+<p>所以它的原理，其实就是利用了 finalize 来监测我们是否成对的调用了某些方法。</p>
+<p>我们可以利用这个类，因为系统的很多类都使用了 CloseGuard ，我们开启严格模式后能监测一些问题，就是利用的这个原理。</p>
+<p>所以，我们需要 hook 这个类，监测到未关闭的文件，就提出警告。</p>
+<p>具体代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryHook</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// hook 系统的 CloseGuard 类，该类是用于监测某些类是否正常关闭的，比如 cursor</span><br>        <span class="hljs-comment">// 具体是先看一下 android.view.InputQueue 的源码就好了，几十行</span><br>        <span class="hljs-comment">// 大致原理就是依赖 finalize 方法来监测是否有调用对应的  close 方法</span><br>        <span class="hljs-comment">// 所以，我们使用反射开启这个类的功能，然后 hook 它，在里面做我们的逻辑</span><br>        Class&lt;?&gt; closeGuardCls = Class.forName(<span class="hljs-string">&quot;dalvik.system.CloseGuard&quot;</span>);<br>        Class&lt;?&gt; closeGuardReporterCls = Class.forName(<span class="hljs-string">&quot;dalvik.system.CloseGuard$Reporter&quot;</span>);<br>        Method methodGetReporter = closeGuardCls.getDeclaredMethod(<span class="hljs-string">&quot;getReporter&quot;</span>);<br>        Method methodSetReporter = closeGuardCls.getDeclaredMethod(<span class="hljs-string">&quot;setReporter&quot;</span>, closeGuardReporterCls);<br>        Method methodSetEnabled = closeGuardCls.getDeclaredMethod(<span class="hljs-string">&quot;setEnabled&quot;</span>, <span class="hljs-keyword">boolean</span>.class);<br><br>        sOriginalReporter = methodGetReporter.invoke(<span class="hljs-keyword">null</span>);<br><br>        methodSetEnabled.invoke(<span class="hljs-keyword">null</span>, <span class="hljs-keyword">true</span>);<br><br>        <span class="hljs-comment">// open matrix close guard also</span><br>        MatrixCloseGuard.setEnabled(<span class="hljs-keyword">true</span>);<br><br>        ClassLoader classLoader = closeGuardReporterCls.getClassLoader();<br>        <span class="hljs-keyword">if</span> (classLoader == <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>        &#125;<br><br>        methodSetReporter.invoke(<span class="hljs-keyword">null</span>, Proxy.newProxyInstance(classLoader,<br>            <span class="hljs-keyword">new</span> Class&lt;?&gt;[]&#123;closeGuardReporterCls&#125;,<br>                <span class="hljs-comment">// hook 类</span><br>            <span class="hljs-keyword">new</span> IOCloseLeakDetector(issueListener, sOriginalReporter)));<br><br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        MatrixLog.e(TAG, <span class="hljs-string">&quot;tryHook exp=%s&quot;</span>, e);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样，我们在 IOCloseLeakDetector 里面，就可以处理问题了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>        MatrixLog.i(TAG, <span class="hljs-string">&quot;invoke method: %s&quot;</span>, method.getName());<br>        <span class="hljs-keyword">if</span> (method.getName().equals(<span class="hljs-string">&quot;report&quot;</span>)) &#123;<br>            ...<br><br>            <span class="hljs-keyword">if</span> (isPublished(stackKey)) &#123;<br>                ...<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-comment">// 这里处理 issue</span><br>                Issue ioIssue = <span class="hljs-keyword">new</span> Issue(SharePluginInfo.IssueType.ISSUE_IO_CLOSABLE_LEAK);<br>                ioIssue.setKey(stackKey);<br>                JSONObject content = <span class="hljs-keyword">new</span> JSONObject();<br>                <span class="hljs-keyword">try</span> &#123;<br>                    content.put(SharePluginInfo.ISSUE_FILE_STACK, stackKey);<br>                &#125; <span class="hljs-keyword">catch</span> (JSONException e) &#123;<br><span class="hljs-comment">//                e.printStackTrace();</span><br>                    MatrixLog.e(TAG, <span class="hljs-string">&quot;json content error: %s&quot;</span>, e);<br>                &#125;<br>                ioIssue.setContent(content);<br>                publishIssue(ioIssue);<br>                MatrixLog.i(TAG, <span class="hljs-string">&quot;close leak issue publish, key:%s&quot;</span>, stackKey);<br>                markPublished(stackKey);<br>            &#125;<br><br><br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> method.invoke(originalReporter, args);<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里，就触发了 publishIssue 方法。</p>
+<p>有一点需要注意，这里是开启了 CloseGuard，所以使用了 CloseGuard 的类都可以监测到，比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">try</span> &#123;<br>    Class&lt;?&gt; aClass = Class.forName(<span class="hljs-string">&quot;android.view.InputQueue&quot;</span>);<br>    Object o = aClass.newInstance();<br>&#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException e) &#123;<br>    e.printStackTrace();<br>&#125; <span class="hljs-keyword">catch</span> (IllegalAccessException e) &#123;<br>    e.printStackTrace();<br>&#125; <span class="hljs-keyword">catch</span> (InstantiationException e) &#123;<br>    e.printStackTrace();<br>&#125;<br><br><br><span class="hljs-comment">//need to trigger gc to detect leak</span><br><span class="hljs-keyword">new</span> Thread(<span class="hljs-keyword">new</span> Runnable() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>        Runtime.getRuntime().gc();<br>        Runtime.getRuntime().runFinalization();<br>        Runtime.getRuntime().gc();<br>    &#125;<br>&#125;).start();<br><br></code></pre></td></tr></table></figure>
+
+<p>这里我们使用了，InputQueue，它里面使用了 CloseGuard，而我们没有调用其 dispose 方法，所以这个函数会被检测出来使用有问题。</p>
+<h3 id="处理issue"><a href="#处理issue" class="headerlink" title="处理issue"></a>处理issue</h3><p>上面检测出来的问题，最终都会汇总到 com.tencent.matrix.plugin.Plugin#onDetectIssue 这个方法里面，然后对 Issue 进行处理，其实就是转为json，用于可视化展示。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onDetectIssue</span><span class="hljs-params">(Issue issue)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (issue.getTag() == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-comment">// set default tag</span><br>        issue.setTag(getTag());<br>    &#125;<br>    issue.setPlugin(<span class="hljs-keyword">this</span>);<br>    JSONObject content = issue.getContent();<br>    <span class="hljs-comment">// add tag and type for default</span><br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-keyword">if</span> (issue.getTag() != <span class="hljs-keyword">null</span>) &#123;<br>            content.put(Issue.ISSUE_REPORT_TAG, issue.getTag());<br>        &#125;<br>        <span class="hljs-keyword">if</span> (issue.getType() != <span class="hljs-number">0</span>) &#123;<br>            content.put(Issue.ISSUE_REPORT_TYPE, issue.getType());<br>        &#125;<br>        content.put(Issue.ISSUE_REPORT_PROCESS, MatrixUtil.getProcessName(application));<br>        content.put(Issue.ISSUE_REPORT_TIME, System.currentTimeMillis());<br><br>    &#125; <span class="hljs-keyword">catch</span> (JSONException e) &#123;<br>        MatrixLog.e(TAG, <span class="hljs-string">&quot;json error&quot;</span>, e);<br>    &#125;<br><br>    <span class="hljs-comment">// 这里的回调是整个 matrix 的一个回调，我们可以在这个回调里面进行个性化处理，比如上报后台之类的</span><br>    <span class="hljs-comment">//MatrixLog.e(TAG, &quot;detect issue:%s&quot;, issue);</span><br>    pluginListener.onReportIssue(issue);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/36426206">https://zhuanlan.zhihu.com/p/36426206</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Matrix/">Matrix</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/09/01/blog_bak/Blog/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8E%9F%E7%90%86/%E5%86%99%E5%85%A5%E6%94%BE%E5%A4%A7/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">写入放大</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/08/27/blog_bak/Blog/C++/%E7%95%AA%E5%A4%96%E7%AF%87%EF%BC%9A%E9%87%8D%E5%AE%9A%E4%BD%8D/">
+                        <span class="hidden-mobile">番外篇：重定位</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

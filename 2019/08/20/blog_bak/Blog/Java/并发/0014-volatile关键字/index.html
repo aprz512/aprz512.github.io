@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>0014-volatile关键字 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="0014-volatile关键字">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-20 00:00" pubdate>
+        2019年8月20日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      5
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">0014-volatile关键字</h1>
+            
+            <div class="markdown-body">
+              <p>Java 的 volatile 关键字表示修饰的这个变量的 <strong>值储存在主存</strong> 中，这里不要理解错了，并不是说 volatile 修饰的变量就直接在主内存中操作（这是不可能的），而是说：</p>
+<ul>
+<li>修改volatile变量时会强制将修改后的值刷新的主内存中。</li>
+<li>修改volatile变量后会导致其他线程工作内存中对应的变量值失效。因此，需要重新读取主内存中的值。</li>
+</ul>
+<p>说的通俗一点，就是每次读取 volatile 变量都会从主存中读取，每次写入 volatile 变量都是写入到主存中。</p>
+<p>前面我们说过可见性问题，而 volatile 关键字就是用来保证线程之间变量的可见性。可能还是有点抽象，那就再说一遍。</p>
+<h2 id="volatile-对可见性的保证"><a href="#volatile-对可见性的保证" class="headerlink" title="volatile 对可见性的保证"></a>volatile 对可见性的保证</h2><p>现在的 CPU 为了性能，会将内存中的数据拷贝到 CPU 的高速缓存中。如果有多个 CPU 的话，每个线程会运行在不同的 CPU 上，即每个线程都会拷贝一个数据到高速缓存中。如下图：</p>
+<p><img src="http://tutorials.jenkov.com/images/java-concurrency/java-volatile-1.png" srcset="/img/loading.gif" lazyload></p>
+<p>对于非 volatile 的变量，在多线程的程序中，就会出现可见性问题，当一个线程更新了值之后，而另一个线程却看不到，就会导致程序错误：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SharedObject</span> </span>&#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> counter = <span class="hljs-number">0</span>;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>假设，线程 1 会更新计数器的值， 线程 2 会时时的读取这个计数器的值。由于 counter 不是 volatile 的，所以在线程 1 更新其值之后，不一定会将值刷新到主存中，当线程 2 读取的时候，读取的还是未更新的值：</p>
+<p><img src="http://tutorials.jenkov.com/images/java-concurrency/java-volatile-2.png" srcset="/img/loading.gif" lazyload></p>
+<p>使用 volatile 之后，就不一样了。volatile 就是用来解决这个问题的，我们给 counter 加上关键字：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SharedObject</span> </span>&#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">int</span> counter = <span class="hljs-number">0</span>;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>当线程1更新 counter 的值后， 线程2就能读到最新值了。</p>
+<p>但是如果 线程1 与 线程2 都更新 counter 的值的话，仅仅加上 volatile 关键字还是不够的，后面会说。</p>
+<h2 id="volatile-对重排序的影响"><a href="#volatile-对重排序的影响" class="headerlink" title="volatile 对重排序的影响"></a>volatile 对重排序的影响</h2><p>volatile 可见性不仅会影响到它优化的变量，还会对重排序有一定影响。看下面这个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//x、y为非volatile变量</span><br><span class="hljs-comment">//flag为volatile变量</span><br><br>x = <span class="hljs-number">2</span>;         <span class="hljs-comment">//语句1</span><br>y = <span class="hljs-number">0</span>;         <span class="hljs-comment">//语句2</span><br>flag = <span class="hljs-keyword">true</span>;   <span class="hljs-comment">//语句3</span><br>x = <span class="hljs-number">4</span>;         <span class="hljs-comment">//语句4</span><br>y = -<span class="hljs-number">1</span>;        <span class="hljs-comment">//语句5</span><br></code></pre></td></tr></table></figure>
+
+<p>由于 flag 变量为 volatile 变量，那么在进行指令重排序的过程的时候，<strong>不会将语句3放到语句1、语句2前面，也不会讲语句3放到语句4、语句5后面</strong>。但是要注意语句1和语句2的顺序、语句4和语句5的顺序是不作任何保证的。</p>
+<p>并且 volatile 关键字能保证，<strong>执行到语句3时，语句1和语句2必定是执行完毕</strong>了的，且语句1和语句2的执行结果对语句3、语句4、语句5是可见的。</p>
+<h2 id="volatile-与-Happens-Before"><a href="#volatile-与-Happens-Before" class="headerlink" title="volatile 与 Happens-Before"></a>volatile 与 Happens-Before</h2><p>再来看一个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyClass</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> years;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> months<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">int</span> days;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">totalDays</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">int</span> total = <span class="hljs-keyword">this</span>.days;<br>        total += months * <span class="hljs-number">30</span>;<br>        total += years * <span class="hljs-number">365</span>;<br>        <span class="hljs-keyword">return</span> total;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">update</span><span class="hljs-params">(<span class="hljs-keyword">int</span> years, <span class="hljs-keyword">int</span> months, <span class="hljs-keyword">int</span> days)</span></span>&#123;<br>        <span class="hljs-comment">// 1</span><br>        <span class="hljs-keyword">this</span>.years  = years;<br>        <span class="hljs-comment">// 2</span><br>        <span class="hljs-keyword">this</span>.months = months;<br>        <span class="hljs-comment">// 3</span><br>        <span class="hljs-keyword">this</span>.days   = days;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>update 方法写了3个变量，只有 days 是 volatile 的。但是实际上在将 days 的值刷入主内存的时候，会将 years 与 months 的值也刷入主内存。</p>
+<p>totalDays 方法读取了3个变量的值，当从主内存读取 days 的值的时候，也会从主内存读取 months 与 years 的值。</p>
+<p>起初，我是无法理解的，于是去  stackOverFlow 上问了一下，很快就有了答案：</p>
+<p>这个是由于 “Happens-Before” 原则引发的：</p>
+<blockquote>
+<p>由于 days 被 volatile 修饰，所以代码 1 2 处 Happens-Before 代码 3，即代码 1 2 的结果对代码 3 是可见的。</p>
+<p>同样，volatile 变量的写 Happens-Before volatile 变量的读。</p>
+<p>在根据 Happens-Before 的传递性，所以某一个线程想要读取 days 的值的时候，months 与  years 的值也是最新的。</p>
+</blockquote>
+<h2 id="volatile-使用注意"><a href="#volatile-使用注意" class="headerlink" title="volatile 使用注意"></a>volatile 使用注意</h2><p>前面，我们说的多个线程更新 counter 的值，尽管 counter 是 volatile 的，但是还是会出问题，现在就来解释一下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">counter++;<br></code></pre></td></tr></table></figure>
+
+<p>就拿这个举例，假设某个时刻，counter 的值为 4。</p>
+<figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs erlang">线程<span class="hljs-number">1</span>从主内存中读取值为<span class="hljs-number">4</span>，准备执行加一的指令，然后线程<span class="hljs-number">1</span>被阻塞，切换到线程<span class="hljs-number">2</span><br><br>线程<span class="hljs-number">2</span>从主内存中读取值为<span class="hljs-number">4</span>，准备执行加一的指令，然后线程<span class="hljs-number">2</span>被阻塞，切换到线程<span class="hljs-number">1</span><br><br>线程<span class="hljs-number">1</span>执行加一的指令，最后将自增后的值赋值给counter，counter的值成了<span class="hljs-number">5</span>，写入回了主内存。线程<span class="hljs-number">1</span>阻塞，切换到线程<span class="hljs-number">2</span>.<br><br>线程<span class="hljs-number">2</span>执行加一的指令（将<span class="hljs-number">4</span>加一的过程中不需要对counter进行读写，所以自增之后的值还是<span class="hljs-number">5</span>），然后将 <span class="hljs-number">5</span> 赋值给 counter，并写入回了主内存。<br><br>最后，counter 的结果还是 <span class="hljs-number">5</span>.<br></code></pre></td></tr></table></figure>
+
+<p>看一张图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2017/9/30/ee48b1e38ea8819d6f06df279a819a1d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload></p>
+<p>在读取一个变量与给这个变量赋值之间是有一段间隔的，这段间隔表示它们不是一个原子操作，不是原子操作就会产生竟态条件。两个线程同时读取值之后，一个线程即使更新了值，也不管用了，因为读取操作已经完成了，后面的写操作不需要再次读取该值，也就看不到最新的值。</p>
+<p>所以，volatile 应该用在不需要依赖变量的当前值的地方。反过来说：</p>
+<blockquote>
+<p>运算结果并不依赖变量的当前值（即结果对产生中间结果不依赖），或者能够确保只有单一的线程修改变量的值</p>
+</blockquote>
+<p>比如，用来更新标识变量，直接给标识赋值，<code>flag =  true 或者 flag = false </code>，不需要依赖当前的值，像  flag = !flag 就不行。</p>
+<p>最后，由于 volatile 每次写操作将最新值刷入主存，每次读操作要从主存重新读取，所以效率不高，而且它还禁止了指令优化，所以一定要在确实需要的时候才使用。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%B9%B6%E5%8F%91/">并发</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java-%E5%B9%B6%E5%8F%91/">Java-并发</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/20/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0015-%E6%AD%BB%E9%94%81/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">0015-死锁</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/19/blog_bak/Blog/Android-View/View%20%E7%9A%84%E6%BB%91%E5%8A%A8%E5%A4%84%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89/">
+                        <span class="hidden-mobile">View 的滑动处理（一）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

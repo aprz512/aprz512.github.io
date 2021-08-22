@@ -1,0 +1,646 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>Matrix源码分析番外篇：Dex文件结构 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Matrix源码分析番外篇：Dex文件结构">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-08-12 00:00" pubdate>
+        2020年8月12日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      4.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      15
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Matrix源码分析番外篇：Dex文件结构</h1>
+            
+            <div class="markdown-body">
+              <h3 id="构造DEX文件"><a href="#构造DEX文件" class="headerlink" title="构造DEX文件"></a>构造DEX文件</h3><p>首先，我们编写一个简单的程序，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloWorld</span> </span>&#123;  <br>    <span class="hljs-keyword">int</span> a = <span class="hljs-number">0</span>;  <br>    <span class="hljs-keyword">static</span> String b = <span class="hljs-string">&quot;HelloDalvik&quot;</span>;  <br>  <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getNumber</span><span class="hljs-params">(<span class="hljs-keyword">int</span> i, <span class="hljs-keyword">int</span> j)</span> </span>&#123;  <br>        <span class="hljs-keyword">int</span> e = <span class="hljs-number">3</span>;  <br>        <span class="hljs-keyword">return</span> e + i + j;  <br>    &#125;  <br>  <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;  <br>        <span class="hljs-keyword">int</span> c = <span class="hljs-number">1</span>;  <br>        <span class="hljs-keyword">int</span> d = <span class="hljs-number">2</span>;  <br>        HelloWorld helloWorld = <span class="hljs-keyword">new</span> HelloWorld();  <br>        String sayNumber = String.valueOf(helloWorld.getNumber(c, d));  <br>        System.out.println(<span class="hljs-string">&quot;HelloDex!&quot;</span> + sayNumber);  <br>    &#125;  <br>&#125;  <br></code></pre></td></tr></table></figure>
+
+<p>使用命令行编译成 dex 文件。不想使用命令的直接拖到 Android studio 里面，打个apk也行，不过后面的 dex 文件内容分析就对不上了。</p>
+<p>拿到 dex 文件后，我们使用 010 editor 打开它，可以看到如下内容：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex1.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>下面的表格就是 dex 的大致结构。点开各个entry，里面又有很多东西，我们慢慢道来，其实这个与 class 文件结构很像，如果你读过 《深入理解Java虚拟机》就很容易上手。</p>
+<h3 id="dex-header"><a href="#dex-header" class="headerlink" title="dex_header"></a>dex_header</h3><p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex2.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex3.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol>
+<li><p> **magic[8]**；它代表dex中的文件标识，一般被称为魔数。是用来识别dex这种文件的，它可以判断当前的dex文件是否有效，可以看到它用了8个1字节的无符号数来表示，我们在010Editor中可以看到也就是“64 65 78 0A 30 33 35 00 ”这8个字节，这些字节都是用16进制表示的，用16进制表示的话，两个数代表一个字节（一个字节等于8位，一个16进制的数能表示4位）。这8个字节用ASCII码表转化一下可以转化为：dex 035。</p>
+</li>
+<li><p><strong>checksum</strong>;  它是dex文件的校验和，通过它可以判断dex文件是否被损坏或者被篡改。它占用4个字节，也就是“5D 9D F9 59”。这里提醒一下，在010Editor中，其实可以分别识别我们在DexHeader中看到的这些字段的，你可以点一下这里：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex4.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>你可以看到这个header列表展开了，其实我们分析下来就和它这个结构是一样的，你可以先看下，我们现在分析到了checksum中了，你可以看到后面对应的值是“59 F9 9D 5D”。咦？这好像和上面的字节不是一一对应的啊。对的，你可以发现它是反着写的。这是由于dex文件中采用的是<strong>小字节序的编码方式</strong>，也就是低位上存储的就是低字节内容，所以它们应该要反一下。</p>
+</li>
+<li><p>**signature[kSHA1DigestLen]**，signature字段用于检验dex文件，其实就是把整个dex文件用SHA-1签名得到的一个值。这里占用20个字节，你可以自己点010Editor看一看。</p>
+</li>
+<li><p><strong>fileSize</strong>;表示整个文件的大小，占用4个字节。</p>
+</li>
+<li><p><strong>headerSize</strong>;表示DexHeader头结构的大小，占用4个字节。这里可以看到它一共占用了112个字节，112对应的16进制数为70h，你可以选中头文件看看010Editor是不是真的占用了这么多：</p>
+</li>
+</ol>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex5.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="6">
+<li><p><strong>endianTag</strong>;代表 字节序标记，用于指定dex运行环境的cpu，预设值为0x12345678，对应在101Editor中为“78 56 34 12”（小字节序）。</p>
+</li>
+<li><p>接下来两个分别是<strong>linkSize</strong>;和u4  <strong>linkOff</strong>;这两个字段，它们分别指定了链接段的大小和文件偏移，通常情况下它们都为0。linkSize为0的话表示静态链接。</p>
+</li>
+<li><p>再下来就是<strong>mapOff</strong>字段了，它指定了DexMapList的文件偏移，这里我们先不过多介绍它，你可以看一下它的值为“14 04 00 00”，它其实对应的16进制数就是414h（别忘了小字节序），我们可以在414h的位置看一下它在哪里：</p>
+</li>
+</ol>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex6.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>​        其实就是dex文件最后一部分内容。关于这部分内容里面是什么，我们先不说，继续往下看。</p>
+<ol start="9">
+<li><strong>stringIdsSize</strong> 和 <strong>stringIdsOff</strong>字段：这两个字段指定了dex文件中所有用到的字符串的个数和位置偏移，我们先看stringIdsSize，它的值为：“1C 00 00 00”，16进制的1C也就是十进制的28，也就是说我们这个dex文件中一共有28个字符串，然后stringIdsOff为：“70 00 00 00”，代表字符串的偏移位置为70h。</li>
+<li><strong>typeIdsSize</strong>和<strong>typeIdsOff</strong>。它们代表什么呢？它们代表的是类的类型的数量和位置偏移，也是都占4个字节。</li>
+<li>这下到了<strong>protoIdsSize</strong>和<strong>protoIdsOff</strong>了，它们代表的是dex文件中方法原型的个数和位置偏移。</li>
+<li><strong>fieldIdsSize</strong>和<strong>fieldIdsOff</strong>字段。这两个字段指向的是dex文件中字段名的信息。</li>
+<li><strong>methodIdsSize</strong>和<strong>methodIdsOff</strong>字段。这俩字段指明了方法所在的类、方法的声明以及方法名。</li>
+<li><strong>classDefsSize</strong>和<strong>classDefsOff</strong>字段。这两个字段指明的是dex文件中类的定义的相关信息。</li>
+</ol>
+<p>下面，详细的解释一下上面 9-14的内容。</p>
+<h3 id="dex-string-ids"><a href="#dex-string-ids" class="headerlink" title="dex_string_ids"></a>dex_string_ids</h3><p>这个里面描述的是字符串。</p>
+<p>我们就先介绍一下DexStringId这个结构，图中从70h开始，</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex7.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>所有被选中的都是DexStringId这种数据结构的内容，DexStringId代表的是字符串的位置偏移，每个DexStringId占用4个字节，也就是说<strong>它里面存的还不是真正的字符串，它们只是存储了真正字符串的偏移位置</strong>（偏移位置从0开始算起）。</p>
+<p>下面我们先分析几个看看：</p>
+<p>取第一个“<strong>B2 02 00 00</strong>”，它代表的位置偏移是2B2h，我们先找到这个位置：   </p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex8.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>可以发现我一共选中了10个字节，这10个字节就表示了一个字符串。下面我们看一下dex文件中的字符串是如何表示的。dex中的字符串采用了一种叫做<strong>MUTF-8这样的编码</strong>，它是经过传统的UTF-8编码修改的。在MTUF-8中，它的头部存放的是由uleb128编码的字符的个数。</p>
+<p>也就是说在“08 3C 63 6C 69 6E 69 74 3E 00”这些字节中，<strong>第一个08指定的是后面需要用到的编码的个数，也就是8个</strong>，即“ 3C 63 6C 69 6E 69 74 3E”这8个，但是我们为什么一共选中了10个字节呢，<strong>因为最后一个空字符“0”表示的是字符串的结尾</strong>，字符个数没有把它算进去。下面我们来看看“ 3C 63 6C 69 6E 69 74 3E”这8个字符代表了什么字符串：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex9.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>（要说明的一点是，这里凑巧这几个uleb128编码的字符都用了1个字节，所以我们可以这样进行查询，uleb128编码标准用的是1~5个字节， 这里只是恰好都是一个字节）。也就是说上面的70h开始的第一个DexStringId指向的其实是字符串“<clinit>”（但是貌似我们的代码中没有用到这个字符串啊，先不用管，我们接着分析）。再看到这里：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex10.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>刚刚我们分析到“B2 02 00 00”所指向的真实字符串了，下面我们接着再分析一个，我们直接分析第三个，不分析第二个了。第三个为“<strong>C4 02 00 00</strong>”，对应的位置也就是2C4h，我们找到它：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex11.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>看这里，这就是2C4h的位置了。我们首先看第一个字符，它的值为0Bh，也就是十进制的11，也就是说接下来的11个字符代表了它的字符串，我们依旧是查看接下来11个字符代表的是什么，经过查询整理：  </p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex12.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>上面就是“HelloDalvik”这个字符串，可以看看我们的代码，我们确实用了一个这样的字符串，bingo。</p>
+<p>下面剩下的字符串就不分析了。其实直接使用 010 editor 会更直观一些。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex13.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>我们这半天分析的stringIdsSize 和 stringIdsOff字段指向的位置就是上面那个箭头指向的位置，它们里面存储的是真实字符串的位置偏移，它们都存储在data区域。（先透露一下，后面我们要分析的几个也和stringIdsSize 与stringIdsOff字段类似，它们里面存储的基本都是位置偏移，并不是真正的数据，真正的数据都在data区域）</p>
+<h3 id="dex-type-ids"><a href="#dex-type-ids" class="headerlink" title="dex_type_ids"></a>dex_type_ids</h3><p>这个里面描述的是类型（基本类型，类类型）。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex14.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>typeIdsSize的值为9h，也就是我们dex文件中用到的类的类型一共有9个，位置偏移在E0h位置，下面我们找到这个位置</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex15.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>这里我们又得介绍一种数据结构了，因为这里的数据也是一种数据结构的数据组成的。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexTypeId</span>&#123;</span><br>	u4 descriptorIdx;	<span class="hljs-comment">/*指向DexStringId列表的索引*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>它里面只有一个数据descriptorIdx，它的值的内容是DexStringId列表的索引。</p>
+<p>我们直接去 010 中的  dex_string_ids 中展开这个索引，就可以知道这个字符串是啥了。</p>
+<p>先看第一个“05 00 00 00”，也就是05h，即十进位的5。然后我们在上面所有整理出的字符串看看5索引的是什么？翻上去可以看到是“I”。</p>
+<h3 id="dex-proto-ids"><a href="#dex-proto-ids" class="headerlink" title="dex_proto_ids"></a>dex_proto_ids</h3><p>这个里面描述的是方法签名。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex16.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>protoIdsSize的值为十进制的7，说明有7个方法原型，然后位置偏移为104h，我们找到这个位置</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex17.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>下面又有新的数据结构了。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexProtoId</span>&#123;</span><br>	u4 shortyIdx;			<span class="hljs-comment">/*指向DexStringId列表的索引*/</span><br>	u4 returnTypeIdx;		<span class="hljs-comment">/*指向DexTypeId列表的索引*/</span><br>	u4 parametersOff;		<span class="hljs-comment">/*指向DexTypeList的位置偏移*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个数据结构由三个变量组成。</p>
+<p>第一个shortyIdx它指向的是我们上面分析的DexStringId列表的索引，代表的是方法声明<strong>字符串</strong>。</p>
+<p>第二个returnTypeIdx它指向的是 我们上边分析的DexTypeId列表的索引，代表的是方法返回类型<strong>字符串</strong>。</p>
+<p>第三个parametersOff指向的是DexTypeList的位置索引，<strong>这又是一个新的数据结构了</strong>，先说一下这里面 存储的是方法的参数列表。可以看到这三个参数，有方法声明字符串，有返回类型，有方法的参数列表，这基本上就确定了我们一个方法的大体内容。</p>
+<p>我们接着看看DexTypeList这个数据结构，看看参数列表是如何存储的。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexTypeList</span>&#123;</span><br>	u4 size;				<span class="hljs-comment">/*DexTypeItem的个数*/</span><br>	DexTypeItem list[<span class="hljs-number">1</span>];	<span class="hljs-comment">/*DexTypeItem结构*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>它有两个参数，其中第一个size说的是DexTypeItem的个数，那DexTypeItem又是啥咧？它又是一种数据结构。我们继续看看</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexTypeItem</span>&#123;</span><br>	u2 typeIdx;				<span class="hljs-comment">/*指向DexTypeId列表的索引*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>就是一个指向DexTypeId列表的索引，也就是代表参数列表中某一个具体的参数的位置。</p>
+<p>下面我们具体地分析一个类吧。</p>
+<p>一个DexProtoId一共占用12个字节。所以，我们取前12个字节进行分析。“06 00 00 00，00 00 00 00，94 02 00 00”，这就是那12个字节了。</p>
+<p>首先“06 00 00 00”代表的是shortyIdx，它的值是指向DexStringId列表的索引，我们找到DexStringId列表中第6个对应的值，也就是III，说明这个方法中声明字符串为三个int。</p>
+<p>接着，“00 00 00 00”代表的是returnTypeIdx，它的值指向的是DexTypeId列表的索引，我们找到对应的值，也就是I，说明这个方法的返回值是int类型的。</p>
+<p>最后，我们看“94 02 00 00”，它代表的是DexTypeList的位置偏移，它的值为294h，我们找到这个位置：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex18.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>这里是DexTypeList结构，首先看前4个字节，代表的是DexTypeItem的个数，“02 00 00 00 ”也就是2，说明接下来有2个DexTypeItem的数据，每个DexTypeItem占用2个字节，也就是两个都是“00 00”，它们的值是DexTypeId列表的索引，我们去找一下，发现0对应的是I，也就是说它的两个参数都是int型的。因此这个方法的声明我们也就确定了，也就是int(int,int)。</p>
+<h3 id="dex-field-ids"><a href="#dex-field-ids" class="headerlink" title="dex_field_ids"></a>dex_field_ids</h3><p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex19.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>fieldIdsSize为3h，说明共有3个字段。fieldIdsOff为158h，说明偏移为158h，我们继续看到158h这里：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex20.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>接下来的数据结构是DexFieldId，我们看下</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexFieldId</span>&#123;</span><br>	u2 classIdx;		<span class="hljs-comment">/*类的类型，指向DexTypeId列表的索引*/</span><br>	u2 typeIdx;		<span class="hljs-comment">/*字段类型，指向DexTypeId列表的索引*/</span><br>	u4 nameIdx;		<span class="hljs-comment">/*字段名，指向DexStringId列表的索引*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们依旧是分析一下第一个字段，“01 00 ，00 00，13 00 00 00”，类的类型为DexTypeId列表的索引1，也就是HelloWorld。</p>
+<p>字段的类型为DexTypeId列表中的索引0，也就是int。</p>
+<p>字段名为DexStringId列表中的索引13h，即十进制的19，找一下，是a，也就是说我们这个字段就确认了，即int HelloWorld.a。这不就是我们在HelloWorld.java文件里定义的变量a嘛。</p>
+<h3 id="dex-method-ids"><a href="#dex-method-ids" class="headerlink" title="dex_method_ids"></a>dex_method_ids</h3><p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex21.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>methodIdsSize，为Ah，即十进制的10，说明共有10个方法。methodIdsOff，为170h，说明它们的位置偏移在170h。我们看到这里</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex22.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>请看DexMethodId</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexMethodId</span>&#123;</span><br>	u2 classIdx;		<span class="hljs-comment">/*类的类型，指向DexTypeId列表的索引*/</span><br>	u2 protoIdx;		<span class="hljs-comment">/*声明类型，指向DexProtoId列表的索引*/</span><br>	u4 nameIdx;		<span class="hljs-comment">/*方法名，指向DexStringId列表的索引*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们直接分析一下第一个数据，“01 00, 04 00， 00 00 00 00”，</p>
+<p>首先，classIdx，为1，对应DexTypeId列表的索引1，也就是HelloWorld；</p>
+<p>其次，protoIdx，为4，对应DexProtoId列表中的索引4，也就是void()；</p>
+<p>最后，nameIdx，为0，对应DexStringId列表中的索引0，也就是<clinit>。</p>
+<p>因此，第一个数据就出来了，即void HelloWorld.&lt;clinit&gt;() 。</p>
+<h3 id="dex-class-defs"><a href="#dex-class-defs" class="headerlink" title="dex_class_defs"></a>dex_class_defs</h3><p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex23.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>classDefsSize字段，为1，也就是只有一个类定义，classDefsOff，为1C0h，我们找到它的偏移位置。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex24.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>接下来的数据结构是DexClassDef，请看</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexClassDef</span>&#123;</span><br>	u4 classIdx;		<span class="hljs-comment">/*类的类型，指向DexTypeId列表的索引*/</span><br>	u4 accessFlags;		<span class="hljs-comment">/*访问标志*/</span><br>	u4 superclassIdx;	<span class="hljs-comment">/*父类类型，指向DexTypeId列表的索引*/</span><br>	u4 interfacesOff;	<span class="hljs-comment">/*接口，指向DexTypeList的偏移*/</span><br>	u4 sourceFileIdx;	<span class="hljs-comment">/*源文件名，指向DexStringId列表的索引*/</span><br>	u4 annotationsOff;	<span class="hljs-comment">/*注解，指向DexAnnotationsDirectoryItem结构*/</span><br>	u4 classDataOff;	<span class="hljs-comment">/*指向DexClassData结构的偏移*/</span><br>	u4 staticValuesOff;	<span class="hljs-comment">/*指向DexEncodedArray结构的偏移*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们直接根据结构开始分析吧。</p>
+<p>classIdx为1，对应DexTypeId列表的索引1，找到是HelloWorld，确实是我们源程序中的类的类型。</p>
+<p>accessFlags为1，它是类的访问标志，对应的值是一个以ACC_开头的枚举值，1对应的是 ACC_PUBLIC，你可以在010Editor中看一下，说明我们的类是public的。</p>
+<p>superclassIdx的值为3，找到DexTypeId列表中的索引3，对应的是java.lang.object，说明我们的类的父类类型是Object的。</p>
+<p>interfaceOff指向的是DexTypeList结构，我们这里是0说明没有接口。如果有接口的话直接对应到DexTypeList，就和之前我们分析的一样了，这里不多解释，有兴趣的可以写一个有接口的类验证下。</p>
+<p>再下来sourceFileIdx指向的是DexStringId列表的索引，代表源文件名，我们这里位4，找一下对应到了字符串”HelloWorld.java”，说明我们类程序的源文件名为HelloWorld.java。</p>
+<p>annotationsOff字段指向注解目录接口，根据类型不同会有注解类、注解方法、注解字段与注解参数，我们这里的值为0，说明没有注解，这里也不过多解释，有兴趣可以自己试试。</p>
+<p>接下来是classDataOff了，它指向的是DexClassData结构的位置偏移，DexClassData中存储的是类的数据部分，我们开始详细分析一下它，首先，还是先找到偏移位置3F8h：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/dex25.png?raw=true" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>我们看看DexClassData数据结构：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexClassData</span>&#123;</span><br>	DexClassDataHeader	        header;			<span class="hljs-comment">/*指定字段与方法的个数*/</span><br>	DexField* 			staticFields;		<span class="hljs-comment">/*静态字段，DexField结构*/</span><br>	DexField*			instanceFields；	<span class="hljs-comment">/*实例字段，DexField结构*/</span><br>	DexMethod*			directMethods;		<span class="hljs-comment">/*直接方法，DexMethod结构*/</span><br>	DexMethod*			virtualMethods;		<span class="hljs-comment">/*虚方法，DexMethod结构*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexClassDataHeader</span>&#123;</span><br>	u4 staticFieldsSize;	<span class="hljs-comment">/*静态字段个数*/</span><br>	u4 instanceFieldsSize;	<span class="hljs-comment">/*实例字段个数*/</span><br>	u4 directMethodsSize;	<span class="hljs-comment">/*直接方法个数*/</span><br>	u4 virtualMethodsSize;  <span class="hljs-comment">/*虚方法个数*/</span><br>&#125;<br> <br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexField</span>&#123;</span><br>	u4 fieldIdx;		<span class="hljs-comment">/*指向DexFieldId的索引*/</span><br>	u4 accessFlags;		<span class="hljs-comment">/*访问标志*/</span><br>&#125;<br> <br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">DexMethod</span>&#123;</span><br>	u4 methodIdx;		<span class="hljs-comment">/*指向DexMethodId的索引*/</span><br>	u4 accessFlags;		<span class="hljs-comment">/*访问标志*/</span><br>	u4 codeOff;		<span class="hljs-comment">/*指向DexCode结构的偏移*/</span><br><br></code></pre></td></tr></table></figure>
+
+<p>注意，在这些结构中的u4不是指的占用4个字节，而是指它们是uleb128类型（占用1~5个字节）的数据。</p>
+<p>这里面就不具体分析了，可以自己打开 010 就知道里面的字段是什么意思了。就是描述这个类的静态字段，实例字段，各种方法。字段的访问表示等等。在方法的描述中，有个 dexCode，里面描述的方法的指令集。</p>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/sinat_18268881/article/details/55832757">一篇文章带你搞懂DEX文件的结构</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Matrix/">Matrix</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/08/12/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/012-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E4%BD%BF%E7%94%A8%E6%8F%92%E4%BB%B6%E6%9D%A5%E5%88%A0%E9%99%A4ApkChecker%E6%9F%A5%E5%87%BA%E7%9A%84%E6%97%A0%E7%94%A8%E8%B5%84%E6%BA%90/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">012-Matrix源码分析：使用插件来删除ApkChecker查出的无用资源</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/08/11/blog_bak/Blog/flutter/004-Flutter%E7%9A%84Widget%E6%B8%B2%E6%9F%93/">
+                        <span class="hidden-mobile">004-Flutter的Widget渲染</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

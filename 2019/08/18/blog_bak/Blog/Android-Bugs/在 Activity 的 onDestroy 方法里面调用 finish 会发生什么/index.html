@@ -1,0 +1,558 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>在 Activity 的 onDestroy 方法里面调用 finish 会发生什么 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="在 Activity 的 onDestroy 方法里面调用 finish 会发生什么">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      910 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      4
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">在 Activity 的 onDestroy 方法里面调用 finish 会发生什么</h1>
+            
+            <div class="markdown-body">
+              <p>发现这个奇怪问题的起因在于同事看了MVVM的相关文章，里面提到<strong>屏幕旋转时，Activity 销毁重建不会导致 ViewModel随着销毁而重建</strong>。</p>
+<p>于是，就在项目中写了测试代码来验证。然后就发现了一个诡异的问题，<strong>打开的界面旋转后自动关闭了！！</strong>后来断点调试发现是因为 onDestroy 走了两次，分析逻辑之后，还原了执行流程，如下代码所示：</p>
+<h3 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onDestroy</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>.onDestroy();<br>    <span class="hljs-comment">// 由于历史原因，我们的项目里面出现了这样的代码（经过简化逻辑之后）。</span><br>    finish();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>那么问题就来了，<strong>Activity 在重建时，是创建了新的对象，为何旧的对象调用 finish 方法会将新创建的 Activity 对象给销毁？</strong></p>
+<p>查看 finish 的源码：</p>
+<h3 id="Activity"><a href="#Activity" class="headerlink" title="Activity"></a>Activity</h3><blockquote>
+<p>android.app.Activity#finish(int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">finish</span><span class="hljs-params">(<span class="hljs-keyword">int</span> finishTask)</span> </span>&#123;<br>    <span class="hljs-comment">// mParent 为空，走里面的逻辑</span><br>    <span class="hljs-keyword">if</span> (mParent == <span class="hljs-keyword">null</span>) &#123;<br>        <br>        ...<br><br>        <span class="hljs-keyword">try</span> &#123;<br>            ...<br>            <span class="hljs-comment">// 这里是最可疑的地方，AMS 是根据 mToken 的值去判断该 finish 哪个 Activity    </span><br>            <span class="hljs-keyword">if</span> (ActivityManager.getService()<br>                    .finishActivity(mToken, resultCode, resultData, finishTask)) &#123;<br>                mFinished = <span class="hljs-keyword">true</span>;<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (RemoteException e) &#123;<br>            <span class="hljs-comment">// Empty</span><br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        mParent.finishFromChild(<span class="hljs-keyword">this</span>);<br>    &#125;<br><br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>那么，打印 mToken 的值看一下：</p>
+<h4 id="Demo-1"><a href="#Demo-1" class="headerlink" title="Demo"></a>Demo</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onDestroy</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>.onDestroy();<br>        Class aClass = <span class="hljs-keyword">this</span>.getClass();<br><br>        <span class="hljs-keyword">while</span> (aClass != Activity.class) &#123;<br>            aClass = aClass.getSuperclass();<br>        &#125;<br><br>        <span class="hljs-keyword">try</span> &#123;<br>            Field mToken = aClass.getDeclaredField(<span class="hljs-string">&quot;mToken&quot;</span>);<br>            mToken.setAccessible(<span class="hljs-keyword">true</span>);<br>            Object o = mToken.get(<span class="hljs-keyword">this</span>);<br>            Log.e(<span class="hljs-string">&quot;mToken&quot;</span>, o.toString());<br>        &#125; <span class="hljs-keyword">catch</span> (NoSuchFieldException | IllegalAccessException e) &#123;<br>            e.printStackTrace();<br>        &#125;<br><br>        finish();<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>输出 log 如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">E/mToken: android.os.BinderProxy@57d9656<br>E/mToken: android.os.BinderProxy@57d9656<br></code></pre></td></tr></table></figure>
+
+<p>不出所料，那么现在就来看看源码，看 AMS 是如何根据 mToken 来管理 Activity 的。</p>
+<p>Android 是如何根据手机方向来旋转屏幕的，这个我没法探究，但是 Activity 有一个方法，也可以设置屏幕方向，想来分析这个方法也是可行的。</p>
+<h3 id="Activity-1"><a href="#Activity-1" class="headerlink" title="Activity"></a>Activity</h3><blockquote>
+<p>android.app.Activity#setRequestedOrientation</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setRequestedOrientation</span><span class="hljs-params">(<span class="hljs-meta">@ActivityInfo</span>.ScreenOrientation <span class="hljs-keyword">int</span> requestedOrientation)</span> </span>&#123;<br>    <span class="hljs-comment">// mParent 为null</span><br>    <span class="hljs-keyword">if</span> (mParent == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-comment">// 走这里</span><br>            ActivityManagerNative.getDefault().setRequestedOrientation(<br>                    mToken, requestedOrientation);<br>        &#125; <span class="hljs-keyword">catch</span> (RemoteException e) &#123;<br>            <span class="hljs-comment">// Empty</span><br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        mParent.setRequestedOrientation(requestedOrientation);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>根据 Binder 机制，ActivityManagerNative.getDefault() 会返回 ActivityManagerProxy 对象，然后会调用到 ActivityManagerService 的 setRequestedOrientation 方法。</p>
+<h3 id="ActivityManagerService"><a href="#ActivityManagerService" class="headerlink" title="ActivityManagerService"></a>ActivityManagerService</h3><blockquote>
+<p>com.android.server.am.ActivityManagerService#setRequestedOrientation</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setRequestedOrientation</span><span class="hljs-params">(IBinder token, <span class="hljs-keyword">int</span> requestedOrientation)</span> </span>&#123;<br>    <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>        ...<br>        <span class="hljs-keyword">if</span> (config != <span class="hljs-keyword">null</span>) &#123;<br>            r.frozenBeforeDestroy = <span class="hljs-keyword">true</span>;<br>            <span class="hljs-comment">// 这里处理了方向的改变，里面还涉及到对 activity 方向改变的回调</span><br>            <span class="hljs-keyword">if</span> (!updateConfigurationLocked(config, r, <span class="hljs-keyword">false</span>)) &#123;<br>                mStackSupervisor.resumeFocusedStackTopActivityLocked();<br>            &#125;<br>        &#125;<br>        Binder.restoreCallingIdentity(origId);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>后面的代码还是比较深的，这里就不贴出来了，跟踪到后面，会发现它调用了这样的一个方法。</p>
+<blockquote>
+<p>com.android.server.am.ActivityStack#ensureActivityConfigurationLocked</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">  <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">ensureActivityConfigurationLocked</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">          ActivityRecord r, <span class="hljs-keyword">int</span> globalChanges, <span class="hljs-keyword">boolean</span> preserveWindow)</span> </span>&#123;<br>      ...<br>relaunchActivityLocked(r, r.configChangeFlags, <span class="hljs-keyword">true</span>, preserveWindow);<br>      ...<br>  &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里它重新启动了这个 Activity（demo里面没有对方向变化做任何处理）。</p>
+<p>我们知道，AMS 处理 Activity 的方法，都会通知到到应用进程，由应用进程自己处理。</p>
+<h3 id="ActivityThread"><a href="#ActivityThread" class="headerlink" title="ActivityThread"></a>ActivityThread</h3><blockquote>
+<p>android.app.ActivityThread#handleRelaunchActivity</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handleRelaunchActivity</span><span class="hljs-params">(ActivityClientRecord tmp)</span> </span>&#123;<br>    <br>    ...<br>        <span class="hljs-comment">// tmp 是从需要重启的集合中找出来的</span><br>        <span class="hljs-comment">// 这里再次找一下，按照正常逻辑这里找出来的，应该还是同一个对象</span><br>        ActivityClientRecord r = mActivities.get(tmp.token);<br>    ...<br>    <br>        	<span class="hljs-comment">// r.token 传递进去</span><br>            handleDestroyActivity(r.token, <span class="hljs-keyword">false</span>, configChanges, <span class="hljs-keyword">true</span>);<br>    <br>    ...<br>    		<span class="hljs-comment">// r 传递进去</span><br>            handleLaunchActivity(r, currentIntent, <span class="hljs-string">&quot;handleRelaunchActivity&quot;</span>);<br>    <br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>ActivityClientRecord 是属于应用进程的，它里面存有 Activity 的信息。一个 ActivityClientRecord 对应一个 Activity。</p>
+<p>这里可以看出，Activity销毁重建的时候，都使用的是同一个 ActivityClientRecord，mToken 没有变化。</p>
+<p>当我们在 onDestroy 里面，调用 finish 的时候，传递的 mToken 值与重新创建的 Activity 的 mToken 值是一样的，所以会销毁掉刚刚启动的 Activity。</p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a target="_blank" rel="noopener" href="https://juejin.im/post/5c88fac76fb9a049c16013c6">https://juejin.im/post/5c88fac76fb9a049c16013c6</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/guoqifa29/article/details/46819377">https://blog.csdn.net/guoqifa29/article/details/46819377</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/94816e52cd77">https://www.jianshu.com/p/94816e52cd77</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/bugs/">bugs</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android/%E6%B7%B7%E5%90%88%E7%BC%96%E8%AF%91%E5%99%A8/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">混合编译器</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-JetPack/Navigation%20%E7%9A%84%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/">
+                        <span class="hidden-mobile">Navigation 的使用记录</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

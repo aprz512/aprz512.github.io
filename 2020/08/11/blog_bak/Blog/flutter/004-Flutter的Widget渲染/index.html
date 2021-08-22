@@ -1,0 +1,548 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>004-Flutter的Widget渲染 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="004-Flutter的Widget渲染">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-08-11 00:00" pubdate>
+        2020年8月11日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.6k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      8
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">004-Flutter的Widget渲染</h1>
+            
+            <div class="markdown-body">
+              <p>事情要从<a target="_blank" rel="noopener" href="https://lizhaoxuan.github.io/2019/01/02/Flutter-%E4%BD%A0%E8%BF%98%E5%9C%A8%E6%BB%A5%E7%94%A8StatefulWidget%E5%90%97/">Flutter-你还在滥用StatefulWidget吗</a> 说起。看了这篇文章之后，我还是以为很有道理的，直到我看了 fish-redux 的大致结构，发现根本就没必要。而且这样做会带来很多麻烦，比如：组件的抽取，又要考虑不能多次 build，又要考虑复用，这两者几乎是冲突的，写出来的代码很难看。但是话说回来，能减少 build 的控件当然最好了，这样创建销毁的对象也少些。</p>
+<p>fish-redux 里面将 page 作为一个整体来 build，每次 state 发生变化的时候，重新 build 一次就好了。即使只有一个 text 发生了变化，也要重新 build 一次。虽然看起来，build 了很多无用的东西，实际上渲染的时候，只渲染了变化的 text 部分。</p>
+<p>为啥呢？这就要从 3 棵树说起。</p>
+<h4 id="Widget-tree"><a href="#Widget-tree" class="headerlink" title="Widget tree"></a>Widget tree</h4><p>第一个是 Widget 树，它的里面没有渲染相关的的东西，只负责<strong>描述</strong> Widget 的大小与位置。我们把它当作普通类理解就好了。</p>
+<h4 id="Element-tree"><a href="#Element-tree" class="headerlink" title="Element  tree"></a>Element  tree</h4><p>第二个是 Element 树，Element 是啥呢？每个 Widget 都有 build 方法（之类会在这个基础上再改变一下）：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs dart"><span class="hljs-comment">// 这个是 StatefulWidget 的 build 方法</span><br>Widget build(BuildContext context);<br></code></pre></td></tr></table></figure>
+
+<p>这个 context 实际上就是一个 Element。</p>
+<p>Element 可以理解为一个中间人，每个 Widget 都有一个对应的 Element 对象。我们对 Widget 树的更改会反应到 Element 树上。但是 Element 有一个 diff 机制，就是说它会复用之前的 Element 对象。</p>
+<h5 id="demo1"><a href="#demo1" class="headerlink" title="demo1"></a>demo1</h5><p>比如，屏幕上有3个 widget：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@override</span><br><span class="hljs-function">Widget <span class="hljs-title">build</span><span class="hljs-params">(BuildContext context)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (map.containsKey(widget.name)) &#123;<br>    print(<span class="hljs-string">&#x27;isSame = $&#123;context == map[widget.name]&#125;, time = $&#123;DateTime.now()&#125;&#x27;</span>);<br>    print(<span class="hljs-string">&#x27;old context = $&#123;map[widget.name].toString()&#125;, time = $&#123;DateTime.now()&#125;&#x27;</span>);<br>    print(<span class="hljs-string">&#x27;context = $&#123;context.toString()&#125;, time = $&#123;DateTime.now()&#125;&#x27;</span>);<br>  &#125;<br><br>  map[widget.name] = context;<br><br>  <span class="hljs-keyword">return</span> Container(<br>    child: Text(<br>      widget.name,<br>      style: TextStyle(color: Colors.white, fontSize: <span class="hljs-number">30</span>),<br>    ),<br>    height: <span class="hljs-number">80</span>,<br>    color: randColor,<br>  );<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们，每次 build 的时候，会生成新的 widget 对象，是肯定的，但是 context 却是复用的。打印下 log：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): isSame = true, time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">033290</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul-[&lt;&#x27;aaaa&#x27;&gt;](dirty, state: _ListItemFulState#<span class="hljs-number">58614</span>), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">033968</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul-[&lt;&#x27;aaaa&#x27;&gt;](dirty, state: _ListItemFulState#<span class="hljs-number">58614</span>), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">034196</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): isSame = true, time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">035217</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul-[&lt;&#x27;bbbb&#x27;&gt;](dirty, state: _ListItemFulState#<span class="hljs-number">7</span>d<span class="hljs-number">32</span>b), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">035636</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul-[&lt;&#x27;bbbb&#x27;&gt;](dirty, state: _ListItemFulState#<span class="hljs-number">7</span>d<span class="hljs-number">32</span>b), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">035891</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): isSame = true, time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">037472</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul-[&lt;&#x27;cccc&#x27;&gt;](dirty, state: _ListItemFulState#cd<span class="hljs-number">85</span>b), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">037819</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul-[&lt;&#x27;cccc&#x27;&gt;](dirty, state: _ListItemFulState#cd<span class="hljs-number">85</span>b), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">08</span>:<span class="hljs-number">50</span>.<span class="hljs-number">038083</span><br></code></pre></td></tr></table></figure>
+
+<p>无论，每次 build 多少次，发现都是复用的同一个 element 对象。这是因为它满足了复用规则：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs dart"><span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> canUpdate(Widget oldWidget, Widget newWidget) &#123;<br>  <span class="hljs-keyword">return</span> oldWidget.runtimeType == newWidget.runtimeType<br>      &amp;&amp; oldWidget.key == newWidget.key;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h5 id="demo2"><a href="#demo2" class="headerlink" title="demo2"></a>demo2</h5><p>我们接下来，改一下这个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java">  <span class="hljs-keyword">final</span> List&lt;String&gt; names = [<span class="hljs-string">&quot;aaaa&quot;</span>, <span class="hljs-string">&quot;bbbb&quot;</span>, <span class="hljs-string">&quot;cccc&quot;</span>]; <br><br>  <span class="hljs-function">Widget <span class="hljs-title">buildPage</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> Scaffold(<br>      appBar: AppBar(<br>        title: Text(<span class="hljs-string">&quot;列表测试&quot;</span>),<br>      ),<br>      body: ListView(<br>        children: names.map((item) &#123;<br>          <span class="hljs-keyword">return</span> ListItemFul(<br>            item,<br><span class="hljs-comment">//            key: ValueKey(item),</span><br>          );<br>        &#125;).toList(),<br>      ),<br>      floatingActionButton: FloatingActionButton(<br>        child: Icon(Icons.delete),<br>        onPressed: () &#123;<br>          setState(() &#123;<br>            names.removeAt(<span class="hljs-number">0</span>);<br>            names.add(<span class="hljs-string">&#x27;aaaa&#x27;</span>);<br>          &#125;);<br>        &#125;,<br>      ),<br>    );<br>  &#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们加了一个 button，点击这个 button，将第一个与第3个 widget 换个位置。看看打印的是什么信息：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): isSame = false, time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">885164</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul(state: _ListItemFulState#<span class="hljs-number">93</span>a<span class="hljs-number">82</span>), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">886470</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul(dirty, state: _ListItemFulState#<span class="hljs-number">65</span>e<span class="hljs-number">5</span>d), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">886706</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): isSame = false, time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">888019</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul(state: _ListItemFulState#<span class="hljs-number">5</span>f<span class="hljs-number">8</span>fd), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">888226</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul(dirty, state: _ListItemFulState#<span class="hljs-number">93</span>a<span class="hljs-number">82</span>), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">888521</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): isSame = false, time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">889172</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul(state: _ListItemFulState#<span class="hljs-number">65</span>e<span class="hljs-number">5</span>d), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">889322</span><br><span class="hljs-attribute">I</span>/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul(dirty, state: _ListItemFulState#<span class="hljs-number">5</span>f<span class="hljs-number">8</span>fd), time = <span class="hljs-number">2020</span>-<span class="hljs-number">08</span>-<span class="hljs-number">06</span> <span class="hljs-number">23</span>:<span class="hljs-number">45</span>:<span class="hljs-number">17</span>.<span class="hljs-number">889634</span><br></code></pre></td></tr></table></figure>
+
+<p>我们发现，element 不一样了，但是仔细看一下，会发现其实是，widget 1 复用了 widget 3 的 element，widget 2 复用了 widget 1 的 element，widget 3 复用了 widget 2 的 element。</p>
+<p>这是因为，我们没传递 key，所以只要 runtimeType 一样，就可以复用。大致过程如下：</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs n1ql"><span class="hljs-keyword">build</span> 执行，<br>需要先 <span class="hljs-keyword">build</span> <span class="hljs-string">&#x27;bbbb&#x27;</span> 控件<br>发现位置上有一个 <span class="hljs-string">&#x27;aaaa&#x27;</span> 的 <span class="hljs-keyword">element</span><br>判断该 <span class="hljs-keyword">element</span> 是否可用，发现可用，则直接使用。<br>重复上面的过程<br></code></pre></td></tr></table></figure>
+
+<h5 id="demo3"><a href="#demo3" class="headerlink" title="demo3"></a>demo3</h5><p>再对该例子做点改动，将 <code>key: ValueKey(item),</code> 这行代码的注释去掉，再点击 button，打印结果如下：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs dart">I/flutter ( <span class="hljs-number">8694</span>): isSame = <span class="hljs-keyword">true</span>, time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.103764</span><br>I/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul-[&lt;<span class="hljs-string">&#x27;aaaa&#x27;</span>&gt;](dirty, state: _ListItemFulState#<span class="hljs-number">28e81</span>), time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.104217</span><br>I/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul-[&lt;<span class="hljs-string">&#x27;aaaa&#x27;</span>&gt;](dirty, state: _ListItemFulState#<span class="hljs-number">28e81</span>), time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.104387</span><br>I/flutter ( <span class="hljs-number">8694</span>): isSame = <span class="hljs-keyword">true</span>, time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.104683</span><br>I/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul-[&lt;<span class="hljs-string">&#x27;bbbb&#x27;</span>&gt;](dirty, state: _ListItemFulState#<span class="hljs-number">6e7</span>c6), time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.104839</span><br>I/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul-[&lt;<span class="hljs-string">&#x27;bbbb&#x27;</span>&gt;](dirty, state: _ListItemFulState#<span class="hljs-number">6e7</span>c6), time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.105229</span><br>I/flutter ( <span class="hljs-number">8694</span>): isSame = <span class="hljs-keyword">true</span>, time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.106242</span><br>I/flutter ( <span class="hljs-number">8694</span>): old context = ListItemFul-[&lt;<span class="hljs-string">&#x27;cccc&#x27;</span>&gt;](dirty, state: _ListItemFulState#ab41f), time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.106712</span><br>I/flutter ( <span class="hljs-number">8694</span>): context = ListItemFul-[&lt;<span class="hljs-string">&#x27;cccc&#x27;</span>&gt;](dirty, state: _ListItemFulState#ab41f), time = <span class="hljs-number">2020</span><span class="hljs-number">-08</span><span class="hljs-number">-07</span> <span class="hljs-number">01</span>:<span class="hljs-number">53</span>:<span class="hljs-number">35.106977</span><br></code></pre></td></tr></table></figure>
+
+<p>发现，每个 widget 都复用了自己原来的 element。这是为什么呢？是因为 ValueKey 是一个 LocalKey。它在源码里面有这样的一个注释：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs dart">Keys must be unique amongst the [<span class="hljs-built_in">Element</span>]s <span class="hljs-keyword">with</span> the same parent.<br></code></pre></td></tr></table></figure>
+
+<p>这句话就是说一个 parent 的所有 child 的 element 的 key 应该是唯一的，这样的话，方便复用。它会在 <code>RenderObjectElement.updateChildren</code> 里进行 diff 算法，计算 old 与 new 的可复用关系。因为，我们只是交换位置，所以 element 完全可以复用，设置一个 LocalKey就可以做到 parent 级别的复用。</p>
+<h4 id="RenderObject"><a href="#RenderObject" class="headerlink" title="RenderObject"></a>RenderObject</h4><p>它才是真正负责 widget 渲染的树。每当 Widget 重新 build 后，element 会计算出哪些可复用的，拿到可复用的之后，就会开始更新 renderObject：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs dart"><span class="hljs-keyword">void</span> updateRenderObject(BuildContext context, <span class="hljs-keyword">covariant</span> RenderObject renderObject) &#123; &#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们拿 RichText 举例：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs dart"><span class="hljs-meta">@override</span><br><span class="hljs-keyword">void</span> updateRenderObject(BuildContext context, RenderParagraph renderObject) &#123;<br>  <span class="hljs-keyword">assert</span>(textDirection != <span class="hljs-keyword">null</span> || debugCheckHasDirectionality(context));<br>  renderObject<br>    ..text = text<br>    ..textAlign = textAlign<br>    ..textDirection = textDirection ?? Directionality.of(context)<br>    ..softWrap = softWrap<br>    ..overflow = overflow<br>    ..textScaleFactor = textScaleFactor<br>    ..maxLines = maxLines<br>    ..strutStyle = strutStyle<br>    ..textWidthBasis = textWidthBasis<br>    ..textHeightBehavior = textHeightBehavior<br>    ..locale = locale ?? Localizations.localeOf(context, nullOk: <span class="hljs-keyword">true</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，它就是重新设置了一下属性值而已。但是 RenderObject  在下一帧绘制的时候，就绘制的是改变之后的值。需要注意的是 RenderObject 数也正是重新渲染了变化的节点。</p>
+<h4 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h4><p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=996ZgFRENMs">https://www.youtube.com/watch?v=996ZgFRENMs</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Flutter/">Flutter</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/08/12/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%95%AA%E5%A4%96%E7%AF%87%EF%BC%9ADex%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Matrix源码分析番外篇：Dex文件结构</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/08/10/blog_bak/Blog/flutter/005-Flutter%E7%9A%84%E5%8A%A8%E7%94%BB/">
+                        <span class="hidden-mobile">005-Flutter的动画</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

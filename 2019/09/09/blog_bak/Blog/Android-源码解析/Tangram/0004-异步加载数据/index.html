@@ -1,0 +1,585 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>0004-异步加载数据 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="0004-异步加载数据">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-09-09 00:00" pubdate>
+        2019年9月9日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      7
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">0004-异步加载数据</h1>
+            
+            <div class="markdown-body">
+              <p>Tangram 的页面的数据无法一次性返回，有些区块布局内的数据需要异步加载、甚至分页加载。Tangram 里内置了封装了异步加载的逻辑，需要各个层面配合完成。</p>
+<h2 id="数据设置"><a href="#数据设置" class="headerlink" title="数据设置"></a>数据设置</h2><p>想要实现异步加载，服务器返回的数据需要做如下配置：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs json">&#123;<br>	<span class="hljs-attr">&quot;id&quot;</span>: <span class="hljs-string">&quot;Shop&quot;</span>,<br>	<span class="hljs-attr">&quot;load&quot;</span>: <span class="hljs-string">&quot;queryShop&quot;</span>,<br>	<span class="hljs-attr">&quot;loadType&quot;</span>: <span class="hljs-string">&quot;-1&quot;</span>,<br>	<span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;container-oneColumn&quot;</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>load 是接口名称，表示这个布局需要执行异步加载的接口。</li>
+<li>loadType 是异步加载的方式，-1表示需要异步加载，1表示需要异步加载且有分页。</li>
+<li>hasMore 与 loadType 配合，当 loadType = 1 的时候表示分页是否结束。</li>
+<li>loadParams 是异步加载接口的常规参数字典，需要在调用接口时透传。</li>
+</ul>
+<p>既然规定了 load 是接口名称，我们直接搜一下哪里用到了 “load”这个字符串，果然 Card 里面有一个字段：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.dataparser.concrete.Card#KEY_API_LOAD</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String KEY_API_LOAD = <span class="hljs-string">&quot;load&quot;</span>;<br></code></pre></td></tr></table></figure>
+
+<p>继续看用这个字符串搞了啥：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.dataparser.concrete.Card#parseWith(org.json.JSONObject, com.tmall.wireless.tangram.MVHelper, boolean)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">parseWith</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> JSONObject data, <span class="hljs-meta">@NonNull</span> <span class="hljs-keyword">final</span> MVHelper resolver, <span class="hljs-keyword">boolean</span> isParseCell)</span> </span>&#123;<br>    ...<br>    load = data.optString(KEY_API_LOAD, <span class="hljs-keyword">null</span>);<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>从 json 数据里面解析出来接口名字，这个在意料之中。</p>
+<p>解析出来之后，框架里面并没有去发起请求，而是使用了接口的方式让外部去做请求，这里<strong>只是将接口的一些信息解析出来保存起来</strong>。</p>
+<h2 id="CardLoadSupport与AsyncLoader，AsyncPageLoader"><a href="#CardLoadSupport与AsyncLoader，AsyncPageLoader" class="headerlink" title="CardLoadSupport与AsyncLoader，AsyncPageLoader"></a>CardLoadSupport与AsyncLoader，AsyncPageLoader</h2><p>上面说了，请求的处理还是暴露给了外部去处理，那么应该怎么做呢？只需要做一件事，提供一个自定义的 <code>CardLoadSupport</code> 就好了。</p>
+<p>这个  <code>CardLoadSupport</code> 需要传入两个参数进去，<code>AsyncLoader</code>和<code>AsyncPageLoader</code>。所以归根结底，还是要自定义两个对象，<code>AsyncLoader</code> 和 <code>AsyncPageLoader</code>。</p>
+<p>自定义这两个对象不难，我们看一个例子就明白了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">new</span> AsyncLoader() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">loadData</span><span class="hljs-params">(Card card, <span class="hljs-meta">@NonNull</span> <span class="hljs-keyword">final</span> LoadedCallback callback)</span> </span>&#123;<br>        Log.w(<span class="hljs-string">&quot;Load Card&quot;</span>, card.load);<br>        ...<br>        <span class="hljs-comment">// callback.fail(false);</span><br>        callback.finish(engine.parseComponent(cells));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>card 参数里面有接口的所有信息了，所以可以发起请求，请求之后可以根据结果来设置相应的回调。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">new</span> AsyncPageLoader() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">loadData</span><span class="hljs-params">(<span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> page, <span class="hljs-meta">@NonNull</span> <span class="hljs-keyword">final</span> Card card, <span class="hljs-meta">@NonNull</span> <span class="hljs-keyword">final</span> LoadedCallback callback)</span> </span>&#123;<br>        <br>        <span class="hljs-comment">// cells 是请求回来的数据</span><br>        List&lt;BaseCell&gt; cs = engine.parseComponent(cells);<br><br>        <span class="hljs-keyword">if</span> (card.page == <span class="hljs-number">1</span>) &#123;<br>            GroupBasicAdapter&lt;Card, ?&gt; adapter = engine.getGroupBasicAdapter();<br><br>            card.setCells(cs);<br>            adapter.refreshWithoutNotify();<br>            Range&lt;Integer&gt; range = adapter.getCardRange(card);<br><br>            adapter.notifyItemRemoved(range.getLower());<br>            adapter.notifyItemRangeInserted(range.getLower(), cs.size());<br><br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            card.addCells(cs);<br>        &#125;<br><br>        <span class="hljs-comment">//mock load 6 pages</span><br>        callback.finish(card.page != <span class="hljs-number">6</span>);<br>        card.notifyDataChange();<br>    &#125;<br>&#125;));<br></code></pre></td></tr></table></figure>
+
+<p>这里是分页请求的处理，与我们平时分页的逻辑并无多大区别。</p>
+<p>下面我们来看看源码里面，这两个 loader 做了什么，我们以 AsyncPageLoader 为例。</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.TangramEngine#onScrolled</p>
+</blockquote>
+<p>在 RecyclerView 滚动的时候，就会调用这个方法，当然这方法需要我们主动的调用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">recyclerView.addOnScrollListener(<span class="hljs-keyword">new</span> RecyclerView.OnScrollListener() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onScrolled</span><span class="hljs-params">(RecyclerView recyclerView, <span class="hljs-keyword">int</span> dx, <span class="hljs-keyword">int</span> dy)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>.onScrolled(recyclerView, dx, dy);<br>        engine.onScrolled();<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>下面，我们分析 onScrolled 方法里面的核心代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// position 是当前屏幕上最后一个 cell 的位置</span><br><span class="hljs-comment">// lastCardIndex 是表示的第几种 type 类型，从 0 开始</span><br><span class="hljs-comment">// 所以 current 是屏幕上最后一个 card</span><br><span class="hljs-comment">// 这里是对屏幕上最后一个卡片进行预加载更多</span><br><span class="hljs-keyword">if</span> (pair != <span class="hljs-keyword">null</span> &amp;&amp; position &gt;= pair.first.getUpper() - mPreLoadNumber) &#123;<br>    <span class="hljs-comment">// async load</span><br>    <span class="hljs-keyword">if</span> (!TextUtils.isEmpty(current.load) &amp;&amp; current.loaded) &#123;<br>        <span class="hljs-comment">// page load</span><br>        <span class="hljs-keyword">if</span> (current.loadMore) &#123;<br>            loadSupport.loadMore(current);<br>            loadSupport.reactiveDoLoadMore(current);<br>        &#125;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>&#125;<br><br><br><span class="hljs-keyword">boolean</span> loadedMore = <span class="hljs-keyword">false</span>;<br><br><span class="hljs-comment">// 这里是处理当前屏幕上的 card</span><br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = firstCardIndex; i &lt; Math.min(lastCardIndex + mPreLoadNumber, cards.size()); i++) &#123;<br>    Card c = cards.get(i);<br>    <span class="hljs-comment">// async load</span><br>    <span class="hljs-keyword">if</span> (!TextUtils.isEmpty(c.load) &amp;&amp; !c.loaded) &#123;<br>        <span class="hljs-comment">// page load</span><br>        <span class="hljs-keyword">if</span> (c.loadMore &amp;&amp; !loadedMore) &#123;<br>            <span class="hljs-comment">// only load one load more card</span><br>            loadSupport.loadMore(c);<br>            loadSupport.reactiveDoLoadMore(c);<br>            loadedMore = <span class="hljs-keyword">true</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            loadSupport.doLoad(c);<br>            loadSupport.reactiveDoLoad(c);<br>        &#125;<br>        c.loaded = <span class="hljs-keyword">true</span>;<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 这里是处理数据源里的最后一个 card</span><br><span class="hljs-keyword">if</span> (mEnableAutoLoadMore &amp;&amp; mGroupBasicAdapter.getItemCount() - position &lt; mPreLoadNumber) &#123;<br>    loadMoreCard();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里面的主要逻辑分为 3 段，但是很蛋疼的是，这 3 段逻辑又有重复的地方。我们拿数学区间举例：假设第一段区间是 [0, 3]，第二段是 [2, 4]，第三段是 [3, 5]。可以看出区间里面有重复的地方法，就如同上面代码的 3 段逻辑。我们举一个例子来说明逻辑重复导致的影响：</p>
+<p>Tangram 提供了一个禁止加载更多的方法：</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.TangramEngine#enableAutoLoadMore</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">enableAutoLoadMore</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> enableAutoLoadMore)</span> </span>&#123;<br>    <span class="hljs-keyword">this</span>.mEnableAutoLoadMore = enableAutoLoadMore;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，这个字段只用在了第 3 段逻辑里面，按照道理来说，设置了这个之后，我们就不会自动加载更多了，但是实际上上面的两段逻辑也包含加载更多的逻辑，所以即使也将这个字段设置为了 false，你再运行官方demo也没啥区别。</p>
+<p>这里我懒得搞清楚它为啥要这样写了，说实话这个框架的是值得一看的，但是代码真的很乱，阅读起来你搞不清楚写的人在想啥。</p>
+<p>我们继续我们的分析，从上面的代码中我们可以看到它调用了 CardLoadSupport 的 doLoad 与 loadMore 方法。</p>
+<h2 id="CardLoadSupport-doLoad"><a href="#CardLoadSupport-doLoad" class="headerlink" title="CardLoadSupport#doLoad"></a>CardLoadSupport#doLoad</h2><p>这个方法是用来加载 Card 中的数据的。</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.support.async.CardLoadSupport#doLoad</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doLoad</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Card card)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (mAsyncLoader == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (!card.loading &amp;&amp; !card.loaded) &#123;<br>        card.loading = <span class="hljs-keyword">true</span>;<br>        mAsyncLoader.loadData(card, <span class="hljs-keyword">new</span> AsyncLoader.LoadedCallback() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">finish</span><span class="hljs-params">()</span> </span>&#123;<br>                card.loading = <span class="hljs-keyword">false</span>;<br>                card.loaded = <span class="hljs-keyword">true</span>;<br>            &#125;<br><br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">finish</span><span class="hljs-params">(List&lt;BaseCell&gt; cells)</span> </span>&#123;<br>                finish();<br>                card.addCells(cells);<br>                card.notifyDataChange();<br>            &#125;<br><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">fail</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> loaded)</span> </span>&#123;<br>                card.loading = <span class="hljs-keyword">false</span>;<br>                card.loaded = loaded;<br>            &#125;<br>        &#125;);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在方法中，我们可以看到实际上是使用了 <code>com.tmall.wireless.tangram.support.async.AsyncLoader#loadData</code> 这个方法，而这个方法是我们在创建 AsyncLoader 的时候，需要实现的方法。这样加载 Card 数据的逻辑就串起来了：</p>
+<ul>
+<li><p>监听 RecyclerView 的滚动，在滚动的时候就触发加载加载逻辑。</p>
+</li>
+<li><p>如果数据没有加载的话，就调用外部实现的 <code>AsyncLoader#loadData</code> 方法来加载数据。</p>
+</li>
+</ul>
+<h2 id="CardLoadSupport-loadMore"><a href="#CardLoadSupport-loadMore" class="headerlink" title="CardLoadSupport#loadMore"></a>CardLoadSupport#loadMore</h2><p>这个方法是用来处理分页加载的。</p>
+<blockquote>
+<p>com.tmall.wireless.tangram.support.async.CardLoadSupport#loadMore</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">loadMore</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Card card)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (mAsyncPageLoader == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (!card.loading &amp;&amp; card.loadMore &amp;&amp; card.hasMore) &#123;<br>        card.loading = <span class="hljs-keyword">true</span>;<br>        <span class="hljs-keyword">if</span> (!card.loaded) &#123;<br>            card.page = sInitialPage;<br>        &#125;<br><br><br>        mAsyncPageLoader.loadData(card.page, card, <span class="hljs-keyword">new</span> AsyncPageLoader.LoadedCallback() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">finish</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> hasMore)</span> </span>&#123;<br>                card.loaded = <span class="hljs-keyword">true</span>;<br>                card.loading = <span class="hljs-keyword">false</span>;<br>                card.page++;<br>                card.hasMore = hasMore;<br>            &#125;<br><br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">finish</span><span class="hljs-params">(List&lt;BaseCell&gt; cells, <span class="hljs-keyword">boolean</span> hasMore)</span> </span>&#123;<br>                <span class="hljs-keyword">if</span> (card.page == sInitialPage) &#123;<br>                    card.setCells(cells);<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    card.addCells(cells);<br>                &#125;<br><br>                finish(hasMore);<br>                card.notifyDataChange();<br>            &#125;<br><br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">fail</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> retry)</span> </span>&#123;<br>                card.loaded = <span class="hljs-keyword">true</span>;<br>                card.loading = <span class="hljs-keyword">false</span>;<br>                card.hasMore = retry;<br>            &#125;<br>        &#125;);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的逻辑也很简单，与 doLoad 方法是一样的。我们在实现 <code>AsyncPageLoader.loadData</code> 方法的时候，一定要注意正确的调用 finish 与 fail 方法。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Tangram/">Tangram</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-Tangram/">Android源码解析-Tangram</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/09/09/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Tangram/0003-%E5%A4%84%E7%90%86%E7%82%B9%E5%87%BB%E4%B8%8E%E6%9B%9D%E5%85%89/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">0003-处理点击与曝光</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/09/07/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Tangram/0001-%E5%89%8D%E8%A8%80/">
+                        <span class="hidden-mobile">0001-前言</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

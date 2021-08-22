@@ -1,0 +1,627 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>自定义LayoutManager - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="自定义LayoutManager">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      12
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">自定义LayoutManager</h1>
+            
+            <div class="markdown-body">
+              <p>在做了这么长时间的Android开发，还没有遇到过这个需求，不过看了别人的很多效果，感觉很棒，所以找了时间就研究了一下，现在做一些记录，等以后有了相关需要可以快速回顾。</p>
+<p>在我学习的过程中，不可避免的遇到了很多问题，有的已经解决，有的还未解决，所以这个 Demo 就是看个乐呵吧。</p>
+<p>自定义一个 LayoutManager 整体给我的感觉是与实现自定义 ViewGroup 的 onLayout 比较像。其他的测量绘制方法都不需要我们实现，测量方法还有很多可以直接使用的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">androidx.recyclerview.widget.RecyclerView.LayoutManager#measureChild<br>androidx.recyclerview.widget.RecyclerView.LayoutManager#measureChildWithMargins<br></code></pre></td></tr></table></figure>
+
+<p>这两个方法可以测量 child 的大小，一个不计算 child.layoutParams，一个计算。</p>
+<p>测量完成之后，我们就可以获取 child 的大小了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">androidx.recyclerview.widget.RecyclerView.LayoutManager#getDecoratedMeasuredWidth<br>androidx.recyclerview.widget.RecyclerView.LayoutManager#getDecoratedMeasuredHeight<br></code></pre></td></tr></table></figure>
+
+<p>这里不直接使用 child.getMeasureWidth 显然是因为 RecyclerView 是有一个 ItemDecorate 可以设置，不设置就是获取的 getMeasureWidth 的值。</p>
+<p>更完美的是，layout child 的时候，也有相应的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">androidx.recyclerview.widget.RecyclerView.LayoutManager#layoutDecoratedWithMargins<br></code></pre></td></tr></table></figure>
+
+<p>使用这个方法，我们就可以将 child 摆到我们想要摆放的位置了，我们只需要传递四大金刚的位置：l,t,r,b。网上看到一个效果就是，它计算出某个 path 的所有点，然后存起来，根据滚动的距离，来取相应的点，然后根据这个点以及child的大小，就可以将这个 child 摆到 path 的路径上，实现一个 item 跟随 path 的效果。只要想清楚了还是不难的。</p>
+<p>了解这些，我们还需要了解一下 RecyclerView 的回收机制，因为 RecyclerView 最吊的地方就是回收复用，如果你搞了一个 LayoutManager 但是却无法回收复用，那岂不是很沙雕，关于回收这里就不仔细讲了，看[我的另一篇文章](<a target="_blank" rel="noopener" href="https://github.com/aprz512/blog4aprz512/blob/master/Blog/Android-View/RecyclerView">https://github.com/aprz512/blog4aprz512/blob/master/Blog/Android-View/RecyclerView</a> 的缓存机制.md) 吧。</p>
+<p>有了上面这些基础，我们就可以开始动手写了。</p>
+<p>首先，我们需要确定我们想要的效果，我们先看一下这个效果图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/layoutmanager/Gif_20190805_140935.gif?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到：</p>
+<ul>
+<li>最左边，是有几个 item 堆在一起了的，那么是怎么实现的呢，其实就是 layout 的时候将 item 之间摆进一点就好了。比如：item 的宽度是 100，高度是 150，第一个item的位置为 【（0，0），（100， 150）】，第二个 item 的位置（假设 item 的 divider 宽度为 0）为 【（100, 0），（200, 150）】。但是我在摆第二个 item 的时候，我偏不从 100 开始摆，我从 20 开始摆，那么第二个 item 就叠在第一个 item 上面了。</li>
+<li>右边的就简单了，按照通常的摆法就好了，不搞啥幺蛾子。</li>
+</ul>
+<p>对效果了然于胸，我们就可以开始敲代码了，首先自然是继承父类：</p>
+<blockquote>
+<p>androidx.recyclerview.widget.RecyclerView.LayoutManager#LayoutManager</p>
+</blockquote>
+<p>它只有一个抽象方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">generateDefaultLayoutParams</span><span class="hljs-params">()</span></span>: LayoutParams &#123;<br>    <span class="hljs-keyword">return</span> LayoutParams(<br>        LayoutParams.WRAP_CONTENT,<br>        LayoutParams.WRAP_CONTENT<br>    )<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>首先，网上一致都是这样实现的，我就很蛋疼了，都不说为什么。</p>
+<p>然后，我就去查看了注释，它是这样说的：为 RecyclerView 的 child 生成一个默认的 LayoutParams。那么为何要生成一个默认的 LayoutParams 呢？比如，有的同学在 Adapter 里面加载布局的时候，parent 会传 null，这个时候 child 的就是没有 LayoutParams 的，所以需要生成一个。同样的，PopupWindow 也会遇到。这里我就清楚了，传递 WRAP_CONTENT 是一个保险行为，有最好，没有就使用这个。</p>
+<p>注释还说了，这个返回的是 RecyclerView.LayoutParams，所以如果你还想带一些自带的信息在 LayoutParams 里面，你可以继承这个 LayoutParams，然后实现下面3个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">androidx.recyclerview.widget.RecyclerView.LayoutManager#checkLayoutParams<br>androidx.recyclerview.widget.RecyclerView.LayoutManager#generateLayoutParams(android.view.ViewGroup.LayoutParams)<br>androidx.recyclerview.widget.RecyclerView.LayoutManager#generateLayoutParams(android.content.Context, android.util.AttributeSet)<br></code></pre></td></tr></table></figure>
+
+<p>就 OK 了。</p>
+<p>搞定了唯一的一个抽象方法，我们就可以正常运行了，但是没啥效果，我们还需要实现  child 的摆放与回收。首先我们搞定 child 的摆放。child 的摆放是在 </p>
+<blockquote>
+<p>androidx.recyclerview.widget.RecyclerView.LayoutManager#onLayoutChildren </p>
+</blockquote>
+<p>这个方法里面。我们复写一下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onLayoutChildren</span><span class="hljs-params">(recycler: <span class="hljs-type">Recycler</span>?, state: <span class="hljs-type">State</span>?)</span></span> &#123;<br>    <span class="hljs-keyword">super</span>.onLayoutChildren(recycler, state)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>好奇的点进去看看父类做了什么：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> void onLayoutChildren(Recycler recycler, State state) &#123;<br>    Log.e(TAG, <span class="hljs-string">&quot;You must override onLayoutChildren(Recycler recycler, State state) &quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>嗯，他要我们必须重写这个方法，但是又不是抽象的方法，嗯…有趣的女人…</p>
+<p>一开始，我是完全不知道应该怎么搞了，所以我看了别人的 demo，发现他们都在最开头搞了这样的一个开头：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// 这个方法看不出来有啥意义啊，应该是根据</span><br><span class="hljs-comment">// androidx.recyclerview.widget.LinearLayoutManager.onLayoutChildren</span><br><span class="hljs-comment">// copy 出来的</span><br><span class="hljs-keyword">if</span> (state?.itemCount == <span class="hljs-number">0</span>) &#123;<br>    recycler?.apply &#123;<br>        removeAndRecycleAllViews(<span class="hljs-keyword">this</span>)<br>    &#125;<br>    <span class="hljs-keyword">return</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>嗯，我是很奇怪的，为啥要写这个玩意啊，后来我戳到 LinearLayoutManager 学习了一下，发现它有一个类似的代码，但是它是嵌套在 if 里面的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (mPendingSavedState != <span class="hljs-keyword">null</span> || mPendingScrollPosition != RecyclerView.NO_POSITION) &#123;<br>    <span class="hljs-keyword">if</span> (state.getItemCount() == <span class="hljs-number">0</span>) &#123;<br>        removeAndRecycleAllViews(recycler);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里，我是真的没有搞懂哦。除非是 itemCount 突然变成 0 了，那么需要将所有 child 都移除并且放到 recycler 里面，但是为啥 LinearLayoutManager 是有条件的呢？？？嗯，猜一下与动画相关吧…</p>
+<p>好的，我们继续往下，这里只不过是一个前置处理，处理某些特殊情况，下面我们开始摆放 child，为了方便我们写一个方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onLayoutChildren</span><span class="hljs-params">(recycler: <span class="hljs-type">Recycler</span>?, state: <span class="hljs-type">State</span>?)</span></span> &#123;<br>    <span class="hljs-keyword">super</span>.onLayoutChildren(recycler, state)<br><br>    <span class="hljs-comment">// 这个方法看不出来有啥意义啊，应该是根据</span><br>    <span class="hljs-comment">// androidx.recyclerview.widget.LinearLayoutManager.onLayoutChildren</span><br>    <span class="hljs-comment">// copy 出来的</span><br>    <span class="hljs-keyword">if</span> (state?.itemCount == <span class="hljs-number">0</span>) &#123;<br>        recycler?.apply &#123;<br>            removeAndRecycleAllViews(<span class="hljs-keyword">this</span>)<br>        &#125;<br>        <span class="hljs-keyword">return</span><br>    &#125;<br><br>    layoutChildren(recycler, state)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样看着会舒服一点，一般我不知道咋下手的时候，就会抽一个方法出来，把能写的都写了，至少思路清晰。</p>
+<p>开始摆放 child，我们需要计算出第一个 item 的 left：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">var</span> left = paddingLeft<br></code></pre></td></tr></table></figure>
+
+<p>嗯，很简单。</p>
+<p>这个时候，就有一个问题浮现出来了，我们的每个 item 是一样大吗？？？</p>
+<p>如果是的话，好说，但是 RecyclerView 就成了岳不群了。如果不是的话，那就复杂了。这里为了简单，我们要求 item 是一样的，毕竟，不一样大也没法堆叠。所以其实仔细想想，实现一个看起来特别酷的效果，限制也很多。</p>
+<p>我们定义两个索引值，一个指向屏幕上的第一个 item，一个指向屏幕上的最后一个 item 的后一个位置，就像一个半开区间。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-keyword">var</span> firstVisiblePos = <span class="hljs-number">0</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">var</span> lastVisiblePos = <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
+
+<p>然后，我们随便取一个 item，测量一下它的大小：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// 需要每个child一样大小</span><br><span class="hljs-keyword">val</span> firstView: View = recycler.getViewForPosition(firstVisiblePos)<br>measureChildWithMargins(firstView, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>)<br>unitDistance = getDecoratedMeasuredWidth(firstView) + gap<br><span class="hljs-comment">// 这个时候，还没有开始摆放，所以用完了再放回去，为了后面的逻辑统一处理</span><br>recycler.recycleView(firstView)<br></code></pre></td></tr></table></figure>
+
+<p>这里的逻辑很简单，算出 child 的大小，加上 item 之间的距离，算作一个单元距离，就是一个item从一个位置移动到相邻位置的绝对距离。</p>
+<p>这里要说的一个重要的点就是，如果我们需要摆一个 child，只能像 recycler 要，并且，用完了还给 recycler，这样我们神不知鬼不觉的就达成了复用的效果。</p>
+<p>接着，我们根据滚动的距离来计算出第一个item的索引：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// 根据 scroll 的距离来计算 firstPos 的位置</span><br>firstVisiblePos = floor(abs(scrollX).toDouble() / unitDistance).toInt()<br></code></pre></td></tr></table></figure>
+
+<p>这里，我们也可以利用 RecyclerView 的宽度算出 lastVisiblePos 的值，但是就有点重复了，我们在摆放 child 的时候去动态的计算会更好一点，所以这里，我们将 lastVisiblePos 赋值为 itemCount。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// 该值会动态更新</span><br>lastVisiblePos = state.itemCount<br></code></pre></td></tr></table></figure>
+
+<p>计算好了两个索引值，我们还需要处理一个问题，就是根据滚动的距离来计算出 View 的偏移距离。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> frac: <span class="hljs-built_in">Float</span> = (abs(scrollX) % unitDistance) / (unitDistance * <span class="hljs-number">1f</span>)<br><span class="hljs-keyword">val</span> stackOffset = (frac * stackGap).toInt()<br><span class="hljs-keyword">val</span> viewOffset = (frac * unitDistance).toInt()<br></code></pre></td></tr></table></figure>
+
+<p>unitDistance 是相邻item的单位距离，frac就表示移动到的百分比。利用这个百分比换算出堆叠区域和普通区域布局起始位置的偏移量，然后可以开始布局了。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// 属于堆叠区域</span><br><span class="hljs-keyword">if</span> (i - firstVisiblePos &lt; MAX_STACK_COUNT) &#123;<br>    <span class="hljs-comment">// 手指向左滑动，则 scrollX 的值会越来越大，frac 也会慢慢变大（0 -&gt; 1 为一个周期）</span><br>    <span class="hljs-comment">// item 会向右移动</span><br>    <span class="hljs-comment">// 这里需要减去，item 才会向左移动</span><br>    left -= stackOffset<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里又有几个问题：</p>
+<ul>
+<li>这个 layoutManager 一初始化就会堆叠起来，导致前面几个的内容看不到了， 解决办法就是做出一个无限循环的效果，这样就会对数目有所限制，至少是知道有多少数据，或者是做成动态的，一开始不会堆叠， 滑动的时候再考虑如何堆叠。</li>
+<li>stackOffset 只需要减去一次，后面的 item 不用重复减去该值，这里我使用了笨办法，搞一个变量标识一下</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">if</span> (i - firstVisiblePos &lt; MAX_STACK_COUNT) &#123;<br>    <span class="hljs-keyword">if</span> (!stackOffsetDone) &#123;<br>        left -= stackOffset<br>        stackOffsetDone = <span class="hljs-literal">true</span><br>    &#125;<br>    left += stackGap<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p> 这个 left 就是 child 布局时用到的值了。对于非堆叠区域同样处理。</p>
+<p>后面的代码就简单了：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> view = recycler.getViewForPosition(i)<br>addView(view)<br>measureChildWithMargins(view, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>)<br><br><span class="hljs-keyword">val</span> l = left<br><span class="hljs-keyword">val</span> t = paddingTop<br><span class="hljs-keyword">val</span> r = l + getDecoratedMeasuredWidth(view)<br><span class="hljs-keyword">val</span> b = t + getDecoratedMeasuredHeight(view)<br>layoutDecoratedWithMargins(view, l, t, r, b)<br></code></pre></td></tr></table></figure>
+
+<p>把上面的这些逻辑放入循环就搞定了。</p>
+<p>这里效果基本就实现了，但是实际上测试的时候会发现，回收复用会有问题。这个有两个方面的问题：</p>
+<ul>
+<li>在 layout 的时候需要将所有 view 全部 detach 再重新布局</li>
+<li>detach 的 view 被放入了 scrap 中，我们需要将 scrap 中残留的 item 全部放入 pool 中。</li>
+</ul>
+<p>所以，我们可以不用自己一个一个的手动回收，而是可以这样：</p>
+<p>在 layout 的前面调用 detachAndScrapAttachedViews ，然后在最后回收。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">layoutChildren</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    recycler: <span class="hljs-type">Recycler</span>?,</span></span><br><span class="hljs-params"><span class="hljs-function">    state: <span class="hljs-type">State</span>?</span></span><br><span class="hljs-params"><span class="hljs-function">)</span></span> &#123;<br><br>    <span class="hljs-keyword">if</span> (recycler == <span class="hljs-literal">null</span> || state == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">return</span><br>    &#125;<br><br>    detachAndScrapAttachedViews(recycler)<br><br>    ...<br>			<br>    <span class="hljs-keyword">val</span> scrapList = recycler.scrapList<br>    <span class="hljs-keyword">for</span> (i <span class="hljs-keyword">in</span> scrapList.indices) &#123;<br>        <span class="hljs-keyword">val</span> holder = scrapList[i]<br>        removeAndRecycleView(holder.itemView, recycler)<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>实际上我测试的效果比之前好了很多，但是我还是不太满意，因为有的时候还是会出现 createViewHolder 的调用，虽然次数极少，但是肯定是哪里出了问题，不然是不会这样的。</p>
+<p>所以建议还是手动的一个个标记回收。我也对回收这个问题还有疑问，所以这里就不说下去了。</p>
+<p>除了回收还有一个问题，就是关于 fling 效果。我测试这个demo 的时候，发现我从最后一个一下滑动到第一个的时候，item停留的位置总是不对，我一直以为是我的计算有问题：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * dx(dy) 表示本次较于上一次的偏移量，&lt;0为 向右(下) 滚动，&gt;0为向左(上) 滚动；</span><br><span class="hljs-comment"> * 这个算法还是无法满足 fling 的要求，fling 的时候 停留的位置不对</span><br><span class="hljs-comment"> * 查了一些资料，可能还需要自定义一个 SnapHelper -&gt; https://www.jianshu.com/p/0e4a93d8e2de</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">consume</span><span class="hljs-params">(dx: <span class="hljs-type">Int</span>)</span></span>: <span class="hljs-built_in">Int</span> &#123;<br>    <span class="hljs-keyword">val</span> consumed: <span class="hljs-built_in">Int</span><br>    <span class="hljs-comment">// dx &lt; 0 表示向右滚动，需要显示左边的内容</span><br>    <span class="hljs-keyword">if</span> (dx &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-comment">// 到了最左边</span><br>        <span class="hljs-keyword">if</span> (scrollX + dx &lt; <span class="hljs-number">0</span>) &#123;<br>            consumed = <span class="hljs-keyword">if</span> (scrollX &gt; <span class="hljs-number">0</span>) &#123;<br>                dx - scrollX<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-number">0</span><br>            &#125;<br>            scrollX = <span class="hljs-number">0</span><br>            <span class="hljs-keyword">return</span> consumed<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// dx &gt; 0 表示向左滚动，右边的内容需要显示出来</span><br>    <span class="hljs-keyword">if</span> (dx &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">if</span> (scrollX + dx &gt; maxScrollX) &#123;<br>            consumed = <span class="hljs-keyword">if</span> (scrollX &lt; maxScrollX) &#123;<br>                maxScrollX - scrollX<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-number">0</span><br>            &#125;<br>            scrollX = maxScrollX<br>            <span class="hljs-keyword">return</span> consumed<br>        &#125;<br>    &#125;<br><br>    scrollX += dx<br><br>    <span class="hljs-keyword">return</span> dx<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>但是，经过我的打印，发现，这个计算是没有问题了。</p>
+<p>顺便说一下，要想滑动，需要重写 LayoutManager 的方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">canScrollHorizontally</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Boolean</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后，在 scrollHorizontallyBy 返回消耗的值：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">scrollHorizontallyBy</span><span class="hljs-params">(dx: <span class="hljs-type">Int</span>, recycler: <span class="hljs-type">Recycler</span>?, state: <span class="hljs-type">State</span>?)</span></span>: <span class="hljs-built_in">Int</span> &#123;<br><br>    <span class="hljs-keyword">if</span> (dx == <span class="hljs-number">0</span> || state?.itemCount == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span><br>    &#125;<br><br>    layoutChildren(recycler, state)<br><br>    <span class="hljs-keyword">return</span> consume(dx)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我就感觉这个与 NestedScrolling 接口很相似。</p>
+<p>跑题了，关于 fling，查了一些资料，可能还需要自定义一个 SnapHelper -&gt; <a target="_blank" rel="noopener" href="https://www.jianshu.com/p/0e4a93d8e2de%E3%80%82">https://www.jianshu.com/p/0e4a93d8e2de。</a></p>
+<p>当然你也可以自己监控滑动状态，然后自动的调整滑动位置，就像画廊一样。</p>
+<p>项目地址：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/aprz512/LayoutManagerDemo">https://github.com/aprz512/LayoutManagerDemo</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/View/">View</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/%E6%8F%92%E5%80%BC%E5%99%A8%E4%B8%8E%E4%BC%B0%E5%80%BC%E5%99%A8/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">插值器与估值器</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-%E6%B1%89%E5%8C%96/Android%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BA%94%E7%94%A8%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">
+                        <span class="hidden-mobile">Android进程与应用的生命周期</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

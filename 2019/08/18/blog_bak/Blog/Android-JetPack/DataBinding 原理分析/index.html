@@ -1,0 +1,689 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>DataBinding 原理分析 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="DataBinding 原理分析">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      4.9k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      22
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">DataBinding 原理分析</h1>
+            
+            <div class="markdown-body">
+              <p>DataBinding 是一个支持库，它可以将布局中的界面组件绑定到数据源上，做到UI与数据的单项或者双向监听。说白一点就是数据发生变化可以直接反映到界面上，不用再次手动操作了。当然它的作用远远不止于此，本文从这个点入手，来略微深入一下它的实现过程。</p>
+<p>首先，DataBinding可以将数据的变化反应到UI上，实际上就是帮助我们更新UI，那么它肯定需要持有（直接或者间接）UI的引用，不然的话，是没法操作UI的。用过DataBinding 的小伙伴应该都知道，DataBinding 会根据布局生成一个类，这个类里会有许多成员变量，每个变量对应着布局里面各个控件。</p>
+<p>PS：<strong>因为每个项目生成的代码不一致，而且我使用了多个项目生成的代码，所以看的时候不要太纠结，尽量理解为主。</strong></p>
+<p>举个例子吧，我们的布局如下：</p>
+<blockquote>
+<p>app\src\main\res\layout\content_main.xml</p>
+</blockquote>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">layout</span> <span class="hljs-attr">xmlns:android</span>=<span class="hljs-string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">xmlns:app</span>=<span class="hljs-string">&quot;http://schemas.android.com/apk/res-auto&quot;</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">data</span>&gt;</span><br><br>        <span class="hljs-tag">&lt;<span class="hljs-name">variable</span></span><br><span class="hljs-tag">            <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;viewModel&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;com.test.user&quot;</span> /&gt;</span><br><br>        <span class="hljs-tag">&lt;<span class="hljs-name">import</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;android.view.View&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">data</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">LinearLayout</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;match_parent&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;match_parent&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:orientation</span>=<span class="hljs-string">&quot;vertical&quot;</span>&gt;</span><br><br>        <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:id</span>=<span class="hljs-string">&quot;@+id/tv_name&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:text</span>=<span class="hljs-string">&quot;@&#123;viewModel.name&#125;&quot;</span> /&gt;</span><br><br>        <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:id</span>=<span class="hljs-string">&quot;@+id/tv_sex&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_marginTop</span>=<span class="hljs-string">&quot;50dp&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:text</span>=<span class="hljs-string">&quot;@&#123;viewModel.sex&#125;&quot;</span> /&gt;</span><br><br>        <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_marginTop</span>=<span class="hljs-string">&quot;50dp&quot;</span> /&gt;</span><br><br>        <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:id</span>=<span class="hljs-string">&quot;@+id/tv_class&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_marginTop</span>=<span class="hljs-string">&quot;50dp&quot;</span> /&gt;</span><br><br>        <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:layout_marginTop</span>=<span class="hljs-string">&quot;50dp&quot;</span></span><br><span class="hljs-tag">            <span class="hljs-attr">android:text</span>=<span class="hljs-string">&quot;@&#123;viewModel.age&#125;&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">LinearLayout</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">layout</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+
+
+<p>这里面看起来有很多高级的用法，实际上它经过编译之后，是下面这个样子的（因为没有在工程里面找到生成的文件，可能是新版本又换了位置，所以只能看apk里面的资源文件了）：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">LinearLayout</span></span><br><span class="hljs-tag">    <span class="hljs-attr">xmlns:android</span>=<span class="hljs-string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">xmlns:app</span>=<span class="hljs-string">&quot;http://schemas.android.com/apk/res-auto&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:orientation</span>=<span class="hljs-string">&quot;1&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:tag</span>=<span class="hljs-string">&quot;layout/content_main_0&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;-1&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;-1&quot;</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:id</span>=<span class="hljs-string">&quot;@ref/0x7f0800c8&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:tag</span>=<span class="hljs-string">&quot;binding_1&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;-2&quot;</span> /&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:id</span>=<span class="hljs-string">&quot;@ref/0x7f0800c9&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:tag</span>=<span class="hljs-string">&quot;binding_2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_marginTop</span>=<span class="hljs-string">&quot;dimension(12801)&quot;</span> /&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_marginTop</span>=<span class="hljs-string">&quot;dimension(12801)&quot;</span> /&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:id</span>=<span class="hljs-string">&quot;@ref/0x7f0800c7&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_marginTop</span>=<span class="hljs-string">&quot;dimension(12801)&quot;</span> /&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:tag</span>=<span class="hljs-string">&quot;binding_3&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;-2&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_marginTop</span>=<span class="hljs-string">&quot;dimension(12801)&quot;</span> /&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">LinearLayout</span>&gt;</span><br><br></code></pre></td></tr></table></figure>
+
+
+
+<p>不要在意哪些 dimension/ref 之类的东西，关键点在于它给<strong>使用了 <code>@&#123;&#125;</code> 的控件都生成了一个 tag 属性</strong>。可以看出，tag 是有规律的：</p>
+<blockquote>
+<p>如果是根布局，为xml的名字，跟一个数字0，本例为 content_main_0。</p>
+</blockquote>
+<blockquote>
+<p>如果不是根布局，为binding_x，x是数值，从1开始（根布局把0用了）。</p>
+</blockquote>
+<p>我们手动添加的layout，data，以及 @{viewModel.name} 这些看似高级的东西，其实在编译后都去掉了。那么它为什么要添加一个 tag 呢？？？其实是因为它在内部是使用了这个tag来获取view的引用。</p>
+<p>我们知道，要使用 DataBinding，除了布局需要特殊写法，加载布局的时候，也需要特殊处理。拿 Activity 举例，我们要使用 DataBinding 加载布局，就不能像以前一样直接调用 setContentView，而是要使用 DataBindingUtil.setContentView 这个方法，那么我们就来分析一下这个方法。</p>
+<blockquote>
+<p>androidx.databinding.DataBindingUtil#setContentView(android.app.Activity, int)</p>
+</blockquote>
+<p>这个方法里面调用了其他方法，我们一直追踪下去，发现了它的核心方法是这个：</p>
+<blockquote>
+<p>androidx.databinding.DataBindingUtil#bind(androidx.databinding.DataBindingComponent, android.view.View, int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java">	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> DataBinderMapper sMapper = <span class="hljs-keyword">new</span> DataBinderMapperImpl();   <br><br>...<br><br>    <span class="hljs-keyword">static</span> &lt;T extends ViewDataBinding&gt; <span class="hljs-function">T <span class="hljs-title">bind</span><span class="hljs-params">(DataBindingComponent bindingComponent, View root,</span></span><br><span class="hljs-params"><span class="hljs-function">            <span class="hljs-keyword">int</span> layoutId)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> (T) sMapper.getDataBinder(bindingComponent, root, layoutId);<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>DataBinderMapperImpl 是编译器生成了一个类，它的 getDataBinder 内容大致如下：</p>
+<blockquote>
+<p>com.aprz.snackbardemo.DataBinderMapperImpl#getDataBinder(androidx.databinding.DataBindingComponent, android.view.View, int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> ViewDataBinding <span class="hljs-title">getDataBinder</span><span class="hljs-params">(DataBindingComponent component, View view, <span class="hljs-keyword">int</span> layoutId)</span> </span>&#123;<br>  <span class="hljs-keyword">int</span> localizedLayoutId = INTERNAL_LAYOUT_ID_LOOKUP.get(layoutId);<br>  <span class="hljs-keyword">if</span>(localizedLayoutId &gt; <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-keyword">final</span> Object tag = view.getTag();<br>    <span class="hljs-keyword">if</span>(tag == <span class="hljs-keyword">null</span>) &#123;<br>      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">&quot;view must have a tag&quot;</span>);<br>    &#125;<br>    <span class="hljs-keyword">switch</span>(localizedLayoutId) &#123;<br>      <span class="hljs-keyword">case</span>  LAYOUT_CONTENTMAIN: &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;layout/content_main_0&quot;</span>.equals(tag)) &#123;<br>          <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ContentMainBindingImpl(component, view);<br>        &#125;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;The tag for content_main is invalid. Received: &quot;</span> + tag);<br>      &#125;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法的 layoutId 就是 R.layout.content_main （我们使用DataBindingUtil#setContentView传入的值 ）。由于编译器自己生成了一个 Map，这个Map储存了所有需要 DataBinding 处理的 layoutId，layoutId 是key，value 是一个整数值。这里是我没有想通的地方，为啥要对应一个整数值，而不是直接使用 layoutId 呢？？？比如像下面这样写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">switch</span>(layoutId) &#123;<br>  <span class="hljs-keyword">case</span>  R.layout.content_main: &#123;<br>    <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;layout/content_main_0&quot;</span>.equals(tag)) &#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ContentMainBindingImpl(component, view);<br>    &#125;<br>    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;The tag for content_main is invalid. Received: &quot;</span> + tag);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>这个不影响，我们继续往下看，它最后返回了一个对象，叫做 ContentMainBindingImpl。使用过 DataBinding 的都应该会有点眼熟，因为我们使用的对象是 ContentMainBinding，而 ContentMainBindingImpl 看起来是 ContentMainBinding 的一个实现类。看一下他们的关系：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ContentMainBinding</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ViewDataBinding</span></span><br><span class="hljs-class"></span><br><span class="hljs-class"><span class="hljs-title">public</span> <span class="hljs-title">class</span> <span class="hljs-title">ContentMainBindingImpl</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ContentMainBinding</span></span><br></code></pre></td></tr></table></figure>
+
+<p>也就是说，虽然我们使用的是 ContentMainBinding，但是它实际上是一个 ContentMainBindingImpl 对象。</p>
+<p>我们继续，看 ContentMainBindingImpl 的构造方法：</p>
+<blockquote>
+<p>com.aprz.databindingdemo.databinding.ContentMainBindingImpl#ContentMainBindingImpl(android.databinding.DataBindingComponent, android.view.View)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ContentMainBindingImpl</span><span class="hljs-params">(<span class="hljs-meta">@Nullable</span> android.databinding.DataBindingComponent bindingComponent, <span class="hljs-meta">@NonNull</span> View root)</span> </span>&#123;<br>    <span class="hljs-keyword">this</span>(bindingComponent, root, mapBindings(bindingComponent, root, <span class="hljs-number">5</span>, sIncludes, sViewsWithIds));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里调用了一个叫做 mapBindings 的方法，就是它解析了View的 tag ，然后将view存储到了一个数组中，在将这个数组赋值给成员变量，这样我们就不用 findViewById 了，因为它的方法比较长，所以我不贴代码了，就简单的说一下它的工作过程。</p>
+<blockquote>
+<p>androidx.databinding.ViewDataBinding#mapBindings(androidx.databinding.DataBindingComponent, android.view.View, java.lang.Object[], androidx.databinding.ViewDataBinding.IncludedLayouts, android.util.SparseIntArray, boolean)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (isRoot &amp;&amp; tag != <span class="hljs-keyword">null</span> &amp;&amp; tag.startsWith(<span class="hljs-string">&quot;layout&quot;</span>)) &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> underscoreIndex = tag.lastIndexOf(<span class="hljs-string">&#x27;_&#x27;</span>);<br>    <span class="hljs-keyword">if</span> (underscoreIndex &gt; <span class="hljs-number">0</span> &amp;&amp; isNumeric(tag, underscoreIndex + <span class="hljs-number">1</span>)) &#123;<br>        <span class="hljs-comment">// 这里的 index 就是 content_main_0 的 0</span><br>        <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> index = parseTagInt(tag, underscoreIndex + <span class="hljs-number">1</span>);<br>        <span class="hljs-keyword">if</span> (bindings[index] == <span class="hljs-keyword">null</span>) &#123;<br>            bindings[index] = view;<br>        &#125;<br>        indexInIncludes = includes == <span class="hljs-keyword">null</span> ? -<span class="hljs-number">1</span> : index;<br>        isBound = <span class="hljs-keyword">true</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        indexInIncludes = -<span class="hljs-number">1</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>首先是获取到 tag 以 layout 开头的 View，将这个view 放入到 bindings[0] 中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java">&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (tag != <span class="hljs-keyword">null</span> &amp;&amp; tag.startsWith(BINDING_TAG_PREFIX)) &#123;<br>    <span class="hljs-comment">// 这里的 index 是 binding_1 的 1，当然不只是 1，还有 2，3....</span><br>    <span class="hljs-keyword">int</span> tagIndex = parseTagInt(tag, BINDING_NUMBER_START);<br>    <span class="hljs-keyword">if</span> (bindings[tagIndex] == <span class="hljs-keyword">null</span>) &#123;<br>        bindings[tagIndex] = view;<br>    &#125;<br>    isBound = <span class="hljs-keyword">true</span>;<br>    indexInIncludes = includes == <span class="hljs-keyword">null</span> ? -<span class="hljs-number">1</span> : tagIndex;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后获取以 tag 为 binding_ 开头的 View，放入到 bindings[1…n] 中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (!isBound) &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> id = view.getId();<br>    <span class="hljs-keyword">if</span> (id &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">int</span> index;<br>        <span class="hljs-keyword">if</span> (viewsWithIds != <span class="hljs-keyword">null</span> &amp;&amp; (index = viewsWithIds.get(id, -<span class="hljs-number">1</span>)) &gt;= <span class="hljs-number">0</span> &amp;&amp;<br>                bindings[index] == <span class="hljs-keyword">null</span>) &#123;<br>            bindings[index] = view;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>最后，如果控件没有id，但是使用了 <code>@&#123;&#125;</code> 的用法，也会存入 bindings 数组中，这个index也是接着上面 binding_ 的数字，比如，上面最后一个是 binding_5，这里的 index 就是从 6 开始了，这些数值都是编译器生成好了的。我猜想是在处理 xml 的时候，就需要生成对应的类，然后将index对应好。</p>
+<p>有了这个数组，显然只需要将它赋值给对应的变量就好了。我们可以生成控件的成员变量，然后以驼峰式命名，将数组的值赋值给对应的变量。</p>
+<blockquote>
+<p>com.aprz.snackbardemo.databinding.ContentMainBindingImpl#ContentMainBindingImpl(androidx.databinding.DataBindingComponent, android.view.View, java.lang.Object[])</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">ContentMainBindingImpl</span><span class="hljs-params">(androidx.databinding.DataBindingComponent bindingComponent, View root, Object[] bindings)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>(bindingComponent, root, <span class="hljs-number">0</span><br>            , (android.widget.TextView) bindings[<span class="hljs-number">4</span>]<br>            , (android.widget.TextView) bindings[<span class="hljs-number">1</span>]<br>            , (android.widget.TextView) bindings[<span class="hljs-number">2</span>]<br>            );<br>        <span class="hljs-keyword">this</span>.mboundView0 = (android.widget.LinearLayout) bindings[<span class="hljs-number">0</span>];<br>        <span class="hljs-keyword">this</span>.mboundView0.setTag(<span class="hljs-keyword">null</span>);<br>        <span class="hljs-keyword">this</span>.mboundView3 = (android.widget.TextView) bindings[<span class="hljs-number">3</span>];<br>        <span class="hljs-keyword">this</span>.mboundView3.setTag(<span class="hljs-keyword">null</span>);<br>        <span class="hljs-keyword">this</span>.tvName.setTag(<span class="hljs-keyword">null</span>);<br>        <span class="hljs-keyword">this</span>.tvSex.setTag(<span class="hljs-keyword">null</span>);<br>        setRootTag(root);<br>        <span class="hljs-comment">// listeners</span><br>        invalidateAll();<br>    &#125;<br><br>----------------------------------------<br>    <br>  <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">ContentMainBinding</span><span class="hljs-params">(Object _bindingComponent, View _root, <span class="hljs-keyword">int</span> _localFieldCount,</span></span><br><span class="hljs-params"><span class="hljs-function">      TextView tvClassName, TextView tvName, TextView tvSex)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>(_bindingComponent, _root, _localFieldCount);<br>    <span class="hljs-keyword">this</span>.tvClassName = tvClassName;<br>    <span class="hljs-keyword">this</span>.tvName = tvName;<br>    <span class="hljs-keyword">this</span>.tvSex = tvSex;<br>  &#125;<br></code></pre></td></tr></table></figure>
+
+<p>从代码里面可以看出，它确实是将bindings赋值给了成员变量。没有id的无法外部使用 ，所以是 ContentMainBindingImpl 的成员变量，内部名字叫做 mboundViewXXX。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-JetPack/DataBinding/2.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p> 说了这么多，只是讲了一下它的如何不用 findViewById 的。但是 DataBinding 还有更重要的作用，就是数据绑定，我们接下来分析分析，它是如何将数据绑定到 UI 的，而且数据更新之后，是如何改变 UI 的！！！</p>
+<p>实现数据绑定，我们需要调用binding.setVariable或者binding.setViewModel，两者效果一样，因为setVariable会间接调用setViewModel方法。</p>
+<blockquote>
+<p>com.aprz.databinding.ContentMainBindingImpl</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java">   <span class="hljs-comment">// variableId 是生成的BR文件中的一个变量，对应于你在 xml 中设置的变量</span><br><span class="hljs-meta">@Override</span><br>   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setVariable</span><span class="hljs-params">(<span class="hljs-keyword">int</span> variableId, <span class="hljs-meta">@Nullable</span> Object variable)</span>  </span>&#123;<br>       <span class="hljs-keyword">boolean</span> variableSet = <span class="hljs-keyword">true</span>;<br>       <span class="hljs-keyword">if</span> (BR.viewModel == variableId) &#123;<br>           setViewModel((com.aprz.snackbardemo.User) variable);<br>       &#125;<br>       <span class="hljs-keyword">else</span> &#123;<br>           variableSet = <span class="hljs-keyword">false</span>;<br>       &#125;<br>       <span class="hljs-keyword">return</span> variableSet;<br>   &#125;<br><br>   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setViewModel</span><span class="hljs-params">(<span class="hljs-meta">@Nullable</span> com.aprz.snackbardemo.User ViewModel)</span> </span>&#123;<br>       <span class="hljs-comment">// 这个方法有个坑，后面会说到</span><br>       <span class="hljs-keyword">this</span>.mViewModel = ViewModel;<br>       <span class="hljs-keyword">synchronized</span>(<span class="hljs-keyword">this</span>) &#123;<br>           mDirtyFlags |= <span class="hljs-number">0x1L</span>;<br>       &#125;<br>       notifyPropertyChanged(BR.viewModel);<br>       <span class="hljs-keyword">super</span>.requestRebind();<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到实际上主要是调用了一下 notifyPropertyChanged 方法。notifyPropertyChanged  内部就是做了一个回调监听的操作，和我们的观察者模式没有区别，但是这里比较搞笑的就是，此时监听是为 null 的，也就是说没有注册观察者。</p>
+<p>它在代码中表现的行为是这样的：我们创建一个对象A，将A通过 binding.setVariable 方法绑定到数据上，是可以正常显示出数据的，但是如果我们改变了对象A的某个属性，这个时候，属性的变化是无法反映到UI上的，我们还需要手动更新UI。</p>
+<p>那么当我们改变了对象A的某个属性时，怎么才能自动更新UI 呢？参考官方文档的一个方法是使用 @Bindable 注解，比如我们的对象长这样：</p>
+<blockquote>
+<p>com.aprz.aboutme.MyName</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">data</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyName</span></span>(<span class="hljs-keyword">var</span> name: String) : BaseObservable() &#123;<br><br>    <span class="hljs-meta">@get:Bindable</span><br>    <span class="hljs-keyword">var</span> nickname: String = <span class="hljs-string">&quot;aprz&quot;</span><br>        <span class="hljs-keyword">set</span>(value) &#123;<br>            field = value<br>            notifyPropertyChanged(com.aprz.aboutme.BR.nickname)<br>        &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，每当 set 方法调用的时候，我们需要手机调用一下 notifyPropertyChanged 方法，这个时候，我们再看生成的文件，查看 <code>setViewModel</code> 方法：</p>
+<blockquote>
+<p>com.aprz.databinding.ContentMainBindingImpl#setViewModel</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setViewModel</span><span class="hljs-params">(<span class="hljs-meta">@Nullable</span> com.aprz.snackbardemo.User ViewModel)</span> </span>&#123;<br>    <span class="hljs-comment">// hhh</span><br>    updateRegistration(<span class="hljs-number">0</span>, ViewModel);<br>    <span class="hljs-keyword">this</span>.mViewModel = ViewModel;<br>    <span class="hljs-keyword">synchronized</span>(<span class="hljs-keyword">this</span>) &#123;<br>        mDirtyFlags |= <span class="hljs-number">0x1L</span>;<br>    &#125;<br>    notifyPropertyChanged(BR.viewModel);<br>    <span class="hljs-keyword">super</span>.requestRebind();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，第一行多了一行代码：updateRegistration，应该可以猜到，这个方法里面<strong>应该就是注册了观察者</strong>。为了验证我们的想法，查看一下这个方法：</p>
+<blockquote>
+<p>androidx.databinding.ViewDataBinding#updateRegistration(int, androidx.databinding.Observable)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">updateRegistration</span><span class="hljs-params">(<span class="hljs-keyword">int</span> localFieldId, Observable observable)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> updateRegistration(localFieldId, observable, CREATE_PROPERTY_LISTENER);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的调用链比较深，我们只关心重要的方法，最后发现调用到了如下方法</p>
+<blockquote>
+<p>androidx.databinding.ViewDataBinding.WeakListener#setTarget</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setTarget</span><span class="hljs-params">(T object)</span> </span>&#123;<br>    unregister();<br>    mTarget = object;<br>    <span class="hljs-keyword">if</span> (mTarget != <span class="hljs-keyword">null</span>) &#123;<br>        mObservable.addListener(mTarget);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的 mTarget 是上面的 viewModel 变量，mObservable 是一个叫做 WeakPropertyListener 的类，因为我们省略了中间的调用过程，所以会有点突兀，但是我们把它当作一个 WeakListener 的一个包装类就好了，它持有 WeakListener 的引用而已。</p>
+<p>再往下最终，会发现调用到了这里：</p>
+<blockquote>
+<p>androidx.databinding.BaseObservable#addOnPropertyChangedCallback</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">addOnPropertyChangedCallback</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> OnPropertyChangedCallback callback)</span> </span>&#123;<br>    <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>        <span class="hljs-keyword">if</span> (mCallbacks == <span class="hljs-keyword">null</span>) &#123;<br>            mCallbacks = <span class="hljs-keyword">new</span> PropertyChangeRegistry();<br>        &#125;<br>    &#125;<br>    mCallbacks.add(callback);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里就比较熟悉了吧，就是 notifyPropertyChanged 会触发监听回调，而这个监听就是在这里添加（注册）的。</p>
+<p>经过上面的一连串调用，viewModel，WeakPropertyListener ，WeakListener ，就建立这样的一个关系：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-JetPack/DataBinding/1.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>因为 ViewModel 继承至 BaseObservable，所以它有一个成员变量：mCallbacks，而 <strong>updateRegistration 方法主要是添加了一个观察者</strong>。实际上DataBinding的自动更新UI原理还是观察者，但是它的高明之处是编译器自动生成逻辑代码。</p>
+<p>好的，说完了观察者的注册，还有一步需要完成，就是通知观察者数据发生了变化。应该还记得，我们的 ViewModel 里面，set 方法都调用了一个方法<code>notifyPropertyChanged</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-meta">@get:Bindable</span><br><span class="hljs-keyword">var</span> nickname: String = <span class="hljs-string">&quot;aprz&quot;</span><br>    <span class="hljs-keyword">set</span>(value) &#123;<br>        field = value<br>        notifyPropertyChanged(com.aprz.aboutme.BR.nickname)<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个很显然就是通知观察者，我们的数据发生了变化，我们看看源码吧（其实不看都知道，最终触发了 mCallbacks 的回调）。同样的经过多层调用，到了下面的方法：</p>
+<blockquote>
+<p>androidx.databinding.ViewDataBinding#handleFieldChange</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handleFieldChange</span><span class="hljs-params">(<span class="hljs-keyword">int</span> mLocalFieldId, Object object, <span class="hljs-keyword">int</span> fieldId)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (mInLiveDataRegisterObserver) &#123;<br>        <span class="hljs-comment">// We&#x27;re in LiveData registration, which always results in a field change</span><br>        <span class="hljs-comment">// that we can ignore. The value will be read immediately after anyway, so</span><br>        <span class="hljs-comment">// there is no need to be dirty.</span><br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">boolean</span> result = onFieldChange(mLocalFieldId, object, fieldId);<br>    <span class="hljs-keyword">if</span> (result) &#123;<br>        requestRebind();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>主要是两个方法，先看第一个，看名字就应该是字段发生了变化的处理，该方法会调用到下面的方法：</p>
+<blockquote>
+<p>com.aprz.aboutme.databinding.ActivityMainBindingImpl#onChangeMyName</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">onChangeViewModel</span><span class="hljs-params">(com.foxlee.testdatabinding.NewsViewModel ViewModel, <span class="hljs-keyword">int</span> fieldId)</span> </span>&#123;<br>    <span class="hljs-keyword">switch</span> (fieldId) &#123;<br>        <span class="hljs-keyword">case</span> BR.name: &#123;<br>            <span class="hljs-keyword">synchronized</span>(<span class="hljs-keyword">this</span>) &#123;<br>                    mDirtyFlags |= <span class="hljs-number">0x2L</span>;<br>            &#125;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>        &#125;<br>        <span class="hljs-keyword">case</span> BR.value1: &#123;<br>            <span class="hljs-keyword">synchronized</span>(<span class="hljs-keyword">this</span>) &#123;<br>                    mDirtyFlags |= <span class="hljs-number">0x4L</span>;<br>            &#125;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>        &#125;<br>        <span class="hljs-keyword">case</span> BR._all: &#123;<br>            <span class="hljs-keyword">synchronized</span>(<span class="hljs-keyword">this</span>) &#123;<br>                    mDirtyFlags |= <span class="hljs-number">0x1L</span>;<br>            &#125;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里其实啥都没做，就只给 mDirtyFlags 设置了一个标记位，这里就很灵性了，它不是与我们通常的想法一样，给每个字段分别处理，而是只是设置一个标记。</p>
+<p>再看 requestRebind，从名字也可以看出来，应该是重新绑定，<strong>因为 onChangeMyName 给字段发生了变化的位设置了标记，所以在这个方法里面，应该就是根据标志位来刷新UI了</strong>，好，我们看看：</p>
+<blockquote>
+<p>androidx.databinding.ViewDataBinding#requestRebind</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">requestRebind</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (mContainingBinding != <span class="hljs-keyword">null</span>) &#123;<br>        mContainingBinding.requestRebind();<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        ...<br>        <span class="hljs-keyword">if</span> (USE_CHOREOGRAPHER) &#123;<br>            mChoreographer.postFrameCallback(mFrameCallback);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            mUIThreadHandler.post(mRebindRunnable);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果对View的绘制源码有一点了解的，这里应该很好理解，这里就是刷新UI 了。然后继续往下追踪，它会调用到这个方法：</p>
+<blockquote>
+<p>com.aprz.aboutme.databinding.ActivityMainBindingImpl#executeBindings</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> ((dirtyFlags &amp; <span class="hljs-number">0xfL</span>) != <span class="hljs-number">0</span>) &#123;<br><br><br>    <span class="hljs-keyword">if</span> ((dirtyFlags &amp; <span class="hljs-number">0xbL</span>) != <span class="hljs-number">0</span>) &#123;<br><br>            <span class="hljs-keyword">if</span> (viewModel != <span class="hljs-keyword">null</span>) &#123;<br>                <span class="hljs-comment">// read viewModel.name</span><br>                viewModelName = viewModel.name;<br>            &#125;<br>    &#125;<br>    <span class="hljs-keyword">if</span> ((dirtyFlags &amp; <span class="hljs-number">0xdL</span>) != <span class="hljs-number">0</span>) &#123;<br><br>            <span class="hljs-keyword">if</span> (viewModel != <span class="hljs-keyword">null</span>) &#123;<br>                <span class="hljs-comment">// read viewModel.value1</span><br>                viewModelValue1 = viewModel.value1;<br>            &#125;<br>    &#125;<br>&#125;<br><span class="hljs-comment">// batch finished</span><br><span class="hljs-keyword">if</span> ((dirtyFlags &amp; <span class="hljs-number">0xdL</span>) != <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-comment">// api target 1</span><br><br>    com.foxlee.testdatabinding.NewsViewModel.onTestChange(<span class="hljs-keyword">this</span>.mboundView3, viewModelValue1);<br>    com.foxlee.testdatabinding.NewsViewModel.onTestChange(<span class="hljs-keyword">this</span>.tvValue, viewModelValue1);<br>&#125;<br><span class="hljs-keyword">if</span> ((dirtyFlags &amp; <span class="hljs-number">0xbL</span>) != <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-comment">// api target 1</span><br><br>    com.foxlee.testdatabinding.NewsViewModel.onTestChange(<span class="hljs-keyword">this</span>.tvName, viewModelName);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，这个方法里面就是根据 dirtyFlags 的标志位来更新UI的。这个标志位的算法需要说一下，我们拿 name 的更新举例子：</p>
+<p>在 <code>onChangeViewModel</code> 方法中，name字段更新的时候，给 mDirtyFlags 设置的标志位是 <code>mDirtyFlags |= 0x2L;</code>，而在 <code>executeBindings</code> 方法中，判断 name 字段的更新是使用的 <code>dirtyFlags &amp; 0xbL</code> 来判断的，这是为啥呢？</p>
+<p>这里不去深入研究它的计算规则了，只是简单的说一下：</p>
+<p>0x1，0x2，0x4，0xb，0xd，0xf，他们转换成二进制是这样的：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell">0 0001<br>0 0010<br>0 0100<br>0 1000<br>1 0000<br></code></pre></td></tr></table></figure>
+
+<p>看出规律了没有，这些数只有其中一位为1，其余的都为1，按照这个思路，如果某个数的该位为1，那么应该就是需要更新该位对应的属性。有了这个猜想，我们看看下面的数(023， 0x25， 0x29,，0x31)：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell">10 0011<br>10 0101 <br>10 1001<br>11 0001<br></code></pre></td></tr></table></figure>
+
+<p>这些数也是有规律的，他们第一位为1，最后一位为1，中间的数有一位为1。第一位为1，是用来保证更新所有字段的。中间的某位为1是与上面的位对应的，表示某个属性需要更新。第一位我还没搞清楚是用来做什么的（好像是与双向绑定有关系）。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-JetPack/DataBinding/20190714222649924.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>自动刷新UI我们分析完了，还有一个问题，就是UI变化的时候，是如何改变ViewModel的值的呢？</p>
+<p>其实看上面的图，就可以看出一个大概，因为只有 ActitivyMainBindingImpl 有 ViewModel 的引用，所以肯定是它搞得事情。我们打开这个类就会发现这样的一些监听：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> android.databinding.InverseBindingListener tvField1androidTextAttrChanged = <span class="hljs-keyword">new</span> android.databinding.InverseBindingListener() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onChange</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-comment">// Inverse of user.field1</span><br>        <span class="hljs-comment">//         is user.setField1((java.lang.String) callbackArg_0)</span><br>        java.lang.String callbackArg_0 = android.databinding.adapters.TextViewBindingAdapter.getTextString(tvField1);<br>        <span class="hljs-comment">// localize variables for thread safety</span><br>        <span class="hljs-comment">// user != null</span><br>        <span class="hljs-keyword">boolean</span> userJavaLangObjectNull = <span class="hljs-keyword">false</span>;<br>        <span class="hljs-comment">// user</span><br>        com.aprz.databindingdemo.User user = mUser;<br>        <span class="hljs-comment">// user.field1</span><br>        java.lang.String userField1 = <span class="hljs-keyword">null</span>;<br><br>        userJavaLangObjectNull = (user) != (<span class="hljs-keyword">null</span>);<br>        <span class="hljs-keyword">if</span> (userJavaLangObjectNull) &#123;<br>            user.setField1(((java.lang.String) (callbackArg_0)));<br>        &#125;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>嗯，这里的逻辑很简单，首先拿到 TextView 的值，然后设置到 user 变量里面。不用想都知道 InverseBindingListener 是用来监听 TextView 的文字变化的。这里是因为在自动生成的代码里面给 TextView 都添加了一个 TextWatcher。所以当它发生变化的时候，就会回调这个方法。</p>
+<p>需要注意的是，双向绑定容易引起死循环，因为UI导致 ViewModel 发生变化，ViewModel 变化了，又要去刷新 UI，就会不断的重复这个过程，需要自己处理一下，就是在更新UI的时候，判断一下值是否与当前相同，相同的时候再去更新（通知监听变化了）。</p>
+<p>PS：</p>
+<p>坑：不支持merge标签。布局根节点必须是 . 同时layout只能包含一个View标签. 不能直接包含&lt;merge&gt;。</p>
+<h3 id="Databinding-生成的文件之间的关系"><a href="#Databinding-生成的文件之间的关系" class="headerlink" title="Databinding 生成的文件之间的关系"></a>Databinding 生成的文件之间的关系</h3><p> 每一个 xxx.xml 对应着两个文件，一个 xxxBinding 类，一个 xxxBindingImpl 类。</p>
+<h4 id="XXXBinding"><a href="#XXXBinding" class="headerlink" title="XXXBinding"></a>XXXBinding</h4><p>这个类里面存放的是xml里面的一些控件，以及 inflate 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">XXXBinding</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ViewDataBinding</span> </span>&#123;<br>    <span class="hljs-meta">@NonNull</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> ImageView ivClose;<br>  <br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">XXXBinding</span><span class="hljs-params">(Object var1, View var2, <span class="hljs-keyword">int</span> var3, ImageView var4)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>(var1, var2, var3);<br>        <span class="hljs-keyword">this</span>.ivClose = var4;<br><br>    &#125;<br><br>    <span class="hljs-meta">@NonNull</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> XXXBinding <span class="hljs-title">inflate</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> LayoutInflater var0, <span class="hljs-meta">@Nullable</span> ViewGroup var1, <span class="hljs-keyword">boolean</span> var2)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> inflate(var0, var1, var2, DataBindingUtil.getDefaultComponent());<br>    &#125;<br><br>    ...<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<h4 id="XXXBindingImpl"><a href="#XXXBindingImpl" class="headerlink" title="XXXBindingImpl"></a>XXXBindingImpl</h4><p>xxxBindingImpl 继承了 xxxBinding 类，它主要是给父类的控件变量字段赋值，然后根据一些变量的标志位做控件的更新，上面有说，这里就不展开了。</p>
+<h4 id="DataBinderMapperImpl"><a href="#DataBinderMapperImpl" class="headerlink" title="DataBinderMapperImpl"></a>DataBinderMapperImpl</h4><p>上面说了，一个 xml 对应着两个文件，那么这个对应关系是谁储存的呢？答案就是这个 DataBinderMapperImpl 类。</p>
+<p>我们可以看一段代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ViewDataBinding <span class="hljs-title">getDataBinder</span><span class="hljs-params">(DataBindingComponent var1, View var2, <span class="hljs-keyword">int</span> var3)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> var4;<br>    <span class="hljs-keyword">if</span> ((var4 = a.get(var3)) &gt; <span class="hljs-number">0</span>) &#123;<br>        Object var5;<br>        <span class="hljs-keyword">if</span> ((var5 = var2.getTag()) == <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">&quot;view must have a tag&quot;</span>);<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (var4 == <span class="hljs-number">1</span>) &#123;<br>            <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;layout/a_common_pay_0&quot;</span>.equals(var5)) &#123;<br>                <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ACommonPayBindingImpl(var1, var2);<br>            &#125;<br><br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;The tag for a_common_pay is invalid. Received: &quot;</span> + var5);<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (var4 == <span class="hljs-number">2</span>) &#123;<br>            <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;layout/a_activity_wallet_pay_0&quot;</span>.equals(var5)) &#123;<br>                <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> AActivityWalletPayBindingImpl(var1, var2);<br>            &#125;<br><br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;The tag for a_activity_wallet_pay is invalid. Received: &quot;</span> + var5);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>从，这个方法里面可以看出，它们的对应关系是使用字符串对应的，一个 xml 有一个固定的字符串，这个字符串又对应了 xxxBindingImpl 这个类。</p>
+<p>但是，还有一个问题，这个 DataBinderMapperImpl 只是储存了自己 module 的映射关系，那它依赖的工程的映射关系，该怎么获取呢？</p>
+<p>其实这个类还有一个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"> <span class="hljs-meta">@Override</span><br> <span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;DataBinderMapper&gt; <span class="hljs-title">collectDependencies</span><span class="hljs-params">()</span> </span>&#123;<br>   ArrayList&lt;DataBinderMapper&gt; result = <span class="hljs-keyword">new</span> ArrayList&lt;DataBinderMapper&gt;(<span class="hljs-number">18</span>);<br>   result.add(<span class="hljs-keyword">new</span> androidx.databinding.library.baseAdapters.DataBinderMapperImpl());<br>...<br>   <span class="hljs-keyword">return</span> result;<br> &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个 collectDependencies 会收集各个依赖工程的 DataBinderMapperImpl 将它放到这里（aar的话，会根据里面的 databinding 的 bin 文件生成），最终会形成一个树状结构。</p>
+<p>我们从app看起，app 的话会收集它直接依赖的子工程的 DataBinderMapperImpl，然后子工程也会收集它自己直接依赖的工程的 DataBinderMapperImpl ，这样就形成了一棵树，每个 xml 的对应的关系都被穿起来了，所以使用 DataBindingUtil 就可以获取到对应的实现类。</p>
+<p>以上说到的相关文件，都可以在 build/ap_generated_sources （gradle 3.6.4） 里面找到。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Jetpack/">Jetpack</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android/Gradle%20Transform%20API%20%EF%BC%9A%E7%9B%B4%E6%8E%A5%E5%A4%84%E7%90%86%20class%20%E6%96%87%E4%BB%B6/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Gradle Transform API ：直接修改 class 文件</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/RecyclerView%20%E7%9A%84%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/">
+                        <span class="hidden-mobile">图解 RecyclerView 的缓存机制</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

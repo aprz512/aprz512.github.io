@@ -1,0 +1,781 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>RxJava2 源码分析（一） - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="RxJava2 源码分析（一）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      13
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">RxJava2 源码分析（一）</h1>
+            
+            <div class="markdown-body">
+              <p>这是第二次写源码分析，之前的一次已经是一年前了。</p>
+<p>为何要重写？</p>
+<p>主要是由于今天看到了一些关于线程池的东西，我联想到了RxJava2中的线程分类。再想到项目中的线程池相关的地方，感觉很乱，所以有一个整合的想法，想将原来自己创建的线程池替换成RxJava2中的线程池，于是就有了翻看源码的心思。</p>
+<p>择日不如撞日，反正是看源码，顺便把以前的东西再整理一下，还有就是以前写的东西，思路太乱，看着不舒服。</p>
+<p>回想起来，RxJava2的源码有很多套路，只要掌握了这个套路，阅读源码起来就会有一切尽在掌握的感觉，否则，就会觉得源码很绕。</p>
+<p>所以第一篇文章的主要目的，是讲明白这个套路，然后配上图，能够更容易让人理解，如果以后忘记了，再回来看一遍也能迅速跟上思路，不会又要再次撸一遍源码。</p>
+<h3 id="从一个简单的例子开始"><a href="#从一个简单的例子开始" class="headerlink" title="从一个简单的例子开始"></a>从一个简单的例子开始</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// 观察者 -- 蝙蝠侠</span><br><span class="hljs-comment">// 这里之所以没有用 Consumer，是怕引起歧义</span><br><span class="hljs-comment">// 毕竟源码利用将我们传递进去的 Consumer， 又封装了一层，封装成了 Observer</span><br><span class="hljs-keyword">val</span> observerBatMan = <span class="hljs-keyword">object</span> : Observer&lt;<span class="hljs-built_in">Int</span>&gt; &#123;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onComplete</span><span class="hljs-params">()</span></span> &#123;<br>    &#125;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onNext</span><span class="hljs-params">(t: <span class="hljs-type">Int</span>)</span></span> &#123;<br>        Assert.assertEquals(<span class="hljs-number">1</span>, t)<br>    &#125;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onError</span><span class="hljs-params">(e: <span class="hljs-type">Throwable</span>)</span></span> &#123;<br>    &#125;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onSubscribe</span><span class="hljs-params">(d: <span class="hljs-type">Disposable</span>)</span></span> &#123;<br>    &#125;<br><br>&#125;<br><br><span class="hljs-comment">// 数据源 -- 小丑</span><br><span class="hljs-keyword">val</span> sourceClown = ObservableOnSubscribe&lt;<span class="hljs-built_in">Int</span>&gt; &#123;<br>    it.onNext(<span class="hljs-number">1</span>)<br>    it.onComplete()<br>&#125;<br><br><span class="hljs-comment">// 开始观察</span><br>Observable.create&lt;<span class="hljs-built_in">Int</span>&gt;(sourceClown)<br>    .subscribe(observerBatMan)<br></code></pre></td></tr></table></figure>
+
+<p>嗯，果然 kotlin 还是看起来舒服。</p>
+<p>这个例子非常简单了，数据源发送一个int值 1，然后接收者判断值是不是1。</p>
+<p>现在开始分析源码了，先看 Observable 的 create 方法：</p>
+<blockquote>
+<p>Observable.java</p>
+<p>该方法创建一个 Observeable 对象。分析完成之后，你就会发现实际上就是创建了一个 ObservableCreate 对象。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; <span class="hljs-function">Observable&lt;T&gt; <span class="hljs-title">create</span><span class="hljs-params">(ObservableOnSubscribe&lt;T&gt; source)</span> </span>&#123;<br>    <span class="hljs-comment">// 这个是判空，嗯，没啥好说的，我一般用注解。</span><br>    ObjectHelper.requireNonNull(source, <span class="hljs-string">&quot;source is null&quot;</span>);<br>    <span class="hljs-keyword">return</span> RxJavaPlugins.onAssembly(<span class="hljs-keyword">new</span> ObservableCreate&lt;T&gt;(source));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="套路一"><a href="#套路一" class="headerlink" title="套路一"></a>套路一</h4><blockquote>
+<p>别看有些人表面上风风光光，背地里却连只大熊猫都没有。</p>
+</blockquote>
+<p>上面的 create 方法中，看起来有两行代码，感觉做了一些了不得的东西，但是实际上只有半行代码在起主要作用。</p>
+<p>第二行代码的前半行：</p>
+<blockquote>
+<p>RxJavaPlugins.java</p>
+<p>该方法在 onObservableAssembly 不会空的情况下会对 source 做一个变换，否则返回 source。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; <span class="hljs-function">Observable&lt;T&gt; <span class="hljs-title">onAssembly</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> Observable&lt;T&gt; source)</span> </span>&#123;<br>    Function&lt;? <span class="hljs-keyword">super</span> Observable, ? extends Observable&gt; f = onObservableAssembly;<br>    <span class="hljs-keyword">if</span> (f != <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">return</span> apply(f, source);<br>    &#125;<br>    <span class="hljs-keyword">return</span> source;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>因为 onObservableAssembly 绝大部分情况下为空，其实就是返回了传进来的参数。所以该方法基本可以忽略。</p>
+<p><strong>需要注意，这个套路在源码中很常见。</strong></p>
+<p>所以最后，我们可以把 Observeable 的 create 方法理解为：</p>
+<blockquote>
+<p>Observable.java</p>
+<p>create 简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; <span class="hljs-function">Observable&lt;T&gt; <span class="hljs-title">create</span><span class="hljs-params">(<span class="hljs-meta">@NotNull</span> ObservableOnSubscribe&lt;T&gt; source)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ObservableCreate&lt;T&gt;(source);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样看是不是很简单！！！</p>
+<p>继续深入，看看 ObservableCreate 有何德何能！</p>
+<blockquote>
+<p>ObservableCreate .java</p>
+<p>ObservableCreate 继承至 Observable。这个继承还有一个非常重要的作用，就是方便链式调用。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObservableCreate</span>&lt;<span class="hljs-title">T</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">Observable</span>&lt;<span class="hljs-title">T</span>&gt; </span>&#123;...&#125;<br></code></pre></td></tr></table></figure>
+
+<p>别看 Observable 有<strong>1w 多行代码</strong>，但是实际上<strong>只有一个抽象方法</strong>，其他的都是用来做操作符等等。</p>
+<p>下面来看看这个抽象方法，后面会分析到。</p>
+<blockquote>
+<p>Observable.java</p>
+<p>该方法由 Observable 的 subscribe 方法调用，即 Observable.create(xxx).subscribe(xxx);</p>
+<p>subscribe 就会调用 subscribeActual</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span></span>;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="套路二"><a href="#套路二" class="headerlink" title="套路二"></a>套路二</h4><blockquote>
+<p>遵循模板：</p>
+<ol>
+<li><p>将source封装一下，变成一个 Observable</p>
+</li>
+<li><p>将 observer 封装一下，变成一个Emitter，</p>
+</li>
+<li><p>然后调用 source 的 onSubscribe 方法，</p>
+</li>
+<li><p>然后调用 source 的 subscribe 方法，将 Emitter 传进去。</p>
+</li>
+</ol>
+</blockquote>
+<p><strong>其实只要你知道 observer 是谁，source 是谁，很简单的啦。</strong></p>
+<p>ObservableCreate 的核心代码就在这个被覆盖的抽象方法里面，嗯，一起来看看吧。</p>
+<blockquote>
+<p>ObservableCreate.java</p>
+<p>该方法由 Observable 的 subscribe 方法调用，即 Observable.create(xxx).subscribe(xxx);</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    CreateEmitter&lt;T&gt; parent = <span class="hljs-keyword">new</span> CreateEmitter&lt;T&gt;(observer);<br>    observer.onSubscribe(parent);<br><br>    <span class="hljs-keyword">try</span> &#123;<br>        source.subscribe(parent);<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable ex) &#123;<br>        Exceptions.throwIfFatal(ex);<br>        parent.onError(ex);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>看上面的代码，需要搞清楚几个变量，不然绕着绕着就糊涂了。</p>
+<ol>
+<li><p><strong>source 是我们创建并传递进来的</strong>。额，忘记贴构造函数了，里面有赋值，这个 source 就是我们在 create 方法里面创建的对象啦。</p>
+<blockquote>
+<p>ObservableCreate.java</p>
+<p>构造方法</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ObservableCreate</span><span class="hljs-params">(ObservableOnSubscribe&lt;T&gt; source)</span> </span>&#123;<br>    <span class="hljs-keyword">this</span>.source = source;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_2.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+</li>
+<li><p>observer 这里暂时分析不出来，因为是父类调用了这个方法，所以我们去父类看看</p>
+<blockquote>
+<p>Observable.java</p>
+<p>这个方法的主要作用，就是将数据源与观察者关联起来</p>
+<p>它还调用了 subscribeActual 方法，子类必须实现 subscribeActual  方法。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribe</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    ObjectHelper.requireNonNull(observer, <span class="hljs-string">&quot;observer is null&quot;</span>);<br>    <span class="hljs-keyword">try</span> &#123;<br>        observer = RxJavaPlugins.onSubscribe(<span class="hljs-keyword">this</span>, observer);<br>   <br>        ObjectHelper.requireNonNull(observer, <span class="hljs-string">&quot;Plugin returned null Observer&quot;</span>);<br>   <br>        subscribeActual(observer);<br>    &#125; <span class="hljs-keyword">catch</span> (NullPointerException e) &#123; <span class="hljs-comment">// NOPMD</span><br>        <span class="hljs-keyword">throw</span> e;<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        Exceptions.throwIfFatal(e);<br>        <span class="hljs-comment">// can&#x27;t call onError because no way to know if a Disposable has been set or not</span><br>        <span class="hljs-comment">// can&#x27;t call onSubscribe because the call might have set a Subscription already</span><br>        RxJavaPlugins.onError(e);<br>   <br>        NullPointerException npe = <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">&quot;Actually not, but can&#x27;t throw other exceptions due to RS&quot;</span>);<br>        npe.initCause(e);<br>        <span class="hljs-keyword">throw</span> npe;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>使用套路一，我们简化一下代码：</p>
+<blockquote>
+<p>Observable.java </p>
+<p>subscribe 简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribe</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>     <span class="hljs-keyword">try</span> &#123;<br>         observer = RxJavaPlugins.onSubscribe(<span class="hljs-keyword">this</span>, observer);<br>         subscribeActual(observer);<br>     &#125; <span class="hljs-keyword">catch</span> (NullPointerException e) &#123; <span class="hljs-comment">// NOPMD</span><br>         <span class="hljs-keyword">throw</span> e;<br>     &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>         ...<br>         RxJavaPlugins.onError(e);<br>...<br>         <span class="hljs-keyword">throw</span> npe;<br>     &#125;<br> &#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>如果，是走正常流程，没有错误，还可以简化（第一次分析主流程，就是要这样简化简化再简化）：</p>
+<blockquote>
+<p>Observable.java </p>
+<p>subscribe 简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribe</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    observer = RxJavaPlugins.onSubscribe(<span class="hljs-keyword">this</span>, observer);<br>    subscribeActual(observer);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>实际上，RxJavaPlugins.onSubscribe 也含有套路一，所以再次简化：</p>
+<blockquote>
+<p>Observable.java </p>
+<p>subscribe 简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribe</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    <span class="hljs-comment">// 可以忽略</span><br>    observer = observer;<br>    subscribeActual(observer);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>所以，最终实际上 subscribe 方法，就是调用了 subscribeActual 方法而已，只不过它增加了错误与钩子处理。</p>
+<p>看到这里，<strong>不知道你有没有反应过来，这个 subscribe(observer) 方法是不是很熟悉呢</strong>？</p>
+<p>这个方法，就是我们上面例子中的：</p>
+<blockquote>
+<p>我们写的 demo 的代码</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// 开始观察</span><br>Observable.create&lt;<span class="hljs-built_in">Int</span>&gt;(sourceClown)<br>	<span class="hljs-comment">// 这里就是调用的 subscribe 方法</span><br>    .subscribe(observerBatMan)<br></code></pre></td></tr></table></figure>
+
+<p>是不是有点恍然大悟的感觉呢！</p>
+<p>所以到这里，心里应该由一个大致框架了。</p>
+<p>同时也会发现，<code>ObservableCreate </code>  的 <code>subscribeActual</code> 方法中<strong>的 <code>observer</code> 参数，也是我们new出来的对象</strong>。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_3.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+</li>
+</ol>
+<p>分析到了这里，一个轮廓就出来了!!!</p>
+<p><code>ObservableCreate </code>  的 <code>subscribeActual</code> 方法中的 参数分别对应如下：</p>
+<blockquote>
+<p>ObservableCreate.java</p>
+<p>ObservableCreate 继承至 Observable，所以它必须实现 subscribeActual 方法。</p>
+<p>这个方法也是核心，是链式调用的核心，线程切换的核心</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    <span class="hljs-comment">// observer 就是 observerBatMan</span><br>    CreateEmitter&lt;T&gt; parent = <span class="hljs-keyword">new</span> CreateEmitter&lt;T&gt;(observer);<br>    observer.onSubscribe(parent);<br><br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// source 就是 sourceClown</span><br>        <span class="hljs-comment">// 这个 subscribe 就将两个包装的观察者与数据源对象关联起来了</span><br>        source.subscribe(parent);<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable ex) &#123;<br>        Exceptions.throwIfFatal(ex);<br>        parent.onError(ex);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>如果，不考虑错误的情况，我们简化一下代码：</p>
+<blockquote>
+<p>ObservableCreate.java</p>
+<p>subscribeActual 简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    <span class="hljs-comment">// observer 就是 observerBatMan</span><br>    CreateEmitter&lt;T&gt; parent = <span class="hljs-keyword">new</span> CreateEmitter&lt;T&gt;(observer);<br>    <span class="hljs-comment">// 调用 observerBatMan 的 onSubscribe 方法，这个是一个钩子方法</span><br>    <span class="hljs-comment">// 一般专门用来告诉 observerBatMan，我，sourceClown，要搞事情了</span><br>    observer.onSubscribe(parent);<br>    <span class="hljs-comment">// source 就是 sourceClown</span><br>    source.subscribe(parent);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>由于，onSubscribe 我们暂时也不用，所以去掉，再简化：</p>
+<blockquote>
+<p>ObservableCreate.java</p>
+<p>subscribeActual 简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    CreateEmitter&lt;T&gt; parent = <span class="hljs-keyword">new</span> CreateEmitter&lt;T&gt;(observer);<br>    <span class="hljs-comment">// 注意这里 subscribe 传递的是 parent</span><br>    source.subscribe(parent);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>嘿嘿嘿，这样就舒服多了，就3个变量，两个是我们自己创建的，知根知底，还有一个货，<code>CreateEmitter</code>我们先放一放，为啥呢，因为关于 source 的代码还没有分析完成呢。</p>
+<p>别看  <code>source.subscribe(parent);</code>就一行代码，但是由于 source 对象是我们自己创建的，所以这个方法实际上调用了我们写的代码：</p>
+<blockquote>
+<p>ObservableOnSubscribe.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ObservableOnSubscribe</span>&lt;<span class="hljs-title">T</span>&gt; </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">subscribe</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> ObservableEmitter&lt;T&gt; e)</span> <span class="hljs-keyword">throws</span> Exception</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p><code>ObservableOnSubscribe</code>是一个接口，所以，我们实际上是创建了一个匿名内部类，传递给了 source，然后 source 又调用了 subscribe 方法，所以也就调用了我们写的代码。</p>
+<p>嗯，用伪代码表示如下：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 匿名内部类 = new ObservableOnSubscribe()&#123;&#125;<br><br><span class="hljs-bullet">2.</span> oc = Observerable.create(匿名内部类)<br><br><span class="hljs-bullet">3.</span> oc.subscribe(xxx)，这个方法会调用到 -&gt; subscribeActual<br><br><span class="hljs-bullet">4.</span> subscribeActual 会调用到 -&gt; 匿名内部类.subscribe(emiiter)<br><br><span class="hljs-bullet">5.</span> 我们的代码<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>我们自己写的 demo 代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 这里的 it 是 ObservableEmitter</span><br>it.onNext(<span class="hljs-number">1</span>)<br>it.onComplete()<br></code></pre></td></tr></table></figure>
+
+
+
+<p>那么，当 it.onNext(1) 执行之后，又会发生什么呢？</p>
+<p>这个 it 就是 CreateEmitter，嗯，虽然有点突然，但是这个应该没有疑问吧？！！</p>
+<blockquote>
+<ol>
+<li>我们把 sourceClown 传进去，并且调用了 ObservableEmitter 的 onNext 等方法</li>
+<li>sourceClown 被封装成了 CreateEmitter</li>
+<li>source 的 subscribe 方法接收的是 CreateEmitter，</li>
+</ol>
+<p>所以，ObservableEmitter 在运行时就是 CreateEmitter 对象。</p>
+</blockquote>
+<p>我们先不忙着去看它的 onNext 方法，先看看这个类。</p>
+<h4 id="套路三"><a href="#套路三" class="headerlink" title="套路三"></a>套路三</h4><blockquote>
+<p>由老父亲来替你打理一切</p>
+</blockquote>
+<p>我们知道在<strong>套路二</strong>里面，我们传递的 sourceClown 被封装了一下，变成了一个 <code>CreateEmitter</code> 。</p>
+<p><code>CreateEmitter</code> 这个变量名就很叼，一看就是 observer 的老父亲，那么，可以先猜一猜，为啥它要起这样一个名呢？</p>
+<p>由于<code>ObservableOnSubscribe</code> 的 <code>subscribe</code>方法只接受 <code>ObservableEmitter</code> ，所以  <code>CreateEmitter</code>  必须要实现这个接口。</p>
+<p>好，我们看源代码：</p>
+<blockquote>
+<p>CreateEmitter.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CreateEmitter</span>&lt;<span class="hljs-title">T</span>&gt;</span><br><span class="hljs-class"><span class="hljs-keyword">extends</span> <span class="hljs-title">AtomicReference</span>&lt;<span class="hljs-title">Disposable</span>&gt;</span><br><span class="hljs-class"><span class="hljs-keyword">implements</span> <span class="hljs-title">ObservableEmitter</span>&lt;<span class="hljs-title">T</span>&gt;, <span class="hljs-title">Disposable</span> </span>&#123;...&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>AtomicReference</code>是java类，就不展开讲了，不知道的人（比如我）这个时候应该打开了文档，开始学习了。</p>
+<p>继续看构造方法：</p>
+<blockquote>
+<p>CreateEmitter.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">CreateEmitter(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer) &#123;<br>    <span class="hljs-keyword">this</span>.observer = observer;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>嗯，很好，observer 被保存起来了。</p>
+<p>由于，在 sourceClown 中我们调用了：</p>
+<blockquote>
+<p>我们写的 demo 的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">it.onNext(<span class="hljs-number">1</span>)<br></code></pre></td></tr></table></figure>
+
+<p>上面说过，it 就是 CreateEmitter，所以 CreateEmitter的 onNext 方法会被调用。</p>
+<p>现在，我们来分析它的 onNext 方法：</p>
+<blockquote>
+<p>CreateEmitter.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onNext</span><span class="hljs-params">(T t)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (t == <span class="hljs-keyword">null</span>) &#123;<br>        onError(<span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">&quot;onNext called with null. Null values are generally not allowed in 2.x operators and sources.&quot;</span>));<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (!isDisposed()) &#123;<br>        observer.onNext(t);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>RxJava2 中不允许数据源发射的数据为 null，所以我们简化一下：</p>
+<blockquote>
+<p>CreateEmitter.java</p>
+<p>onNext 简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onNext</span><span class="hljs-params">(T t)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (!isDisposed()) &#123;<br>        observer.onNext(t);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>isDisposed 方法，就是判断观察者有没有解除订阅，毕竟，蝙蝠侠也会心累。</p>
+<p>这上面做了这么多判断，现在知道为啥起名叫 parent 了不？</p>
+<p>在我们的例子中，我们没有解除订阅，再简化一下，就是：</p>
+<blockquote>
+<p>CreateEmitter.java</p>
+<p>onNext 简化后的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onNext</span><span class="hljs-params">(T t)</span> </span>&#123;<br>    observer.onNext(t);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这下，够直白了吧，直接调用了 observer 的 onNext 方法。</p>
+<p>还记得 observer 是谁吗，就是你，蝙蝠侠，observerBatMan。所以它的 onNext 方法会被调用。</p>
+<blockquote>
+<p>我们写的 demo 的代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function">override fun <span class="hljs-title">onNext</span><span class="hljs-params">(t: Int)</span> </span>&#123;<br>    Assert.assertEquals(<span class="hljs-number">1</span>, t)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>那么，整个流程就跑通了。</p>
+<p>至于，onComplete 方法，差不多的啦。</p>
+<p>最后上一张图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_1.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>最后，还有一个很重要的东西，就是这个小demo 的起始点，并不是 sourceClown，上面的图不是程序执行流程图，而是一种关系图。</p>
+<p>现在我们来看看，程序的起始点在哪？</p>
+<blockquote>
+<p>我们写的 demo 代码</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 开始观察</span><br>Observable.create&lt;Int&gt;(sourceClown)<br>    .subscribe(observerBatMan)<br></code></pre></td></tr></table></figure>
+
+<p>程序的起始点是 subscribe 方法，这个方法是属于 ObservableCreate 的，<strong>所以程序的起始点在 ObservableCreate 的 subscribe 方法</strong>。</p>
+<p>下面，贴上程序执行流程图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_4.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/RxJava2/">RxJava2</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-RxJava2/">Android-源码解析-RxJava2</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/RxJava2%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%882.5%EF%BC%89/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RxJava2 源码分析（三）</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/RxJava2%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%94%EF%BC%89/">
+                        <span class="hidden-mobile">RxJava2 源码分析（六）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

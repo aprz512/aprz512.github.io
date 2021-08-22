@@ -1,0 +1,550 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>网络编程007：IP地址与MAC地址 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="网络编程007：IP地址与MAC地址">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-06-18 00:00" pubdate>
+        2020年6月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      5
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">网络编程007：IP地址与MAC地址</h1>
+            
+            <div class="markdown-body">
+              <p>经过前面几篇文章的洗礼，你应该知道IP地址与MAC地址各自的作用。</p>
+<p>我自己的理解就是：IP地址是用来连接子网的，MAC地址是用来处理子网内部的。</p>
+<p>但是这只是比较粗浅的理解，如果有人问到：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs armasm">有了<span class="hljs-built_in">IP</span>地址，为何还要用MAC地址？<br>或者，有了MAC地址，为何还要<span class="hljs-built_in">IP</span>地址？<br></code></pre></td></tr></table></figure>
+
+<p>对于这些问题，你该如何给他解释清楚呢？</p>
+<h4 id="我们先来探讨一下，没有IP地址的情况："><a href="#我们先来探讨一下，没有IP地址的情况：" class="headerlink" title="我们先来探讨一下，没有IP地址的情况："></a>我们先来探讨一下，没有IP地址的情况：</h4><p>一开始时，网络中的机器并不多。大家都连到同一个集线器就可以了，就可以实现互通。这时，机器 A 发消息到机器 B ，消息头里附上机器 B 的MAC，集线器收到消息后就广播给所有连到集线器的机器。</p>
+<p>机器 C 收到消息，发现消息里的 MAC 地址和自己的不一样，就丢弃。机器B发现消息里的 MAC 地址和自己一样，就收到下并解析。</p>
+<p><img src="http://www.52im.net/data/attachment/forum/201811/11/221435zigm2fjme1iiejjm.jpg" srcset="/img/loading.gif" lazyload alt="网络编程懒人入门(九)：通俗讲解，有了IP地址，为何还要用MAC地址？_1.jpg"></p>
+<p>这样机制带来问题很明显：首先每次广播，给所在网络带来不必要的浪费。所以，就出现了交换机。它能识别消息里的目标 MAC 地址后，直接就消息丢到机器 B 所连接的端口中。另一个角度，<strong>交换机必须记住所有的 MAC 地址和端口之间的关系</strong>。</p>
+<p>这样的机制在网络规规模小的时候是高效的。但是当网络规模扩大到全球的时候，不可能让一台交换机记录下全球这么多的网络设备，也不可能让全球的机器连接到一台交换机上。</p>
+<p>一个交换机无法解决，那么多个交换机可以解决吗？可以解决部分问题，如下图：</p>
+<p><img src="http://www.52im.net/data/attachment/forum/201811/11/221516f7rlwl3l0l6wy072.jpg" srcset="/img/loading.gif" lazyload alt="网络编程懒人入门(九)：通俗讲解，有了IP地址，为何还要用MAC地址？_2.jpg"></p>
+<p>但是随着网络越来越大，交换机越来越多，那么交换机之间还是只能<strong>采用广播的方式来通信</strong>，显然是不可取的。</p>
+<p>也就是说，当两个网络互接时，MAC 地址 + 交换机还能解决问题广播问题，但是两个以上的网络互连时，MAC 地址 + 交换机就没有办法解决广播问题了。</p>
+<h4 id="我们再来探讨一下，没有MAC地址的情况："><a href="#我们再来探讨一下，没有MAC地址的情况：" class="headerlink" title="我们再来探讨一下，没有MAC地址的情况："></a>我们再来探讨一下，没有MAC地址的情况：</h4><p>我们知道OSI 7层模型，IP、TCP分别对应第三层和四层，因特网协议族并没有覆盖完整的7层 。</p>
+<p>因特网并不存粹，还包括以太网。因为因特网是第三层协议，是没有根基的“空中楼阁”，需要以太网这样的2层网具体落地实施，而MAC地址又是2层概念，所以MAC地址就这样进入了因特网的体系结构。</p>
+<p>当然了，如果因特网从开始制定之初，就定义了从物理层到传输层的协议，那么因特网就不再依赖于其它任何的网络，这个纯粹的因特网就只需要纯粹的IP地址，网线所插上的也不再是以太网卡，而是“因特网卡”，既然没有了以太网，也就不用什么MAC地址了。</p>
+<p>说了历史原因，我们再说一个现实的问题：</p>
+<p>因为 IP 地址是要设备上线以后，才能根据他进入了哪个子网来分配的，在设备还没有 IP 地址的时候（或者分配 IP 地址的过程中），我们还需要用 MAC 地址来区分不同的设备。</p>
+<p>所以说，在现在的这个模型体系下，MAC地址是不能被省去的。</p>
+<h4 id="ARP攻击"><a href="#ARP攻击" class="headerlink" title="ARP攻击"></a>ARP攻击</h4><p>ARP（Address Resolution Protocol），即地址解析协议，我们前面的文章说到过，是根据IP地址解析物理地址的一个TCP/IP协议。</p>
+<p>我们通过图解的方式来深入了解ARP攻击是如何实现的。</p>
+<p><img src="https://pic4.zhimg.com/80/v2-816508f970cea1daf14f0610569c53db_720w.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>在这个局域网里面，PC1、PC2、PC3三台主机共同连接到交换机SW1上面，对应3个接口port1/2/3。假设PC3这台主机安装了ARP攻击软件或遭受ARP病毒，成为这个网络的攻击者（hacker），接下来，PC3是如何攻击的？先不急，先来回顾下PC1和PC2是如何通信的。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-6522b0e3e1b7e7058152e70953428c74_720w.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>我们来看看PC3（Hacker）是如何发起ARP攻击的=&gt;</p>
+<p><img src="https://pic1.zhimg.com/80/v2-383f86e253b689d40ff20d648ce7afac_720w.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>正常情况下，若收到的ARP请求不是给自己的，则直接丢弃；而这里PC3（Hacker）在监听之后，发起了ARP回应包：<strong>我就是PC2（IP2-MAC3）</strong>。</p>
+<p>从拓扑可以出现，PC3明明是IP3对应MAC3，很显然这就是一个ARP欺骗行为。于此同时，PC2正常的ARP回应包也交到了PC1手中，我们来看PC1接下来如何处理的：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-d234cb3ec99e072f16c7000358284641_720w.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>PC1收到两个ARP回应包，内容分别如下：</p>
+<p>③我是PC2，我的IP地址是<strong>IP2</strong>，我的MAC地址是<strong>MAC2</strong>；</p>
+<p>③我是PC2，我的IP地址是<strong>IP2</strong>，我的MAC地址是<strong>MAC3</strong>；</p>
+<p>PC1一脸懵：<strong>咋回事？还有这操作？不管了，我选最新的！（后到优先）</strong></p>
+<p>那么问题来了，上面两个ARP回应包到底哪个先到哪个后到呢？</p>
+<p>作为初学者，可能还在纠结前后这种naive的问题；而作为hacker，只要持续不停发出ARP欺骗包，就一定能够覆盖掉正常的ARP回应包。<strong>稳健的ARP嗅探/渗透工具，能在短时间内高并发做网络扫描（例如1秒钟成千上百的数据包），能够持续对外发送欺骗包。</strong></p>
+<p>无论如何，当PC1和PC2这种”小白”用户遇到PC3（hacker）时，最终的结果一定是这样的：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-f898793fd3a4f37272dfc31d2ecbaa55_720w.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>其实就是，不断和发送 ARP 回复包，包里面的是自己的 MAC 地址，这样，后续的通信内容就会发送到自己的PC上。</p>
+<p>就是利用 IP -&gt; MAC 的漏洞。</p>
+<p>这个漏洞被IPV6堵上了。</p>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/21546408">https://www.zhihu.com/question/21546408</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.52im.net/thread-2067-1-1.html">http://www.52im.net/thread-2067-1-1.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/28818627">https://zhuanlan.zhihu.com/p/28818627</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/">网络优化</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/06/22/blog_bak/Blog/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B007%EF%BC%9AQUIC%E5%8D%8F%E8%AE%AE/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">网络编程007：QUIC协议</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/17/blog_bak/Blog/%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B005%EF%BC%9A%E5%AE%9E%E7%8E%B0%E5%9F%BA%E4%BA%8ETCP%E7%9A%84%E9%95%BF%E8%BF%9E%E6%8E%A5/">
+                        <span class="hidden-mobile">网络编程005：实现基于TCP的长连接</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

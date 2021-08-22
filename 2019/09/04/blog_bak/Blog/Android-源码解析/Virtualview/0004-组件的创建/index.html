@@ -1,0 +1,661 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>0004-组件的创建 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="0004-组件的创建">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-09-04 00:00" pubdate>
+        2019年9月4日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      14
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">0004-组件的创建</h1>
+            
+            <div class="markdown-body">
+              <p>前面我们说了，想要加载一个模板文件，需要调用如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">sViewManager.loadBinBufferSync(TEST.BIN);<br></code></pre></td></tr></table></figure>
+
+<p>那么，模板加载进来了之后，该怎么使用呢？用法还算是简单，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">preview</span><span class="hljs-params">(String templateName, com.alibaba.fastjson.JSONObject jsonData)</span> </span>&#123;<br>    mContainer = sVafContext.getContainerService().getContainer(templateName, <span class="hljs-keyword">true</span>);<br>    IContainer iContainer = (IContainer) mContainer;<br>    <span class="hljs-keyword">if</span> (jsonData != <span class="hljs-keyword">null</span>) &#123;<br>        iContainer.getVirtualView().setVData(jsonData);<br>    &#125;<br><br>    Layout.Params p = iContainer.getVirtualView().getComLayoutParams();<br>    LinearLayout.LayoutParams marginLayoutParams = <span class="hljs-keyword">new</span> LinearLayout.LayoutParams(p.mLayoutWidth, p.mLayoutHeight);<br>    marginLayoutParams.leftMargin = p.mLayoutMarginLeft;<br>    marginLayoutParams.topMargin = p.mLayoutMarginTop;<br>    marginLayoutParams.rightMargin = p.mLayoutMarginRight;<br>    marginLayoutParams.bottomMargin = p.mLayoutMarginBottom;<br><br>    mLinearLayout.removeAllViews();<br>    mLinearLayout.addView(mContainer, marginLayoutParams);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>templateName 就是我们模板的名字，不是模板文件的名字，是模板的名字，以我们的例子来说，就是“TEST”。</p>
+<p>jsonData 就是模板需要展示的数据，一个例子如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs json">&#123;<br>    <span class="hljs-attr">&quot;style&quot;</span>: &#123;<br>        <span class="hljs-attr">&quot;text-style&quot;</span> : <span class="hljs-string">&quot;bold|italic&quot;</span><br>    &#125;,<br>    <span class="hljs-attr">&quot;height&quot;</span>: <span class="hljs-number">200</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的 style 可以看作是一个对象，它里面有一个 text-style 属性，我们可以这样使用它：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">textStyle=<span class="hljs-string">&quot;$&#123;style.text-style&#125;&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>我们的例子中没有用到 style 这个东西。</p>
+<h2 id="ContainerService"><a href="#ContainerService" class="headerlink" title="ContainerService"></a>ContainerService</h2><p>参数介绍完之后，我们来看看里面的逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">mContainer = sVafContext.getContainerService().getContainer(templateName, <span class="hljs-keyword">true</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这行代码就是核心内容了，里面就有实例化模板文件中的 view 的所有逻辑。我们点进去看一下：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.framework.cm.ContainerService#getContainer(java.lang.String, boolean)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> View <span class="hljs-title">getContainer</span><span class="hljs-params">(String viewType, <span class="hljs-keyword">boolean</span> createParam)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> type = mComContainerTypeMap.getContainerMap(viewType);<br>    <span class="hljs-keyword">if</span> (type &lt;= -<span class="hljs-number">1</span>) &#123;<br>        type = CONTAINER_TYPE_NORMAL;<br>    &#125;<br>    <span class="hljs-keyword">return</span> getContainer(viewType, type, createParam);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>因为 Tangram 是支持自定义组件与组件容器的，所以如果你有自定义的组件容器的话，需要注册进去，注册的时候需要传递一个 type 值。由于我们没有自定义的 type 所以这里会返回 -1（也就是说对于自带的容器都是返回 -1），所以我们的 type 值会默认是 CONTAINER_TYPE_NORMAL。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.framework.cm.ContainerService#getContainer(java.lang.String, int, boolean)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> View <span class="hljs-title">getContainer</span><span class="hljs-params">(String viewType, <span class="hljs-keyword">int</span> containerType, <span class="hljs-keyword">boolean</span> createParam)</span> </span>&#123;<br>    IContainer container = <span class="hljs-keyword">null</span>;<br><br>    <span class="hljs-comment">// 实例化组件是这行代码做的</span><br>    ViewBase vb = mVM.getView(viewType);<br>    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == vb) &#123;<br>        vb = mVM.getDefaultImage();<br>        vb.setViewType(viewType);<br>    &#125;<br><br>    <span class="hljs-comment">// 如果模板的根布局是 container，不用做什么额外的操作</span><br>    <span class="hljs-comment">// 如果模板的根布局不是 container，需要添加一层 container 在外面，container 为 com.tmall.wireless.vaf.virtualview.container.Container 对象</span><br>    <span class="hljs-keyword">if</span> (vb.isContainer()) &#123;<br>        container = (IContainer) vb.getNativeView();<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        ContainerMrg cm = mContainerMrg.get(containerType);<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != cm) &#123;<br>            container = cm.getContainer(mAppContext);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            Log.e(TAG, <span class="hljs-string">&quot;getContainer type invalidate:&quot;</span> + containerType);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 有了容器之后，设置 layoutParams 就完事了</span><br>    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != container) &#123;<br>        container.setVirtualView(vb);<br>        <span class="hljs-keyword">if</span> (createParam) &#123;<br>            Layout.Params p = vb.getComLayoutParams();<br>            MarginLayoutParams marginLayoutParams = <span class="hljs-keyword">new</span> MarginLayoutParams(p.mLayoutWidth, p.mLayoutHeight);<br>            marginLayoutParams.leftMargin = p.mLayoutMarginLeft;<br>            marginLayoutParams.topMargin = p.mLayoutMarginTop;<br>            marginLayoutParams.rightMargin = p.mLayoutMarginRight;<br>            marginLayoutParams.bottomMargin = p.mLayoutMarginBottom;<br>            ((View)container).setLayoutParams(marginLayoutParams);<br>        &#125;<br><br>        <span class="hljs-comment">// 这里就是将 layout 里面的控件都拿出来，add到容器里里面</span><br>        container.attachViews();<br>    &#125;<br>    <span class="hljs-keyword">return</span> (View)container;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>文档里面说过，因为虚拟控件只是绘制在 canvas 上，所以它依托一个原生容器控件作为宿主容器，必须要有容器才会显示。</p>
+<p>我们例子中用的 VHLayout，看起来像一个容器，但是它不是，它里面有自己的测量，布局，绘制逻辑，但是它不是 ViewGroup，也不是 View。它也需要依托在一个容器里面，因为容器是继承了 ViewGroup 的，所以容器才能显示出来。</p>
+<p>比如：VHLayout里面竖向排列了3个 NText，我们只拿布局逻辑来说。竖向排列的逻辑放在了 VHLayout 里面，但是容器会将 3个 NText 都拿出来，add 到自己的布局里面，那么这个时候，容器在布局的时候，就需要调用 VHLayout 里面的布局逻辑，来排列 3 个 NText。</p>
+<p>这里先有个大致的了解，后面会单独讲解虚拟控件到底是个什么东西。</p>
+<h2 id="ViewManager"><a href="#ViewManager" class="headerlink" title="ViewManager"></a>ViewManager</h2><p>回到代码逻辑，我们深入下去：</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.framework.ViewManager#getView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ViewBase <span class="hljs-title">getView</span><span class="hljs-params">(String type)</span> </span>&#123;<br>    ViewBase v;<br>    List&lt;ViewBase&gt; vList = mViewCache.get(type);<br>    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == vList || <span class="hljs-number">0</span> == vList.size()) &#123;<br>        v = mViewFactory.newView(type, mUuidContainers);<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != v) &#123;<br>            <span class="hljs-keyword">if</span> (v.supportDynamic()) &#123;<br>                mAppContext.getNativeObjectManager().addView(v);<br>            &#125;<br>            v.setViewType(type);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            Log.e(TAG, <span class="hljs-string">&quot;new view failed type:&quot;</span> + type);<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        v = vList.remove(<span class="hljs-number">0</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> v;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法就很简单了，只有第5行是核心代码，就是调用了 ViewFactory 的方法。其他的逻辑都是与缓存相关，因为最终都是基于RecyclerView的，有兴趣的可以自己研究。</p>
+<h2 id="ViewFactory"><a href="#ViewFactory" class="headerlink" title="ViewFactory"></a>ViewFactory</h2><blockquote>
+<p>com.tmall.wireless.vaf.virtualview.ViewFactory#newView(java.lang.String, android.util.SparseArray&lt;com.tmall.wireless.vaf.virtualview.core.ViewBase&gt;)</p>
+</blockquote>
+<p>这个方法很长，我们一段一段的分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ViewBase <span class="hljs-title">newView</span><span class="hljs-params">(String type, SparseArray&lt;ViewBase&gt; uuidContainers)</span> </span>&#123;<br>    ViewBase ret = <span class="hljs-keyword">null</span>;<br><br>    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != mLoader) &#123;<br>        CodeReader cr = <span class="hljs-keyword">null</span>;<br>        <span class="hljs-keyword">synchronized</span> (LOCK) &#123;<br>            cr = mUiCodeLoader.getCode(type);<br>            <span class="hljs-keyword">if</span> (cr == <span class="hljs-keyword">null</span>) &#123;<br>                Log.d(TAG, <span class="hljs-string">&quot;load &quot;</span> + type + <span class="hljs-string">&quot; start when createView &quot;</span>);<br>                mTmplWorker.executeTask(type);<br>                cr = mUiCodeLoader.getCode(type);<br>            &#125;<br>        &#125;<br></code></pre></td></tr></table></figure>
+
+<p>mUiCodeLoader 是老朋友了，我们可以根据 type 获取到对应的 CodeReader，CodeReader 里面储存的是模板的二进制数据。</p>
+<p>mTmplWorker 是用来做异步加载处理的，因为有可能我们启动了异步加载，在实例化模板的时候，模板文件还没有读取完成，所以这里就需要先去加载模板文件。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != cr) &#123;<br>    mComArr.clear();<br>    ViewBase curView = <span class="hljs-keyword">null</span>;<br><br>    <span class="hljs-keyword">int</span> tag = cr.readByte();<br>    <span class="hljs-keyword">int</span> state = STATE_continue;<br>    ViewCache viewCache = <span class="hljs-keyword">new</span> ViewCache();<br></code></pre></td></tr></table></figure>
+
+<p>mComArr 是一个栈，是用来帮助读取模板的结构的，因为栈的特性很适合处理嵌套的控件层次。</p>
+<p>tag 有两个字，一个是表示开始，一个表示结束，其实就是组件的开始与结束标识符，对应着xml 里面的 “&lt;” 与  “/&gt;”。这个没有实际证据，我猜的。</p>
+<p>state 是用来表示是否需要跳出循环的，下面是一个死循环：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">while</span> (<span class="hljs-keyword">true</span>) &#123;<br>    <span class="hljs-keyword">switch</span> (tag) &#123;<br>        <span class="hljs-keyword">case</span> Common.CODE_START_TAG:<br>            <span class="hljs-keyword">short</span> comID = cr.readShort();<br>            <span class="hljs-comment">// 这里就是实例化 viewBase 了，暂时不深入</span><br>            ViewBase view = createView(mAppContext, comID, viewCache);<br>            <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != view) &#123;<br>                Layout.Params p;<br>                <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != curView) &#123;<br>                    p = ((Layout) curView).generateParams();<br>                    mComArr.push(curView);<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    p = <span class="hljs-keyword">new</span> Layout.Params();<br>                &#125;<br>                view.setComLayoutParams(p);<br>                curView = view;<br>                <br>                ...<br>        <span class="hljs-keyword">case</span> Common.CODE_END_TAG:<br>            <span class="hljs-keyword">if</span> (mComArr.size() &gt; <span class="hljs-number">0</span>) &#123;<br>                ViewBase c = mComArr.pop();<br>                <span class="hljs-keyword">if</span> (c <span class="hljs-keyword">instanceof</span> Layout) &#123;<br>                    ((Layout) c).addView(curView);<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    state = STATE_failed;<br>                    Log.e(TAG, <span class="hljs-string">&quot;com can not contain subcomponent&quot;</span>);<br>                &#125;<br>                curView = c;<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-comment">// can break;</span><br>                state = STATE_successful;<br>            &#125;<br>            <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p>主要说一下 mComArr 的作用：</p>
+<ul>
+<li><p>第一次遇到起始标志，将该 view 赋值给 curView。</p>
+</li>
+<li><p>再遇到起始标志的时候，就说明遇到了 view 嵌套的情况，这个时候将 curView 放入栈内。</p>
+</li>
+<li><p>遇到结束标识的时候，将栈顶元素取出来，add 到 curView 中。</p>
+</li>
+</ul>
+<p>这样就搞定了 view 树的解析，还是比较容易理解的，实在绕不清楚的可以回去看看四则运算的中缀转后缀。</p>
+<p>接下来，我们看看上面代码中省略的部分：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-comment">// int</span><br>    <span class="hljs-keyword">byte</span> attrCount = cr.readByte();<br>    <span class="hljs-keyword">while</span> (attrCount &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">int</span> key = cr.readInt();<br>        <span class="hljs-keyword">int</span> value = cr.readInt();<br>        view.setValue(key, value);<br>        --attrCount;<br>    &#125;<br><br>    <span class="hljs-comment">// int RP</span><br>    attrCount = cr.readByte();<br>    <span class="hljs-keyword">while</span> (attrCount &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">int</span> key = cr.readInt();<br>        <span class="hljs-keyword">int</span> value = cr.readInt();<br>        view.setRPValue(key, value);<br>        --attrCount;<br>    &#125;<br><br>    <span class="hljs-comment">// float</span><br>    attrCount = cr.readByte();<br>    <span class="hljs-keyword">while</span> (attrCount &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">int</span> key = cr.readInt();<br>        <span class="hljs-keyword">float</span> value = Float.intBitsToFloat(cr.readInt());<br>        view.setValue(key, value);<br>        --attrCount;<br>    &#125;<br><br>    <span class="hljs-comment">// float RP</span><br>    attrCount = cr.readByte();<br>    <span class="hljs-keyword">while</span> (attrCount &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">int</span> key = cr.readInt();<br>        <span class="hljs-keyword">float</span> value = Float.intBitsToFloat(cr.readInt());<br>        view.setRPValue(key, value);<br>        --attrCount;<br>    &#125;<br><br>    <span class="hljs-comment">// string code</span><br>    attrCount = cr.readByte();<br>    <span class="hljs-keyword">while</span> (attrCount &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">int</span> key = cr.readInt();<br>        <span class="hljs-keyword">int</span> value = cr.readInt();<br>        view.setStrValue(key, value);<br>        --attrCount;<br>    &#125;<br><br>    <span class="hljs-comment">// expr code</span><br>    attrCount = cr.readByte();<br>    <span class="hljs-keyword">while</span> (attrCount &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">int</span> key = cr.readInt();<br>        <span class="hljs-keyword">int</span> value = cr.readInt();<br>        view.setValue(key, mExprCodeLoader.get(value));<br>        --attrCount;<br>    &#125;<br><br>    <span class="hljs-comment">// user var</span><br>    attrCount = cr.readByte();<br>    <span class="hljs-keyword">while</span> (attrCount &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">int</span> varType = cr.readByte();<br>        <span class="hljs-keyword">int</span> nameId = cr.readInt();<br>        <span class="hljs-keyword">int</span> value = cr.readInt();<br>        view.addUserVar(varType, nameId, value);<br>        --attrCount;<br>    &#125;<br><br>    <span class="hljs-keyword">int</span> uuid = view.getUuid();<br>    <span class="hljs-keyword">if</span> (uuid &gt; <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-keyword">null</span> != uuidContainers) &#123;<br>        uuidContainers.put(uuid, view);<br>    &#125;<br>    List&lt;Item&gt; pendingItems = viewCache.getCacheItem(view);<br>    <span class="hljs-keyword">if</span> (pendingItems == <span class="hljs-keyword">null</span> || pendingItems.isEmpty()) &#123;<br>        view.onParseValueFinished();<br>    &#125;<br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    state = STATE_failed;<br>    Log.e(TAG, <span class="hljs-string">&quot;can not find view id:&quot;</span> + comID);<br>&#125;<br><span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这里的大部分代码都是在读取二进制文件中储存的属性键值对。</p>
+<p>属性的 key 是一个 int 值，在 <code>com.libra.virtualview.common.StringBase</code> 中。</p>
+<p>属性的 value 分为好几类：</p>
+<ul>
+<li>int</li>
+<li>int RP</li>
+<li>float</li>
+<li>flot RP</li>
+<li>string</li>
+<li>expr</li>
+<li>user var</li>
+</ul>
+<p>int 是整数，int RP 是什么呢？RP 表示的是百分比。不是说我们要写 20%w 这样的东西，而是说，如果UI妹妹给我们的切图是 720 * 1080 的，其中有个 button 的宽度为 100px，那么我们不用换算成dp，可以直接使用 100，然后调用 <code>com.libra.Utils#setUedScreenWidth</code> 设置一下就好了，在创建 view 的时候，会自动帮我们按百分比换算的。</p>
+<p>我们拿我们的 xml 来说，有一个属性键值对是 <code>textSize=&quot;12&quot;</code>，那么 key 就是 <code>final public static int STR_ID_textSize = -1003668786;</code>，value 就是 12。这些属性键值对都是在组件区的组件数里面。</p>
+<h2 id="ViewBase"><a href="#ViewBase" class="headerlink" title="ViewBase"></a>ViewBase</h2><p>当我们解析出来了组件的属性键值对之后，就可以设置给实例化出来的 view 了。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setValue(int, int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setValue</span><span class="hljs-params">(<span class="hljs-keyword">int</span> key, <span class="hljs-keyword">int</span> value)</span> </span>&#123;<br>    <span class="hljs-comment">// set self value</span><br>    <span class="hljs-keyword">boolean</span> ret = <span class="hljs-keyword">this</span>.setAttribute(key, value);<br><br>    <span class="hljs-comment">// set layout param value</span><br>    <span class="hljs-keyword">if</span> (!ret &amp;&amp; <span class="hljs-keyword">null</span> != mParams) &#123;<br>        ret = mParams.setAttribute(key, value);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setAttribute(int, int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setAttribute</span><span class="hljs-params">(<span class="hljs-keyword">int</span> key, <span class="hljs-keyword">int</span> value)</span> </span>&#123;<br>    <span class="hljs-keyword">boolean</span> ret = <span class="hljs-keyword">true</span>;<br><br>    <span class="hljs-keyword">switch</span> (key) &#123;<br>        <span class="hljs-keyword">case</span> StringBase.STR_ID_paddingLeft:<br>            mPaddingLeft = Utils.dp2px(value);<br>            isPaddingLeftSet = <span class="hljs-keyword">true</span>;<br>            <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.Layout.Params#setAttribute(int, int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setAttribute</span><span class="hljs-params">(<span class="hljs-keyword">int</span> key, <span class="hljs-keyword">int</span> value)</span> </span>&#123;<br>    <span class="hljs-keyword">boolean</span> ret = <span class="hljs-keyword">true</span>;<br><br>    <span class="hljs-keyword">switch</span> (key) &#123;<br>        <span class="hljs-keyword">case</span> StringBase.STR_ID_layoutWidth:<br>            <span class="hljs-keyword">if</span> (value &gt; <span class="hljs-number">0</span>) &#123;<br>                mLayoutWidth = Utils.dp2px(value);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                mLayoutWidth = value;<br>            &#125;<br>            <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<p>setValue 的思路还是很清楚的，先看 ViewBase 能不能处理这个属性，不能就给 Params 处理。看里面的逻辑都是<strong>将属性值给储存起来了</strong>，随后在测量，布局，绘制的时候就会用到这些属性值。</p>
+<p>上面是对 int 类型的处理，对 String 类型的处理有点不一样。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setStrValue</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setStrValue</span><span class="hljs-params">(<span class="hljs-keyword">int</span> key, <span class="hljs-keyword">int</span> value)</span> </span>&#123;<br>    <span class="hljs-keyword">boolean</span> ret = <span class="hljs-keyword">this</span>.setStrAttribute(key, value);<br><br>    <span class="hljs-keyword">if</span> (!ret &amp;&amp; <span class="hljs-keyword">null</span> != mParams) &#123;<br>        ret = mParams.setStrAttribute(key, value);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setStrAttribute</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setStrAttribute</span><span class="hljs-params">(<span class="hljs-keyword">int</span> key, <span class="hljs-keyword">int</span> value)</span> </span>&#123;<br>    StringLoader sm = mContext.getStringLoader();<br>    <span class="hljs-comment">// 注意这里</span><br>    String stringValue = sm.getString(value);<br>    <span class="hljs-keyword">boolean</span> ret = setAttribute(key, stringValue);<br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewBase#setAttribute(int, java.lang.String)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setAttribute</span><span class="hljs-params">(<span class="hljs-keyword">int</span> key, String stringValue)</span> </span>&#123;<br>    <span class="hljs-keyword">boolean</span> ret = <span class="hljs-keyword">true</span>;<br>    <span class="hljs-keyword">switch</span> (key) &#123;<br>        <span class="hljs-keyword">case</span> StringBase.STR_ID_layoutWidth:<br>            mViewCache.put(<span class="hljs-keyword">this</span>, StringBase.STR_ID_layoutWidth, stringValue, Item.TYPE_FLOAT);<br>            <span class="hljs-keyword">this</span>.mParams.mLayoutWidth = LayoutCommon.WRAP_CONTENT;<br>            <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.Layout.Params#setStrAttribute</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setStrAttribute</span><span class="hljs-params">(<span class="hljs-keyword">int</span> key, <span class="hljs-keyword">int</span> value)</span> </span>&#123;<br>    <span class="hljs-comment">//TODO</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>ViewBase 的 setStrAttribute 方法，需要注意的是 value 并不是属性值。还记得我们前面讲 StringLoader 的时候，会给字符串生成一个唯一的 id 么？这里的 value 就是生成的id。根据这个 id， 我们可以获取到对应的字符串值。</p>
+<p>在设置字符串属性值的时候，需要特殊处理，因为如果是按照 <code>layoutHeight=&quot;$&#123;height&#125;&quot; </code>这样的使用方式，我们这个时候是拿不到对应的值的，我们只能将 “${height}”给储存起来，等到设置了 json 数据的时候，在从里面取对应的值，然后再设置属性。</p>
+<p>具体的方式就是：将属性键值对封装成一个类。</p>
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.core.ViewCache.Item</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Item</span><span class="hljs-params">(ViewBase v, <span class="hljs-keyword">int</span> key, String attrEL, <span class="hljs-keyword">int</span> valueType)</span> </span>&#123;<br>    mView = v;<br>    mKey = key;<br>    mAttrEL = attrEL;<br>    mValueType = valueType;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>v 就是属性所属的 view，key 就是属性的 id，attrEl 就是属性字符串值，valueType 是属性值的类型。attrEl 可能还需要进行解析才能使用，比如将 “${height}”解析为 “height”，具体看 <code>com.tmall.wireless.vaf.virtualview.core.ViewCache.Parser</code> 源码。</p>
+<p>然后，等到设置了数据之后，就可以调用 item.bind 方法，给 view 设置属性了，后面细说。</p>
+<p>其他的属性解析都是类似的，就不说了。再回到 view 实例化的代码处，具体说一下实例化过程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">ViewBase view = createView(mAppContext, comID, viewCache);<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>com.tmall.wireless.vaf.virtualview.ViewFactory#createView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> ViewBase <span class="hljs-title">createView</span><span class="hljs-params">(VafContext context, <span class="hljs-keyword">int</span> comID, ViewCache viewCache)</span> </span>&#123;<br>    ViewBase.IBuilder builder = mBuilders.get(comID);<br>    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != builder) &#123;<br>        <span class="hljs-keyword">return</span> builder.build(context, viewCache);<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>实际上就是调用了 build 方法。mBuilders 集合是在构造方法里<code>com.tmall.wireless.vaf.virtualview.ViewFactory#ViewFactory</code>初始化的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">...<br>mBuilders.put(Common.VIEW_ID_FrameLayout, <span class="hljs-keyword">new</span> FrameLayout.Builder());<br>mBuilders.put(Common.VIEW_ID_GridLayout, <span class="hljs-keyword">new</span> GridLayout.Builder());<br>mBuilders.put(Common.VIEW_ID_VHLayout, <span class="hljs-keyword">new</span> VHLayout.Builder());<br>...<br></code></pre></td></tr></table></figure>
+
+<p>可以看出来，每个控件都需要提供一个 Builder 类，用来实例化该控件。可以看一下 VHLayout 的 Builder 类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Builder</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ViewBase</span>.<span class="hljs-title">IBuilder</span> </span>&#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> ViewBase <span class="hljs-title">build</span><span class="hljs-params">(VafContext context, ViewCache viewCache)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> VHLayout(context, viewCache);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样的话，整个模板的实例化逻辑就理清楚了。</p>
+<p><strong>总结</strong>：</p>
+<p>从模板里面解析出 view 树。</p>
+<p>解析 view 树的时候，使用 builder 创建 view，然后给 view 设置对应的属性。</p>
+<p>如果是 <code>@&#123;height&#125;</code>这样的属性值的话，不能直接给属性赋值，需要储存起来，等到设置数据的时候在设置值。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Virtualview/">Virtualview</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-Virtualview/">Android-源码解析-Virtualview</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/09/04/blog_bak/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/0027-%E6%A0%88%E7%9A%84%E5%BA%94%E7%94%A8%E4%B9%8B%E5%9B%9B%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">0027-栈的应用之四则表达式</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/09/01/blog_bak/Blog/%E7%AE%97%E6%B3%95/%E5%A4%A7%E8%AF%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/0021-%E6%A0%88%E7%9A%84%E5%AE%9A%E4%B9%89/">
+                        <span class="hidden-mobile">0021-栈的定义</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

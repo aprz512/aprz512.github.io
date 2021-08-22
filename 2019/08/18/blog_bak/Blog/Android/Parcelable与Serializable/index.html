@@ -1,0 +1,561 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>Parcelable与Serializable - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Parcelable与Serializable">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      984 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      4
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Parcelable与Serializable</h1>
+            
+            <div class="markdown-body">
+              <p>通常，在Android里面传递数据都是使用的 Intent，而 Intent 里面想要放一个 Java 对象，那这个对象要么实现 Parcelable 要么实现 Serializable 。</p>
+<p>一般我们都是选择实现 Parcelable，因为它的<strong>效率高</strong>，而且不会产生很多的临时对象。</p>
+<p>当然这些都是网上说的，并没有证明，现在我们来测试一下，从传输效率开始。当然我也懒得做测试的，所以我找了一篇<a target="_blank" rel="noopener" href="http://www.developerphil.com/parcelable-vs-serializable/">文章</a>，个人觉得还是可以的，有好奇心的小伙伴可以自己测试一下。</p>
+<p>测试过程如下：</p>
+<ul>
+<li>模拟将对象传递给Activity的过程：直接调用 [Bundle#writeToParcel(Parcel, int)](<a target="_blank" rel="noopener" href="https://developer.android.com/reference/android/os/Bundle.html#writeToParcel">https://developer.android.com/reference/android/os/Bundle.html#writeToParcel</a>(android.os.Parcel, int))，然后再取出来。</li>
+<li>循环 1000 次</li>
+<li>做10次测试，取平均值</li>
+<li>在多个设备上测试</li>
+</ul>
+<p>下面给出该作者测试的结果：</p>
+<p><img src="http://www.developerphil.com/assets/parcelable-vs-serializable-e1366334109758.png" srcset="/img/loading.gif" lazyload></p>
+<blockquote>
+<h6 id="Nexus-10"><a href="#Nexus-10" class="headerlink" title="Nexus 10"></a>Nexus 10</h6><p>Serializable: 1.0004ms,  Parcelable: 0.0850ms - 10.16x improvement.</p>
+<h6 id="Nexus-4"><a href="#Nexus-4" class="headerlink" title="Nexus 4"></a>Nexus 4</h6><p>Serializable: 1.8539ms - Parcelable: 0.1824ms - 11.80x improvement.</p>
+<h6 id="Desire-Z"><a href="#Desire-Z" class="headerlink" title="Desire Z"></a>Desire Z</h6><p>Serializable: 5.1224ms - Parcelable: 0.2938ms - 17.36x improvement.</p>
+</blockquote>
+<p>可以看出，区别还是很明显的。可能几ms对我们人类来说，感觉不到什么，但是对于CPU就像是过了几个月了。特别是Android需要16ms来绘制一帧，你传递一个对象就花了几ms，就没剩多少时间了。</p>
+<p>好了说完了效率，我们再说说<strong>为啥 Serializable 会产生很多临时对象</strong>。</p>
+<p>看一个简单的对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Phone</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Serializable</span></span>&#123;<br><br>    <span class="hljs-keyword">public</span> String name;<br>    <span class="hljs-keyword">public</span> String address;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Phone</span><span class="hljs-params">()</span> </span>&#123;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Phone</span><span class="hljs-params">(String name, String address)</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.name = name;<br>        <span class="hljs-keyword">this</span>.address = address;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>当我们把这个对象序列化到文件中的时候，它的内容如下：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">aced</span> <span class="hljs-number">0005</span> <span class="hljs-number">7372</span> <span class="hljs-number">0011</span> <span class="hljs-number">636</span>f <span class="hljs-number">6</span>d<span class="hljs-number">2</span>e <span class="hljs-number">6578</span> <span class="hljs-number">616</span>d<br><span class="hljs-attribute">706c</span> <span class="hljs-number">652</span>e <span class="hljs-number">5068</span> <span class="hljs-number">6</span>f<span class="hljs-number">6</span>e <span class="hljs-number">6551</span> <span class="hljs-number">4868</span> <span class="hljs-number">16</span>d<span class="hljs-number">4</span> <span class="hljs-number">8</span>afd<br><span class="hljs-attribute">8702</span> <span class="hljs-number">0002</span> <span class="hljs-number">4</span>c<span class="hljs-number">00</span> <span class="hljs-number">0761</span> <span class="hljs-number">6464</span> <span class="hljs-number">7265</span> <span class="hljs-number">7373</span> <span class="hljs-number">7400</span><br><span class="hljs-attribute">124c</span> <span class="hljs-number">6</span>a<span class="hljs-number">61</span> <span class="hljs-number">7661</span> <span class="hljs-number">2</span>f<span class="hljs-number">6</span>c <span class="hljs-number">616</span>e <span class="hljs-number">672</span>f <span class="hljs-number">5374</span> <span class="hljs-number">7269</span><br><span class="hljs-attribute">6e67</span> <span class="hljs-number">3</span>b<span class="hljs-number">4</span>c <span class="hljs-number">0004</span> <span class="hljs-number">6</span>e<span class="hljs-number">61</span> <span class="hljs-number">6</span>d<span class="hljs-number">65</span> <span class="hljs-number">7100</span> <span class="hljs-number">7</span>e<span class="hljs-number">00</span> <span class="hljs-number">0178</span><br><span class="hljs-attribute">7074</span> <span class="hljs-number">0007</span> <span class="hljs-number">6265</span> <span class="hljs-number">696</span>a <span class="hljs-number">696</span>e <span class="hljs-number">6774</span> <span class="hljs-number">0008</span> <span class="hljs-number">7</span>a<span class="hljs-number">68</span><br><span class="hljs-attribute">616e</span> <span class="hljs-number">6773</span> <span class="hljs-number">616</span>e<br></code></pre></td></tr></table></figure>
+
+<p>我就不解释一个个解释它们代表什么了，这些数据包含了如下内容：</p>
+<ul>
+<li>序列化协议，固定值</li>
+<li>序列化协议版本</li>
+<li>对象的开始标记，类的开始标记</li>
+<li>类名长度，类名</li>
+<li>有多少个字段</li>
+<li>每个字段长度，字段名，字段值</li>
+</ul>
+<p>嗯，还有一些东西，特别是有父类的，更蛋疼。可以看到，本来我们只需要传递 name 与 address 的值，它给我们搞了一大堆东西，非常的浪费。还有反序列的时候，由于它使用了反射机制，所以会产生很多的临时变量，可能会增加GC的频率。</p>
+<p>Parcelable 的序列化与反序列化的过程就不一样了，它不像 Serializable 那么严格，它只存放了变量的值，其他的都没有存放。我们看一下实现 Parcelable 的过程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">writeToParcel</span><span class="hljs-params">(Parcel dest, <span class="hljs-keyword">int</span> flags)</span> </span>&#123;<br>    dest.writeString(name);<br>    dest.writeString(type);<br>    dest.writeString(accessId);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，我们将对象的属性值写入到了 parcel 中。</p>
+<p>而 parcel 里面可以理解为有一块内存空间，用来储存这些属性值，还有一个指针指向准备写入的位置，写入一个属性后就往后偏移一段距离。所以读取的时候，一定要按照写入的顺序，否则会出错。</p>
+<p>然后在使用 parcel 读取出来：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Account <span class="hljs-title">createFromParcel</span><span class="hljs-params">(Parcel source)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Account(source);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Account</span><span class="hljs-params">(Parcel in)</span> </span>&#123;<br>    <span class="hljs-keyword">this</span>.name = in.readString();<br>    <span class="hljs-keyword">this</span>.type = in.readString();<br>    <span class="hljs-keyword">this</span>.accessId = in.readString();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>序列化与反序列化的核心都是 Parcel。</p>
+<p>Parcel 的注释上说了，它是消息的容器，可以通过 IBinder 来传输。</p>
+<p>我们再来思考一下，Bundle 中的 Serializable 数据是如何传输的。</p>
+<blockquote>
+<p>android.os.Parcel#writeValue</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (v <span class="hljs-keyword">instanceof</span> Serializable) &#123;<br>            <span class="hljs-comment">// Must be last</span><br>            writeInt(VAL_SERIALIZABLE);<br>            writeSerializable((Serializable) v);<br>        &#125;<br></code></pre></td></tr></table></figure>
+
+<p>writeSerializable 里面仍然是调用了 <code>java.io.ObjectOutputStream#writeObject</code> 方法来写对象。</p>
+<blockquote>
+<p>android.os.Parcel#readSerializable(java.lang.ClassLoader)</p>
+</blockquote>
+<p>同样的，读取一个 Serializable 对象的时候，也是通过 <code>java.io.ObjectInputStream#readObject</code>  来获取的，走的是 Java 的序列化与反序列化逻辑。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Android/">Android</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android/MultiDex%E5%A4%84%E7%90%86/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MultiDex</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android/ViewModel%20%E4%B8%8E%20setRetainInstance/">
+                        <span class="hidden-mobile">ViewModel 与数据保存思考</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

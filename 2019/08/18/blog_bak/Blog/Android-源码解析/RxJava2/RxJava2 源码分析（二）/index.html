@@ -1,0 +1,726 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>RxJava2 源码分析（二） - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="RxJava2 源码分析（二）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.6k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      11
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">RxJava2 源码分析（二）</h1>
+            
+            <div class="markdown-body">
+              <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>这篇文章的主要目的就是弄清楚链式调用与线程切换。</p>
+<p>如果你读懂了第一篇文章，这篇文章阅读起来还是非常简单的。因为链式调用和线程切换无非就是多了些 “数据源-观察者” 对。</p>
+<p>线程切换还涉及到线程池相关的东西，由于篇幅问题，线程池相关的东西会放到下一篇。</p>
+<h3 id="从一个例子开始："><a href="#从一个例子开始：" class="headerlink" title="从一个例子开始："></a>从一个例子开始：</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">    <span class="hljs-comment">// 观察者 -- 蝙蝠侠</span><br>    <span class="hljs-keyword">val</span> observerBatMan = <span class="hljs-keyword">object</span> : Observer&lt;<span class="hljs-built_in">Int</span>&gt; &#123;<br><br>        <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onComplete</span><span class="hljs-params">()</span></span> &#123;<br>        &#125;<br><br>        <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onNext</span><span class="hljs-params">(t: <span class="hljs-type">Int</span>)</span></span> &#123;<br>            System.<span class="hljs-keyword">out</span>.println(Thread.currentThread().name + <span class="hljs-string">&quot;--observer&quot;</span>)<br>        &#125;<br><br>        <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onError</span><span class="hljs-params">(e: <span class="hljs-type">Throwable</span>)</span></span> &#123;<br>        &#125;<br><br>        <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onSubscribe</span><span class="hljs-params">(d: <span class="hljs-type">Disposable</span>)</span></span> &#123;<br>        &#125;<br><br>    &#125;<br><br><br>    <span class="hljs-comment">// 数据源 -- 小丑</span><br>    <span class="hljs-keyword">val</span> sourceClown = ObservableOnSubscribe&lt;<span class="hljs-built_in">Int</span>&gt; &#123;<br>        it.onNext(<span class="hljs-number">1</span>)<br>        it.onComplete()<br>        System.<span class="hljs-keyword">out</span>.println(Thread.currentThread().name + <span class="hljs-string">&quot;--source&quot;</span>)<br>    &#125;<br><br>    <span class="hljs-comment">// 开始观察</span><br>    Observable<br>            <span class="hljs-comment">// ①</span><br>            .create&lt;<span class="hljs-built_in">Int</span>&gt;(sourceClown)<br>            <span class="hljs-comment">// ② 指定数据源执行的线程</span><br>            .subscribeOn(Schedulers.computation())<br>            <span class="hljs-comment">// ③ 指定观察者执行的线程</span><br>            .observeOn(Schedulers.io())<br>            <span class="hljs-comment">// ④</span><br>            .subscribe(observerBatMan)<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>嗯，和上一篇文章的例子差不多，就多了几行线程切换而已，我们先给出数据的日志。有一个大致的印象，再来深入分析。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shel">RxComputationThreadPool-1--source<br>RxCachedThreadScheduler-1--observer<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="demo-里面的-②-处"><a href="#demo-里面的-②-处" class="headerlink" title="demo 里面的 ② 处"></a>demo 里面的 ② 处</h3><p>有了第一篇的基础，那么我们直接从 <strong>demo 里面的 ② 处</strong>入手：</p>
+<blockquote>
+<p> Observable.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Observable&lt;T&gt; <span class="hljs-title">subscribeOn</span><span class="hljs-params">(Scheduler scheduler)</span> </span>&#123;<br>    ObjectHelper.requireNonNull(scheduler, <span class="hljs-string">&quot;scheduler is null&quot;</span>);<br>    <span class="hljs-keyword">return</span> RxJavaPlugins.onAssembly(<span class="hljs-keyword">new</span> ObservableSubscribeOn&lt;T&gt;(<span class="hljs-keyword">this</span>, scheduler));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>你使用了套路一，效果拔群，得到结果如下：</p>
+<blockquote>
+<p>Observable.java</p>
+<p>简化之后的 subscribeOn 代码，实际上就是创建并返回了一个 ObservableSubscribeOn 对象</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Observable&lt;T&gt; <span class="hljs-title">subscribeOn</span><span class="hljs-params">(Scheduler scheduler)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ObservableSubscribeOn&lt;T&gt;(<span class="hljs-keyword">this</span>, scheduler);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>我们继续看 ObservableSubscribeOn。</p>
+<blockquote>
+<p>ObservableSubscribeOn.java</p>
+<p>AbstractObservableWithUpstream.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// ObservableSubscribeOn 继承了 AbstractObservableWithUpstream</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObservableSubscribeOn</span>&lt;<span class="hljs-title">T</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractObservableWithUpstream</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">T</span>&gt; </span>&#123;...&#125;<br><br><span class="hljs-comment">// AbstractObservableWithUpstream 继承了 Observable</span><br><span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractObservableWithUpstream</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">U</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">Observable</span>&lt;<span class="hljs-title">U</span>&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title">HasUpstreamObservableSource</span>&lt;<span class="hljs-title">T</span>&gt; </span>&#123;...&#125;<br></code></pre></td></tr></table></figure>
+
+<p>所以，ObservableSubscribeOn 最终还是继承至 Observable的。</p>
+<p>在第一篇文章中，我们分析的对象是 ObservableCreate，而现在我们分析的对象是 ObservableSubscribeOn。为了能够更加清晰的列出不同点，还是搞一个表格吧：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>ObservableSubscribeOn</th>
+<th>ObservableCreate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>直接父类</td>
+<td>AbstractObservableWithUpstream（最终还是继承 Observable）</td>
+<td>Observable</td>
+</tr>
+<tr>
+<td>构造方法参数个数</td>
+<td>两个：(ObservableSource&lt;T&gt; source, Scheduler scheduler)</td>
+<td>一个：(ObservableOnSubscribe&lt;T&gt; source)</td>
+</tr>
+</tbody></table>
+<p>主要的不同点，还是在构造参数这里。</p>
+<ol>
+<li>参数个数不同，这个好理解，因为需要切换线程，肯定需要指定切换到哪个线程，所以多一个参数</li>
+<li>source 类类型不同，这个需要深入分析，往下看</li>
+</ol>
+<p>看看 source 类有哪些不同之处：</p>
+<blockquote>
+<p>ObservableOnSubscribe.java</p>
+<p>ObservableSource.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ObservableOnSubscribe</span>&lt;<span class="hljs-title">T</span>&gt; </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">subscribe</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> ObservableEmitter&lt;T&gt; e)</span> <span class="hljs-keyword">throws</span> Exception</span>;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ObservableSource</span>&lt;<span class="hljs-title">T</span>&gt; </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">subscribe</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span></span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这两个类都是接口，都只有一个 subscribe 方法，看起来比较类似。</p>
+<p>除了类名不同之外，就只有<strong>方法的参数不同</strong>了。</p>
+<p>ObservableOnSubscribe 接收的参数 ObservableEmitter，上一篇文章说过，是将 Observer 包装了一层。</p>
+<p>ObservableSource 直接接收了 Observer，嗯，很牛逼，后面我们来分析看看，它为啥不要包装，你也可以思考一下，嘿嘿嘿。</p>
+<p>经过上面的分析，总的来说，区别不大，所以我们仍然可以套第一篇的套路来分析。</p>
+<p>到这里先上个图，为后面做好心理准备。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_21.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<h3 id="demo-里面的-③-处"><a href="#demo-里面的-③-处" class="headerlink" title="demo 里面的 ③ 处"></a>demo 里面的 ③ 处</h3><p>接下来，<strong>我们看 demo 里面的 ③ 处</strong>：</p>
+<blockquote>
+<p>Observable.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Observable&lt;T&gt; <span class="hljs-title">observeOn</span><span class="hljs-params">(Scheduler scheduler)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> observeOn(scheduler, <span class="hljs-keyword">false</span>, bufferSize());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>调用了同名方法：</p>
+<blockquote>
+<p>Observable.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Observable&lt;T&gt; <span class="hljs-title">observeOn</span><span class="hljs-params">(Scheduler scheduler, <span class="hljs-keyword">boolean</span> delayError, <span class="hljs-keyword">int</span> bufferSize)</span> </span>&#123;<br>    ObjectHelper.requireNonNull(scheduler, <span class="hljs-string">&quot;scheduler is null&quot;</span>);<br>    ObjectHelper.verifyPositive(bufferSize, <span class="hljs-string">&quot;bufferSize&quot;</span>);<br>    <span class="hljs-keyword">return</span> RxJavaPlugins.onAssembly(<span class="hljs-keyword">new</span> ObservableObserveOn&lt;T&gt;(<span class="hljs-keyword">this</span>, scheduler, delayError, bufferSize));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>使用套路一，简化代码：</p>
+<blockquote>
+<p>Observable.java</p>
+<p>observeOn 简化后的代码</p>
+</blockquote>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Observable&lt;T&gt; <span class="hljs-title">observeOn</span><span class="hljs-params">(<span class="hljs-built_in">Scheduler</span> scheduler, <span class="hljs-keyword">boolean</span> delayError, <span class="hljs-keyword">int</span> bufferSize)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ObservableObserveOn&lt;T&gt;(<span class="hljs-keyword">this</span>, scheduler, delayError, bufferSize);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看出，实际上就是创建了一个 ObservableObserveOn 对象。</p>
+<p>看看这个对象吧，不出意外，和 ObservableOnSubscribe 应该很像。</p>
+<p>先看类的结构：</p>
+<blockquote>
+<p>ObservableObserveOn.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObservableObserveOn</span>&lt;<span class="hljs-title">T</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractObservableWithUpstream</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">T</span>&gt; </span>&#123;...&#125;<br></code></pre></td></tr></table></figure>
+
+<p>与 ObservableOnSubscribe 一样，继承同一个类。</p>
+<p>再看类的构造方法：</p>
+<blockquote>
+<p>ObservableObserveOn.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ObservableObserveOn</span><span class="hljs-params">(ObservableSource&lt;T&gt; source, Scheduler scheduler, <span class="hljs-keyword">boolean</span> delayError, <span class="hljs-keyword">int</span> bufferSize)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>(source);<br>    <span class="hljs-keyword">this</span>.scheduler = scheduler;<br>    <span class="hljs-keyword">this</span>.delayError = delayError;<br>    <span class="hljs-keyword">this</span>.bufferSize = bufferSize;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法的参数就更多了，前面两个我们应该熟悉了，看看后面的两个参数是什么意思。虽然这里没有注释，但是这个参数的值是从别处传来的，所以只要找到源头，还是可以找到相关注释的。</p>
+<ol>
+<li><p>delayError </p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">indicates</span> if the <span class="hljs-literal">on</span>Error notification may not cut ahead of <span class="hljs-literal">on</span>Next notification <span class="hljs-literal">on</span> the other side of the scheduling boundary. If <span class="hljs-literal">true</span> a sequence ending in <span class="hljs-literal">on</span>Error will be replayed in the same order as was received from upstream<br></code></pre></td></tr></table></figure>
+
+<p>额，我只能明白一个大概：<strong>若存在Error事件，则如常执行，执行完后再抛出错误异常</strong></p>
+</li>
+<li><p>bufferSize 缓存大小，暂时还不知道缓存在哪里，所以先放着。</p>
+</li>
+</ol>
+<p>到了这里，我们再上一个图吧，后面的流程要起飞了。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_22.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<h3 id="demo-里面的-④-处"><a href="#demo-里面的-④-处" class="headerlink" title="demo 里面的 ④ 处"></a>demo 里面的 ④ 处</h3><p>接下来，就到了一个转折点，就是 demo 中的 ④ 处，它调用了 subscribe 方法。</p>
+<p>在第一篇中，我们分析过，subscribe 方法会调用 subscribeActual 方法，所以这里，我们直接进入到 ObservableObserveOn 的 subscribeActual 方法中，看看它做了什么。</p>
+<blockquote>
+<p>ObservableObserveOn .java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (scheduler <span class="hljs-keyword">instanceof</span> TrampolineScheduler) &#123;<br>        source.subscribe(observer);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        Scheduler.Worker w = scheduler.createWorker();<br><br>        source.subscribe(<span class="hljs-keyword">new</span> ObserveOnObserver&lt;T&gt;(observer, w, delayError, bufferSize));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>由于，我们传递的 scheduler 肯定不是 TrampolineScheduler，所以会直接进入到 else 分支。</p>
+<p>else 分支里面的代码也很简单，我们先跳过线程池相关的东西，所以需要分析的就只有一行代码：</p>
+<blockquote>
+<p>ObservableObserveOn.java</p>
+<p>subscribeActual 方法的 else 分支</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">source.subscribe(<span class="hljs-keyword">new</span> ObserveOnObserver&lt;T&gt;(observer, w, delayError, bufferSize));<br></code></pre></td></tr></table></figure>
+
+<p>按照套路二，ObserveOnObserver 其实就是对 observer 做了一个包装。</p>
+<p>这个 observer 就是我们自己创建的 observerBatMan，上个图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_23.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>现在比较绕的是，ObservableObserveOn 类中的 subscribeActual  方法中的 source 变量是谁。由于 source 是从构造函数传递进来的，我们再回到 Observerable 的 observeOn 方法：</p>
+<blockquote>
+<p>Observable.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Observable&lt;T&gt; <span class="hljs-title">observeOn</span><span class="hljs-params">(Scheduler scheduler, <span class="hljs-keyword">boolean</span> delayError, <span class="hljs-keyword">int</span> bufferSize)</span> </span>&#123;<br>    ObjectHelper.requireNonNull(scheduler, <span class="hljs-string">&quot;scheduler is null&quot;</span>);<br>    ObjectHelper.verifyPositive(bufferSize, <span class="hljs-string">&quot;bufferSize&quot;</span>);<br>    <span class="hljs-keyword">return</span> RxJavaPlugins.onAssembly(<span class="hljs-keyword">new</span> ObservableObserveOn&lt;T&gt;(<span class="hljs-keyword">this</span>, scheduler, delayError, bufferSize));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，在创建 ObservableObserveOn 对象的时候，第一个参数传递的是 this。</p>
+<p>这里有一个稍微绕的点，<strong>因为 observerOn 方法是 ObservableSubscribeOn 对象调用的，所以 this，指向的是 ObservableSubscribeOn。</strong></p>
+<p>所以，这里相当于 ObservableObserveOn  是一个桥梁，让 ObservableSubscribeOn  与 ObservableOnObserve 搭上了关系。</p>
+<p>上一个图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_24.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>同样的，我们再来分析 <code>ObservableSubscribeOn</code>类的 <code>subscribeActual</code> 方法：</p>
+<blockquote>
+<p>ObservableSubscribeOn.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Observer&lt;? <span class="hljs-keyword">super</span> T&gt; s)</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> SubscribeOnObserver&lt;T&gt; parent = <span class="hljs-keyword">new</span> SubscribeOnObserver&lt;T&gt;(s);<br><br>    s.onSubscribe(parent);<br><br>    parent.setDisposable(scheduler.scheduleDirect(<span class="hljs-keyword">new</span> SubscribeTask(parent)));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个 subscribeActual 内部的代码风格与想象的完全不一样啊，虽然前2行很熟悉，但是第3行完全没见过啊。</p>
+<p>现在，我们来分析第3行代码，先看 parent.setDisposable(xxx)：</p>
+<blockquote>
+<p>SubscribeOnObserver.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">setDisposable</span><span class="hljs-params">(Disposable d)</span> </span>&#123;<br>    DisposableHelper.setOnce(<span class="hljs-keyword">this</span>, d);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>DisposableHelper.java</p>
+<p>该方法，用来将 field 的值，设置为 d。</p>
+<p>如果，设置的时候，field 已经有值了，返回false。</p>
+<p>如果 field 有值， 并且值不是 DISPOSED，抛出异常。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setOnce</span><span class="hljs-params">(AtomicReference&lt;Disposable&gt; field, Disposable d)</span> </span>&#123;<br>    ObjectHelper.requireNonNull(d, <span class="hljs-string">&quot;d is null&quot;</span>);<br>    <span class="hljs-keyword">if</span> (!field.compareAndSet(<span class="hljs-keyword">null</span>, d)) &#123;<br>        d.dispose();<br>        <span class="hljs-keyword">if</span> (field.get() != DISPOSED) &#123;<br>            <span class="hljs-comment">// 抛出异常</span><br>            reportDisposableSet();<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样来看，其实  <code>parent.setDisposable(xxx) </code>这行代码也没做什么，正常情况下，就是将 <code>scheduler.scheduleDirect(new SubscribeTask(parent))</code> 的值设置给了 parent。</p>
+<p>下面，继续看 <code>scheduler.scheduleDirect()</code>做了什么，由于篇幅问题，这里不分析线程池的东西，只说一下这个方法的作用，<strong>其实就是将一个 runnable，放到线程池中去执行，这里可以知道，线程切换了</strong>。</p>
+<p>再继续，看看 SubscribeTask 类：</p>
+<blockquote>
+<p>SubscribeTask.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObservableSubscribeOn</span>&lt;<span class="hljs-title">T</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractObservableWithUpstream</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">T</span>&gt; </span>&#123;<br>    ...<br>    <span class="hljs-comment">// 内部类</span><br>	<span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SubscribeTask</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Runnable</span> </span>&#123;<br>        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> SubscribeOnObserver&lt;T&gt; parent;<br><br>        SubscribeTask(SubscribeOnObserver&lt;T&gt; parent) &#123;<br>            <span class="hljs-keyword">this</span>.parent = parent;<br>        &#125;<br><br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>            <span class="hljs-comment">// source 变量是 ObservableSubscribeOn 的变量</span><br>            source.subscribe(parent);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>继承了 Runnable，在 run 方法中，我们终于看到了 subscribe 方法。</p>
+<p>继续深入，看看 source 对象是谁：</p>
+<blockquote>
+<p>Observable.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Observable&lt;T&gt; <span class="hljs-title">subscribeOn</span><span class="hljs-params">(Scheduler scheduler)</span> </span>&#123;<br>    ObjectHelper.requireNonNull(scheduler, <span class="hljs-string">&quot;scheduler is null&quot;</span>);<br>    <span class="hljs-keyword">return</span> RxJavaPlugins.onAssembly(<span class="hljs-keyword">new</span> ObservableSubscribeOn&lt;T&gt;(<span class="hljs-keyword">this</span>, scheduler));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>source 参数传递的是this，所以 source 对象是 ObservableCreate 对象。</p>
+<p>到这里，还可以解释上面的问题：为啥 ObservableSource 的 subscribe 方法的参数是一个 Observer？</p>
+<blockquote>
+<p>ObservableSource.java</p>
+<p>为了方便，我又把这个接口代码贴了一遍</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ObservableSource</span>&lt;<span class="hljs-title">T</span>&gt; </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">subscribe</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span></span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在我们的例子中，observer 参数就是 ObservableCreate  对象。</p>
+<p>其实，从这个类名都可以看出 ObservableSource 这个接口表示的是数据源，因为 Observerable 类就实现了这个接口，所以这个接口的 subscribe 方法的实现就是 Observable 的内部实现。</p>
+<p>当我们调用 subscribeOn 与 observeOn 这两个方法的时候，其实是将调者这做为数据源的意思。</p>
+<p>另外，可以推出 ObservableOnSubscribe 这个接口，应该是专门<strong>用来处理数据源的源头的</strong>（方便我们调用 emitter.onNext 等方法），两个接口的意义不一样。</p>
+<p>所以，我们可以得到这样的一个图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_25.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>把这几个类，整合到调用图里面，得到如下图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_26.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>上面的图，看起来还算清晰，但是没有线程切换的内容，下面会说到。</p>
+<p>与上一篇一样，我们再来整理一下这个demo的执行流程图，你可以先自行想一下这个图应该是什么样子的。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_27.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>图中灰色的长方体，表示的是调用 subscribeOn 与 observerOn 产生的 “数据源-观察者”对。</p>
+<p>图中 subscribeOn 蓝色方块表示的是 subscribeOn  指定的线程切换的地方，可以看到，它指定的线程会影响到后续的所有流程。</p>
+<p>图中 observerOn 黄色的方块表示的是 observerOn 指定的线程切换的地方，它会影响后续流程。</p>
+<p>在回想一下，其实每次 observerOn 或者 subscribeOn  都创建了一个链条一样的节点，然后在 subscribeActual 将这些节点连接起来：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_28.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>好了，这篇文章的东西就差不多了，关于线程剩下的东西，本章中都只是一笔带过，详细的内容，留到下一篇。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/RxJava2/">RxJava2</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-RxJava2/">Android-源码解析-RxJava2</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/RxJava2%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%89%EF%BC%89/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RxJava2 源码分析（四）</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/RxJava2%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E5%9B%9B%EF%BC%89/">
+                        <span class="hidden-mobile">RxJava2 源码分析（五）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

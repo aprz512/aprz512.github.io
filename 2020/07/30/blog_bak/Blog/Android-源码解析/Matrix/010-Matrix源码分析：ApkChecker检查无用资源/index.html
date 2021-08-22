@@ -1,0 +1,608 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>010-Matrix源码分析：ApkChecker检查无用资源 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="010-Matrix源码分析：ApkChecker检查无用资源">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-07-30 00:00" pubdate>
+        2020年7月30日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      13
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">010-Matrix源码分析：ApkChecker检查无用资源</h1>
+            
+            <div class="markdown-body">
+              <p>分析无用资源，Android studio 本身就提供了lint工具。但是有个缺点就是无法配合proguard使用，无用代码引用的资源是不会被计算出来的。</p>
+<p>ApkChecker里面提供了两个小工具，可以直接分析apk包里面的无用资源（res目录与asset目录）。</p>
+<h3 id="UnusedAssetsTask"><a href="#UnusedAssetsTask" class="headerlink" title="UnusedAssetsTask"></a>UnusedAssetsTask</h3><p>我们先看简单一些的 UnusedAssetsTask 类，该类用于寻找出没有使用的 asset 资源。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UnusedAssetsTask</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ApkTask</span> </span>&#123;...&#125;<br></code></pre></td></tr></table></figure>
+
+<p>ApkChecker里面提供了十来个小工具，都是继承于 ApkTask，但是 ApkTask 里面啥都没有，只是做了输入参数处理，与提供一个统一处理核心逻辑的地方。</p>
+<p>Task 的分析，主要是3部分</p>
+<ul>
+<li><p>第一部分是构造函数，里面有个 type 比较重要，输出 task 分析的结果会用到，后面会有展示。</p>
+</li>
+<li><p>第二部分是 init 函数，用于初始化一些变量。</p>
+</li>
+<li><p>第三部分是 call 函数，里面是 task 的核心逻辑。</p>
+</li>
+</ul>
+<p>后面的 task 都会按照这个模板来分析。</p>
+<h4 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UnusedAssetsTask</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ApkTask</span> </span>&#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String TAG = <span class="hljs-string">&quot;Matrix.UnusedAssetsTask&quot;</span>;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">UnusedAssetsTask</span><span class="hljs-params">(JobConfig config, Map&lt;String, String&gt; params)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>(config, params);<br>        type = TaskFactory.TASK_TYPE_UNUSED_ASSETS;<br>        dexFileNameList = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br>        ignoreSet = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();<br>        assetsPathSet = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();<br>        assetRefSet = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>JobConfig 是从命令行输入读取的配置信息解析而成的对象。ApkChecker 除了提供了十几个小工具用于分析与优化APK，由于它是一个命令行工具，所以还有一部分代码都是与读取参数有关，就比如我们平时使用的 <code>ls -l</code> 命令，会带些参数，还是一套比较完整的解析代码，而且对于结果输出，也有json与html两个格式，这也涉及到些设计模式，与重构还是代码大全的某个例子有点类似，有兴趣的可以研究研究。</p>
+<h4 id="init-函数"><a href="#init-函数" class="headerlink" title="init 函数"></a>init 函数</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> TaskInitException </span>&#123;<br>    <span class="hljs-keyword">super</span>.init();<br><br>    String inputPath = config.getUnzipPath();<br>    inputFile = <span class="hljs-keyword">new</span> File(inputPath);<br>    ...<br><br>    <span class="hljs-comment">// 收集 dex 文件</span><br>    File[] files = inputFile.listFiles();<br>    <span class="hljs-keyword">if</span> (files != <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">for</span> (File file : files) &#123;<br>            <span class="hljs-keyword">if</span> (file.isFile() &amp;&amp; file.getName().endsWith(ApkConstants.DEX_FILE_SUFFIX)) &#123;<br>                dexFileNameList.add(file.getName());<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>config.getUnzipPath</code>是获取解压的路径，09 篇说了 <code>UnzipTask</code> 任务，它将需要分析的 apk 解压，这里的路径就是解压目录路径。</p>
+<p>这个函数主要是获取所有 .dex 文件。</p>
+<h4 id="call-函数"><a href="#call-函数" class="headerlink" title="call 函数"></a>call 函数</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs @Override">@Override<br>public TaskResult call() throws TaskExecuteException &#123;<br>    try &#123;<br>        ...<br>        <br>        // 收集 asset 目录下文件<br>        findAssetsFile(assetDir);<br>        <br>        // 收集相对路径，里面去除了配置的忽略文件<br>        // 因为写忽略配置文件，肯定是相对 assets 目录的<br>        // --ignoreAssets<br>        //  assetsPathSet 里面存放的是 asset 目录下的所有文件<br>        generateAssetsSet(assetDir.getAbsolutePath());<br>        <br>        Log.i(TAG, &quot;find all assets count: %d&quot;, assetsPathSet.size());<br>        decodeCode();<br>        // assetRefSet 里面存放的是 配置的忽略的资源 + smali 中引用到的资源<br>        Log.i(TAG, &quot;find reference assets count: %d&quot;, assetRefSet.size());<br>        assetsPathSet.removeAll(assetRefSet);<br>        ...<br>    &#125; catch (Exception e) &#123;<br>        throw new TaskExecuteException(e.getMessage(), e);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以自己先想一下，如何才能找出 assets 目录下的未使用的资源？</p>
+<p>访问 asset 资源的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">webView.loadUrl(<span class="hljs-string">&quot;file:///android_asset/win8_Demo/index.html&quot;</span>);<br>getAssets().open(<span class="hljs-string">&quot;wpics/0ZR424L-0.jpg&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，我们都是使用的字符串来表示 assets 目录下的某一特定资源。</p>
+<p>当 .dex 反编译为 .smail 代码的时候，对于常量字符串，都是以 <code>const-string</code> 开头的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs smail">// const-string 的语法：<br>// const-string v0, &quot;LOG&quot;        # 将v0寄存器赋值为字符串常量&quot;LOG&quot;<br>// 这算是一种简单的分析方式<br></code></pre></td></tr></table></figure>
+
+<p>所以，以这种方式，我们可以得出一个大致正确的结果。</p>
+<p>所以思路就是：<strong>以读取文件的方式，遍历 smali 代码文件，找到所有使用常量字符串的地方。</strong></p>
+<p>需要先反编译 .dex 文件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">decodeCode</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;<br>    <span class="hljs-keyword">for</span> (String dexFileName : dexFileNameList) &#123;<br>        <span class="hljs-comment">// 使用 apktool 加载 dex 文件</span><br>        DexBackedDexFile dexFile = DexFileFactory.loadDexFile(<span class="hljs-keyword">new</span> File(inputFile, dexFileName), Opcodes.forApi(<span class="hljs-number">15</span>));<br><br>        BaksmaliOptions options = <span class="hljs-keyword">new</span> BaksmaliOptions();<br>        <span class="hljs-comment">// class 类按自然排序</span><br>        List&lt;? extends ClassDef&gt; classDefs = Ordering.natural().sortedCopy(dexFile.getClasses());<br><br>        <span class="hljs-keyword">for</span> (ClassDef classDef : classDefs) &#123;<br>            <span class="hljs-comment">// 从 ClassDef 中获取该 class 对应的 smali 代码</span><br>            String[] lines = ApkUtil.disassembleClass(classDef, options);<br>            <span class="hljs-keyword">if</span> (lines != <span class="hljs-keyword">null</span>) &#123;<br>                <span class="hljs-comment">// 分析 smali 代码</span><br>                readSmaliLines(lines);<br>            &#125;<br>        &#125;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>使用的是 APKTOOL 的 api，就不介绍了，我也不熟。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">readSmaliLines</span><span class="hljs-params">(String[] lines)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (lines == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (String line : lines) &#123;<br>        line = line.trim();<br>        <span class="hljs-comment">// 找 常量字符串，因为使用 assets 中的资源文件，方式是很单一的，需要指定文件的名字</span><br>        <span class="hljs-comment">// 所以遍历 smali 代码，找到所有使用常量字符串的地方</span><br>        <span class="hljs-comment">// const-string 的语法：</span><br>        <span class="hljs-comment">// const-string v0, &quot;LOG&quot;        # 将v0寄存器赋值为字符串常量&quot;LOG&quot;</span><br>        <span class="hljs-comment">// 这算是一种简单的分析方式</span><br>        <span class="hljs-keyword">if</span> (!Util.isNullOrNil(line) &amp;&amp; line.startsWith(<span class="hljs-string">&quot;const-string&quot;</span>)) &#123;<br>            String[] columns = line.split(<span class="hljs-string">&quot;,&quot;</span>);<br>            <span class="hljs-keyword">if</span> (columns.length == <span class="hljs-number">2</span>) &#123;<br>                <span class="hljs-comment">// 获取 , 后面的</span><br>                String assetFileName = columns[<span class="hljs-number">1</span>].trim();<br>                <span class="hljs-comment">// 去除双引号</span><br>                assetFileName = assetFileName.substring(<span class="hljs-number">1</span>, assetFileName.length() - <span class="hljs-number">1</span>);<br>                <span class="hljs-keyword">if</span> (!Util.isNullOrNil(assetFileName)) &#123;<br>                    <span class="hljs-comment">// 遍历之前收集的所有资源文件的路径</span><br>                    <span class="hljs-keyword">for</span> (String path : assetsPathSet) &#123;<br>                        <span class="hljs-comment">// 如果包含该文件</span><br>                        <span class="hljs-keyword">if</span> (assetFileName.endsWith(path)) &#123;<br>                            <span class="hljs-comment">// 存放到 assetRefSet 里面</span><br>                            assetRefSet.add(path);<br>                        &#125;<br>                    &#125;<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里就是判断，<strong>const-string 的字符串里面有没有与 asset 目录下资源名一样的，有的话就算这个资源文件被使用了。</strong></p>
+<p>当然，如果恰好你的字符串与资源名相同，那就会误判。</p>
+<p>如何分析 asset 资源文件有没有被使用，ApkChecker 提供了一个简单的判断方式，虽然不完全准确，但是对我们应该也有启发。</p>
+<p>那么，可以思考一下，如何判断 libs 文件夹下的 jar 包有没有被引用？这个 ApkChecker 中并没有实现，如果有思路可以提pr。</p>
+<p>下面再介绍一下，如何分析res中的资源有没有被引用？</p>
+<h3 id="UnusedResourcesTask"><a href="#UnusedResourcesTask" class="headerlink" title="UnusedResourcesTask"></a>UnusedResourcesTask</h3><p>分析 res 下无用资源与 assets 下无用资源是相似的，但是需要弄清楚一件事：</p>
+<p>当我们在 layout 等xml资源中使用了 values 文件中的资源，这个在代码中是无法找到的，所以需要理清思路，分析各个资源的引用关系。</p>
+<h4 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h4><p>ApkChecker 里面提供的思路如下：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">首先，代码里面引用的资源肯定需要标记为已使用。比如：<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">R</span>.</span></span>layout.activity_main，其次，<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">R</span>.</span></span>layout.activity_main 文件引用的资源，也需要标记为已使用。<br>所以，我们需要想办法收集到 res 目录下资源的相互引用关系。<br></code></pre></td></tr></table></figure>
+
+<p>ApkChecker 将 res 下的资源分为两部分：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">for</span> (ResPackage pkg : resTable.listMainPackages()) &#123;<br>    aXmlResourceParser.getAttrDecoder().setCurrentPackage(pkg);<br>    <span class="hljs-comment">// layout</span><br>    <span class="hljs-comment">// drawable</span><br>    <span class="hljs-comment">// anim</span><br>    <span class="hljs-comment">// menu</span><br>    <span class="hljs-comment">// animator</span><br>    <span class="hljs-comment">// color</span><br>    <span class="hljs-comment">// 等等 .xml 文件</span><br>    <span class="hljs-keyword">for</span> (ResResource resSource : pkg.listFiles()) &#123;<br>        decodeResResource(resSource, resDir, aXmlResourceParser, nonValueReferences);<br>    &#125;<br><br>    <span class="hljs-comment">// 这里直接读取的 values 下的文件</span><br>    <span class="hljs-keyword">for</span> (ResValuesFile valuesFile : pkg.listValuesFiles()) &#123;<br>        Log.e(<span class="hljs-string">&quot;ResValuesFile&quot;</span>, <span class="hljs-string">&quot;path = &quot;</span> + valuesFile.getPath());<br>        decodeResValues(valuesFile, xmlPullParser, serializer, valueReferences);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>nonValueReferences 最后储存的是 非values 下资源文件的引用关系，比如，R.layout.activity_main 引用了哪些资源。</p>
+<p>valueReferences 储存的是 values 下资源的引用关系，比如，R.string.app_namex 引用了哪些资源。</p>
+<p>获取了 res 下资源的相互引用关系之后，就可以开始标记有用资源了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">readChildReference</span><span class="hljs-params">(String resource)</span> <span class="hljs-keyword">throws</span> IllegalStateException </span>&#123;<br>    <span class="hljs-keyword">if</span> (nonValueReferences.containsKey(resource)) &#123;<br>        visitPath.push(resource);<br>        <span class="hljs-comment">// 获取该资源引用的其他资源</span><br>        Set&lt;String&gt; childReference = nonValueReferences.get(resource);<br>        <span class="hljs-comment">// 资源有被引用则从 unusedResSet 里面移除</span><br>        <span class="hljs-comment">// 验证一下，如果 a 引用 b，a没有用到，b会被发现吗？</span><br>        unusedResSet.removeAll(childReference);<br>        <span class="hljs-keyword">for</span> (String reference : childReference) &#123;<br>            <span class="hljs-keyword">if</span> (!visitPath.contains(reference)) &#123;<br>                readChildReference(reference);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                visitPath.push(reference);<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">&quot;Found resource cycle! &quot;</span> + visitPath.toString());<br>            &#125;<br>        &#125;<br>        visitPath.pop();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这是一个深度遍历。</p>
+<p>resource参数是<strong>代码中引用的资源</strong> + <strong>valueReferences 集合</strong>中的元素。</p>
+<p>我们继续分析上面的深度遍历代码，假设resource 是一个 layout 资源，按照上面的逻辑，该 layout 引用的所有 string，dimen， drawable 都会从 unusedResSet 集合中移除。这也就是说明它们被人引用过了，即判断它是有用资源。</p>
+<p>这显然是一个有bug的逻辑，当一个无用资源A引用了无用资源B，那无用资源B岂不是被标记为有用，确实！！！</p>
+<p>所以，有必要的话可以删除一批无用资源后，再次重新运行该工具，直到资源无变化。</p>
+<p>这里非 values 资源的逻辑是处理完了，那么 values 资源的逻辑呢，除了被 layout 等 xml 资源引用，代码中直接引用的情况有没有处理呢？</p>
+<p>其实是有的，我们看 call 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> TaskResult <span class="hljs-title">call</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> TaskExecuteException </span>&#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        ...<br>        unusedResSet.removeAll(resourceRefSet);<br>        ...<br>    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> TaskExecuteException(e.getMessage(), e);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在最后，它将 resourceRefSet 里面的所有资源都标记为引用了。从这里可以看出，resourceRefSet 里面的元素，都是根。</p>
+<p>所以，总结一下：<strong>是以代码为根（不准确，values的引用也是根，可能与后面的删除资源有关系，values不好删除？？？），然后深度遍历所有引用的资源</strong>。</p>
+<h4 id="smali-引用方式分析"><a href="#smali-引用方式分析" class="headerlink" title="smali 引用方式分析"></a>smali 引用方式分析</h4><p>我们接下来，看看，如何从代码中找到资源的引用。有四种情况</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-number">1.</span> <span class="hljs-keyword">const</span><br><br><span class="hljs-keyword">const</span> v6, <span class="hljs-number">0x7f0c0061</span><br><br><span class="hljs-number">2.</span> sget<br><br><span class="hljs-comment">// app 生成的是 static int 的，所以直接转换为了数值</span><br><span class="hljs-comment">// 但是 lib 里面不是  final 的，所以会是引用的方式</span><br>sget v6, Lcom/tencent/mm/R$string;-&gt;chatting_long_click_menu_revoke_msg:I<br>sget v1, Lcom/tencent/mm/libmmui/R$id;-&gt;property_anim:I<br><br><span class="hljs-number">3.</span> sput<br><br>sput-object v0, Lcom/tencent/mm/plugin_welab_api/R$styleable;-&gt;ActionBar:[I   <span class="hljs-comment">//define resource in R.java</span><br><br><span class="hljs-number">4.</span> array-data<br><br>:array_0<br>.array-data <span class="hljs-number">4</span><br>    <span class="hljs-number">0x7f0a0022</span><br>    <span class="hljs-number">0x7f0a0023</span><br>.end array-data<br></code></pre></td></tr></table></figure>
+
+<p>第一种最简单，直接是以 R.layout.xxx 的方式。</p>
+<p>第二种稍微绕一点，也是以 R.layout.xxx 的方式，但是不知在  app 中，而是在 modules 中，因为 modules 生成的资源不是 final 的（因为如果是 final 的，那资源id 就固定了，而 app 引用modules 的时候，是需要一起计算 id 的，id 是按顺序的）。</p>
+<p>由于不是 final 的，所以就不是 const 语法，而是 sget 语法。</p>
+<p>第三种，是 R.styleable，它的 R.java 是这样的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>[] SwitchCompat=&#123;<br>  <span class="hljs-number">0x01010124</span>, <span class="hljs-number">0x01010125</span>, <span class="hljs-number">0x01010142</span>, <span class="hljs-number">0x7f020101</span>, <br>  <span class="hljs-number">0x7f020107</span>, <span class="hljs-number">0x7f020112</span>, <span class="hljs-number">0x7f020113</span>, <span class="hljs-number">0x7f020115</span>, <br>  <span class="hljs-number">0x7f020123</span>, <span class="hljs-number">0x7f020124</span>, <span class="hljs-number">0x7f020125</span>, <span class="hljs-number">0x7f02013a</span>, <br>  <span class="hljs-number">0x7f02013b</span>, <span class="hljs-number">0x7f02013c</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>对应的 smali 就是 sput 了。</p>
+<p>第四种，就是 array 了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">int</span>[] arr = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[]&#123;<br>    R.layout.activity_main, R.string.app_name<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>注意 3 4 的区别。</p>
+<p>以上，就是所有资源的引用分析了，具体代码就不贴了，无非就是如何根据 smali 语法分割出我们想要的资源id，然后从 build/intermediates/symbols/debug/R.txt 中，根据资源id找出对应的资源名（如果资源做了混淆，还要处理一下 resMapping）。</p>
+<p>还有一个问题，就是使用 <code>android.content.res.Resources#getIdentifier</code>这种方式引用的资源是无法分析出来的。</p>
+<p>我们看一下反编译的 smali 代码：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">invoke-virtual &#123;v0, v1, v2, v3&#125;, Landroid<span class="hljs-regexp">/content/</span>res<span class="hljs-regexp">/Resources;-&gt;getIdentifier(Ljava/</span>lang<span class="hljs-regexp">/String;Ljava/</span>lang<span class="hljs-regexp">/String;Ljava/</span>lang/String;)I<br></code></pre></td></tr></table></figure>
+
+<p>v1-v3是参数。</p>
+<p>如果都是直接传递的字符串常量，那么ok，勉强是可以分析出来的，但是如果使用了局部变量，而且不是紧邻 getIdentifier 代码，那么可能连资源id都拿不到，就算拿到了资源id，也几乎分析不出来它的资源类型是啥。</p>
+<p>而且，有时候还会使用动态拼接资源名的方式，这就更没法搞了。</p>
+<p>所以，ApkChecker 里面是没有支持这种引用方式的，这个暂时无思路，可能的话，只能从侧面入手，比如写个插件，遇到 getIdentifier 就提醒一下，让开发者把资源添加到白名单里面去。</p>
+<h4 id="xml文件资源引用分析"><a href="#xml文件资源引用分析" class="headerlink" title="xml文件资源引用分析"></a>xml文件资源引用分析</h4><p>这个 task 里面涉及到的东西还是比较多的，比如分析 .xml 文件的资源引用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java">String value = mParser.getAttributeValue(i);<br>String attributeName = mParser.getAttributeName(i);<br><span class="hljs-keyword">if</span> (!Util.isNullOrNil(value)) &#123;<br>    <span class="hljs-keyword">if</span> (value.startsWith(<span class="hljs-string">&quot;@&quot;</span>)) &#123;<br>        <span class="hljs-keyword">int</span> index = value.indexOf(<span class="hljs-string">&#x27;/&#x27;</span>);<br>        <span class="hljs-keyword">if</span> (index &gt; <span class="hljs-number">1</span>) &#123;<br>            String type = value.substring(<span class="hljs-number">1</span>, index);<br>            resourceRefSet.add(ApkConstants.R_PREFIX + type + <span class="hljs-string">&quot;.&quot;</span> + value.substring(index + <span class="hljs-number">1</span>).replace(<span class="hljs-string">&#x27;.&#x27;</span>, <span class="hljs-string">&#x27;_&#x27;</span>));<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (value.startsWith(<span class="hljs-string">&quot;?&quot;</span>)) &#123;<br>        <span class="hljs-keyword">int</span> index = value.indexOf(<span class="hljs-string">&#x27;/&#x27;</span>);<br>        <span class="hljs-keyword">if</span> (index &gt; <span class="hljs-number">1</span>) &#123;<br>            resourceRefSet.add(ApkConstants.R_ATTR_PREFIX + <span class="hljs-string">&quot;.&quot;</span> + value.substring(index + <span class="hljs-number">1</span>).replace(<span class="hljs-string">&#x27;.&#x27;</span>, <span class="hljs-string">&#x27;_&#x27;</span>));<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们在 xml 中引用资源，都会使用 @ 方式，而 xml 编译之后，@还是存在的，所以以 @ 为标识来添加资源引用关系。</p>
+<p>这里有个疑问，不知道是不是 bug。我们引用属性，通常会使用 <code>?attr/xxx</code>的方式，但是 xml 编译之后，会变成 <code>?xxx</code> ，所以 else if 里面的 if 条件是进不去的。这里我没搞懂，else if 是干啥的。</p>
+<p>如下：</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs arduino">&lt;vector android:tint=<span class="hljs-string">&quot;?colorControlNormal&quot;</span> <br><br>&lt;size android:height=<span class="hljs-string">&quot;@dimen/abc_progress_bar_height_material&quot;</span><br></code></pre></td></tr></table></figure>
+
+
+
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Matrix/">Matrix</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/08/02/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/009-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AApkChecker%E8%A7%A3%E5%8E%8Bapk/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">009-Matrix源码分析：ApkChecker解压apk.md</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/07/15/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%95%AA%E5%A4%96%E7%AF%87%EF%BC%9Aarsc%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+                        <span class="hidden-mobile">Matrix源码分析番外篇：arsc文件结构</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

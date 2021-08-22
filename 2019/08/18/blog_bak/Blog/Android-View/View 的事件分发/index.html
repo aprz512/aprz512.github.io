@@ -1,0 +1,566 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>View 的事件分发 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="View 的事件分发">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      6
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">View 的事件分发</h1>
+            
+            <div class="markdown-body">
+              <h3 id="事件的传递流"><a href="#事件的传递流" class="headerlink" title="事件的传递流"></a>事件的传递流</h3><p>Activity -&gt; Window -&gt; ViewGroup - &gt; View</p>
+<blockquote>
+<p>Activity.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">dispatchTouchEvent</span><span class="hljs-params">(MotionEvent ev)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (ev.getAction() == MotionEvent.ACTION_DOWN) &#123;<br>        onUserInteraction();<br>    &#125;<br>    <span class="hljs-comment">// 交给 window</span><br>    <span class="hljs-keyword">if</span> (getWindow().superDispatchTouchEvent(ev)) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> onTouchEvent(ev);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>PhoneWindow.java</p>
+</blockquote>
+<p>因为 PhoneWindow 暂时是 Window 类的唯一实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">superDispatchTouchEvent</span><span class="hljs-params">(MotionEvent event)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> mDecor.superDispatchTouchEvent(event);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的 mDecor 就是 DecorView 了，它继承至 FrameLayout，所以它是一个 ViewGroup。</p>
+<p>然后 ViewGroup <strong>可能会</strong>将事件就传递给它的子 View。</p>
+<h3 id="onTouch-amp-onTouchEvent-amp-onClick"><a href="#onTouch-amp-onTouchEvent-amp-onClick" class="headerlink" title="onTouch &amp; onTouchEvent &amp; onClick"></a>onTouch &amp; onTouchEvent &amp; onClick</h3><p>在 View 的 dispatchTouchEvent 方法中，在调用 onTouchEvent 之前，会先调用 mListenerInfo.mOnTouchListener.onTouch  方法，这个就是我们在外部设置的监听了。如果这个方法返回了 true，那么 onTouchEvent 方法就不会调用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java">         ListenerInfo li = mListenerInfo;<br>         <span class="hljs-keyword">if</span> (li != <span class="hljs-keyword">null</span> &amp;&amp; li.mOnTouchListener != <span class="hljs-keyword">null</span><br>                 &amp;&amp; (mViewFlags &amp; ENABLED_MASK) == ENABLED<br>                 &amp;&amp; li.mOnTouchListener.onTouch(<span class="hljs-keyword">this</span>, event)) &#123;<br>             result = <span class="hljs-keyword">true</span>;<br>         &#125;<br><span class="hljs-comment">// result 为 true 是无法进入这个条件的</span><br>         <span class="hljs-keyword">if</span> (!result &amp;&amp; onTouchEvent(event)) &#123;<br>             result = <span class="hljs-keyword">true</span>;<br>         &#125;<br></code></pre></td></tr></table></figure>
+
+<p>onClick 是在 onTouchEvent 中调用的，现在的 Android studio 在我们复写 View 的 onTouchEvent 的时候，都会给这么一个警告：</p>
+<blockquote>
+<p>Custom view MotionView overrides onTouchEvent but not performClick less… (Ctrl+F1)<br>Inspection info:If a View that overrides onTouchEvent or uses an OnTouchListener does not also implement performClick and call it when clicks are detected, the View may not handle accessibility actions properly. Logic handling the click actions should ideally be placed in View#performClick as some accessibility services invoke performClick when a click action should occur.</p>
+</blockquote>
+<p>简单来说就是，复写这个方法可能会导致 performClick 方法不会触发。从而影响 accessibility  的动作行为。</p>
+<h3 id="onClick-amp-onLongClick"><a href="#onClick-amp-onLongClick" class="headerlink" title="onClick &amp; onLongClick"></a>onClick &amp; onLongClick</h3><p>一般的，手指点击然后抬起，就会触发一个 onClick 时间，但是不知道你有没有想过，onLongClick 是如何触发的呢？系统是如何判断我们是长按，而不是点击？</p>
+<p>话说，肯定是一句时间来判断，但是具体的思路是怎么样的呢？</p>
+<blockquote>
+<p>使用 Handler post 一个延时 xxx ms消息，如果收到这个延时消息就会触发一个事件。 然而某些情况下，会提前将该消息 remove 掉，这样就收不到这个消息，无法触发事件。</p>
+<p>拿长按事件举例：比如长按1s算一个长按事件，那么我们就可以post一个延时1000ms的消息，收到这个消息就触发长按回调，如果没到1s用户就放开了手指，那么就移除这个消息，这样就不会触发长按回调了。</p>
+</blockquote>
+<p>onLongClick 方法有返回值，返回 true 表示消耗这个事件，那么 onClick 就无法触发了。</p>
+<h3 id="clickable-amp-enable"><a href="#clickable-amp-enable" class="headerlink" title="clickable &amp; enable"></a>clickable &amp; enable</h3><p>一个 View 只有是 clickable 才会消耗事件，与 enable 没有关系。</p>
+<h3 id="onInterceptTouchEvent-的调用"><a href="#onInterceptTouchEvent-的调用" class="headerlink" title="onInterceptTouchEvent 的调用"></a>onInterceptTouchEvent 的调用</h3><p>onInterceptTouchEvent  这个方法只有 ViewGroup 才有。</p>
+<p>这个方法的调用条件有两个：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (actionMasked == MotionEvent.ACTION_DOWN || mFirstTouchTarget != <span class="hljs-keyword">null</span>)<br></code></pre></td></tr></table></figure>
+
+<p>第一个是按下事件才会触发，第二个是<strong>有可以消耗这次事件的子 View</strong>。</p>
+<p>根据这个我们可以推理出如下结论：</p>
+<p>当一个 ViewGroup 拦截事件的时候，它会将事件交给自己处理，那么它不会把事件传递给子 View，也就是说，<strong>它没有可以消耗这次事件的子View</strong>。即在接下来的 MOVE、UP等事件，都不会调用这个方法。</p>
+<h3 id="requestDisallowInterceptTouchEvent"><a href="#requestDisallowInterceptTouchEvent" class="headerlink" title="requestDisallowInterceptTouchEvent"></a>requestDisallowInterceptTouchEvent</h3><p>当子View调用这个方法之后，ViewGroup <strong>无法拦截除了 ACTION_DOWN 以外的事件</strong>。</p>
+<p>这是因为，ACTION_DOWN 事件会重置和清除一些状态，其中就包括 FLAG_DISALLOW_INTERCEPT。</p>
+<h3 id="ViewGroup-拦截事件"><a href="#ViewGroup-拦截事件" class="headerlink" title="ViewGroup 拦截事件"></a>ViewGroup 拦截事件</h3><p>当 ViewGroup 决定拦截事件，那么 mFirstTouchTarget == null，那么 ViewGroup 的 dispatchTouchEvent 方法会调用 super.dispatchTouchEvent(event); 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (mFirstTouchTarget == <span class="hljs-keyword">null</span>) &#123;<br>    <span class="hljs-comment">// No touch targets so treat this as an ordinary view.</span><br>    handled = dispatchTransformedTouchEvent(ev, canceled, <span class="hljs-keyword">null</span>,<br>            TouchTarget.ALL_POINTER_IDS);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (child == <span class="hljs-keyword">null</span>) &#123;<br>    handled = <span class="hljs-keyword">super</span>.dispatchTouchEvent(event);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的 super 就是 View，因为 ViewGroup 也是继承至 View 的。</p>
+<p>所以就调用到了 View 的 dispatchTouchEvent 方法，我们都知道，View 的 dispatchTouchEvent 方法会直接调用自己的 onTouchEvent 方法，而<strong>这里自己表示ViewGroup</strong>。所以，当 ViewGroup 决定拦截事件，会将事件交给自己处理。</p>
+<h3 id="ACTION-DOWN"><a href="#ACTION-DOWN" class="headerlink" title="ACTION_DOWN"></a>ACTION_DOWN</h3><p>当某个 View 可以消耗事件的时候，这个 View 的父布局的 mFirstTouchTarget 变量就指向了这个 View，然后接下来的事件都会交给这个 View 来处理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (child == <span class="hljs-keyword">null</span>) &#123;<br>    handled = <span class="hljs-keyword">super</span>.dispatchTouchEvent(event);<br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    handled = child.dispatchTouchEvent(event);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，直接调用 child （mFirstTouchTarget  指向的值） 的 dispatchTouchEvent。</p>
+<p>当 View 不消耗 ACTION_DOWN 事件的时候，它的父布局的 mFirstTouchTarget 就为null，后面的事件该View 的 父布局就不会再往下传递了。它也就接受不到后续事件了。</p>
+<h3 id="ACTION-CANCEL"><a href="#ACTION-CANCEL" class="headerlink" title="ACTION_CANCEL"></a>ACTION_CANCEL</h3><p>当一个 ViewGroup 不拦截 ACTION_DOWN 事件，并且有可以消耗 ACTION_DOWN 的子 View 时，接下来的事件都会交给这个子 View 来处理，但是每次都会询问父布局是否拦截：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (actionMasked == MotionEvent.ACTION_DOWN<br>        || mFirstTouchTarget != <span class="hljs-keyword">null</span>) &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> disallowIntercept = (mGroupFlags &amp; FLAG_DISALLOW_INTERCEPT) != <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">if</span> (!disallowIntercept) &#123;<br>    	<span class="hljs-comment">// 因为 mFirstTouchTarget 不会空，所以会走这里</span><br>        intercepted = onInterceptTouchEvent(ev);<br>        ev.setAction(action); <span class="hljs-comment">// restore action in case it was changed</span><br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        intercepted = <span class="hljs-keyword">false</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>而如果在后续的事件中，父布局突然拦截了事件，即 intercepted 为 true，那么先前可以处理该事件的子View会收到一个 ACTION_CANCEL 事件。后面的事件就都会传递给父布局，而不往下传递。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// intercepted 为 true，则 cancelChild 也为 true</span><br><span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> cancelChild = resetCancelNextUpFlag(target.child) || intercepted;<br><span class="hljs-keyword">if</span> (dispatchTransformedTouchEvent(ev, cancelChild, target.child, target.pointerIdBits)) &#123;<br>    handled = <span class="hljs-keyword">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> oldAction = event.getAction();<br><span class="hljs-keyword">if</span> (cancel || oldAction == MotionEvent.ACTION_CANCEL) &#123;<br>    <span class="hljs-comment">// 强制将 action 改成 cancel</span><br>    event.setAction(MotionEvent.ACTION_CANCEL);<br>    <span class="hljs-keyword">if</span> (child == <span class="hljs-keyword">null</span>) &#123;<br>        handled = <span class="hljs-keyword">super</span>.dispatchTouchEvent(event);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        handled = child.dispatchTouchEvent(event);<br>    &#125;<br>    event.setAction(oldAction);<br>    <span class="hljs-keyword">return</span> handled;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，这里它将 ACTION_CANCEL  传递给了子 View。</p>
+<p>传递 cancel 成功之后，会重置一些状态，包括 mFirstTouchTarget，将它的值清空。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/View/">View</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/View%20%E7%9A%84%20onMeasure%20%E6%96%B9%E6%B3%95/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">View 的 onMeasure 方法</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/View%20%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/">
+                        <span class="hidden-mobile">View 的工作原理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

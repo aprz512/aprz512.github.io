@@ -1,0 +1,567 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>插值器与估值器 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="插值器与估值器">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      6
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">插值器与估值器</h1>
+            
+            <div class="markdown-body">
+              <p>想来了解以下动画的定义：</p>
+<blockquote>
+<p><strong>动画</strong>是指由许多<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%B8%A7">帧</a>静止的画面，以一定的速度（如每秒16张）连续播放时，肉眼因<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%A7%86%E8%A7%89%E6%AE%8B%E8%B1%A1">视觉残象</a>产生<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%8C%AF%E8%A6%BA">错觉</a>，而误以为画面活动的作品。</p>
+</blockquote>
+<p>Android中的动画也遵循这个原理，只不过它的每一帧都是通过插值器与估值器动态计算出一个矩阵，然后应用到控件上得到的。</p>
+<p>在计算的过程中，<strong>插值器负责计算动画执行的百分比，估值器负责根据百分比来计算属性值</strong>。</p>
+<p>举个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">ValueAnimator valueAnimator = ValueAnimator.ofInt(<span class="hljs-number">1</span>, <span class="hljs-number">100</span>);<br>valueAnimator.setDuration(<span class="hljs-number">1000</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这里，我们以 ValueAnimator 举例，做一个值动画，让 1 在 1000ms 内匀速变到 100。</p>
+<p>假设这个动画有11帧，那么在第一帧的时候，是保持原来的位置不动，随着时间的流逝，在过了100ms之后，来到了第2帧，这个时候插值器就派上用场了。根据<strong>匀速运行</strong>的计算，在 100ms 的时候，动画应该执行了 10%，所以会出现一个时间 t 与动画值的函数：</p>
+<blockquote>
+<p>f(t) = t / duration * 100</p>
+<p>记住这个函数，后面的东西都是围绕它来的</p>
+</blockquote>
+<p>让我们看看线性插值器的代码，来对比一下：</p>
+<blockquote>
+<p>android.view.animation.LinearInterpolator#getInterpolation</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">float</span> <span class="hljs-title">getInterpolation</span><span class="hljs-params">(<span class="hljs-keyword">float</span> input)</span> </span>&#123;<br>       <span class="hljs-keyword">return</span> input;<br>   &#125;<br><span class="hljs-comment">// 转换成函数就是 f(x) = x，这个f(x) 相当于上面函数的 t / duration</span><br><span class="hljs-comment">// 也就是说，这里只是计算了动画执行的百分比，还没有计算到动画的具体值</span><br></code></pre></td></tr></table></figure>
+
+<p>这里的 input 参数，表示的是<strong>时间的流逝百分比</strong>，它返回的是<strong>动画执行的百分比</strong>。</p>
+<p>这与上面的 f(t) 函数的意义是一样的，只不过 f(t) 的参数是 t， 而 getInterpolation 的参数是 t/duration。</p>
+<p>回想一下，刚接触函数的时候，f(x) = x 这个函数，就是一条直线，所以这个插值器叫线性插值器。</p>
+<p>我们再来看看加速插值器的代码：</p>
+<blockquote>
+<p>android.view.animation.AccelerateInterpolator#getInterpolation</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">float</span> <span class="hljs-title">getInterpolation</span><span class="hljs-params">(<span class="hljs-keyword">float</span> input)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (mFactor == <span class="hljs-number">1.0f</span>) &#123;<br>        <span class="hljs-keyword">return</span> input * input;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-keyword">return</span> (<span class="hljs-keyword">float</span>)Math.pow(input, mDoubleFactor);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里我们只考虑 mFactor == 1.0f 的情况，所以有这样的一个函数 f(x) = x * x 。</p>
+<p>那么这个函数是什么意思呢？首先，输入范围是 【0，1】，经过函数变换之后，还是【0，1】。这个是很重要的，虽然你可以返回大于1或者小于0的值，但是大于1的会被当成最后一帧处理，小于0的作为第一帧处理。具体请看 android.animation.KeyframeSet#getValue 这个方法。</p>
+<p>再回想一下  f(x) = x * x  这个函数的图像，在【0，1】的范围，它的斜率是从低到高的，所以表现出来的就是一个加速行为。想不通的可以这样想，在前面的 【0， 0.5】 的范围内，f(x) 的值从0只增加到了0.25，而在后面的【0.5，1】的范围内，f(x) 的值从 0.25 增加到了 1，所以是增加的速度越来越快。</p>
+<p>那么，这里我们自定义一个插值器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">float</span> <span class="hljs-title">getInterpolation</span><span class="hljs-params">(<span class="hljs-keyword">float</span> input)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span> - input;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>猜猜，它会是一个什么样的行为？其实就是一个反向的线性插值器，比如，从 1 到 100，这个插值器会从 100 变到 1。</p>
+<hr>
+<p>再看估值器，一般的我们很少会自定义估值器，除非有特殊的需要，比如计算颜色，颜色的算法不像数值的计算，按照百分比乘一下就完事了，因为颜色涉及到 RGB 3个值，所以需要将 RGB 分开来计算。</p>
+<p>我们还是看看自带的几个估值器的代码。</p>
+<p>先看简单的 int 估值器，这个我们也能写出来，动画的百分比知道了，需要变化的范围我们也知道，用百分比乘以变化范围再加上起始值就ok了。</p>
+<blockquote>
+<p>android.animation.IntEvaluator#evaluate</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-function"><span class="hljs-keyword">public</span> Integer <span class="hljs-title">evaluate</span><span class="hljs-params">(<span class="hljs-keyword">float</span> fraction, Integer startValue, Integer endValue)</span> </span>&#123;<br>        <span class="hljs-keyword">int</span> startInt = startValue;<br>        <span class="hljs-keyword">return</span> (<span class="hljs-keyword">int</span>)(startInt + fraction * (endValue - startInt));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>嗯，和我们想的一摸一样，下一个。</p>
+<p>看看 ARGB 的估值器：</p>
+<blockquote>
+<p>android.animation.ArgbEvaluator#evaluate</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">evaluate</span><span class="hljs-params">(<span class="hljs-keyword">float</span> fraction, Object startValue, Object endValue)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> startInt = (Integer) startValue;<br>    <span class="hljs-keyword">float</span> startA = ((startInt &gt;&gt; <span class="hljs-number">24</span>) &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br>    <span class="hljs-keyword">float</span> startR = ((startInt &gt;&gt; <span class="hljs-number">16</span>) &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br>    <span class="hljs-keyword">float</span> startG = ((startInt &gt;&gt;  <span class="hljs-number">8</span>) &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br>    <span class="hljs-keyword">float</span> startB = ( startInt        &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br><br>    <span class="hljs-keyword">int</span> endInt = (Integer) endValue;<br>    <span class="hljs-keyword">float</span> endA = ((endInt &gt;&gt; <span class="hljs-number">24</span>) &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br>    <span class="hljs-keyword">float</span> endR = ((endInt &gt;&gt; <span class="hljs-number">16</span>) &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br>    <span class="hljs-keyword">float</span> endG = ((endInt &gt;&gt;  <span class="hljs-number">8</span>) &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br>    <span class="hljs-keyword">float</span> endB = ( endInt        &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br><br>    <span class="hljs-comment">// convert from sRGB to linear</span><br>    startR = (<span class="hljs-keyword">float</span>) Math.pow(startR, <span class="hljs-number">2.2</span>);<br>    startG = (<span class="hljs-keyword">float</span>) Math.pow(startG, <span class="hljs-number">2.2</span>);<br>    startB = (<span class="hljs-keyword">float</span>) Math.pow(startB, <span class="hljs-number">2.2</span>);<br><br>    endR = (<span class="hljs-keyword">float</span>) Math.pow(endR, <span class="hljs-number">2.2</span>);<br>    endG = (<span class="hljs-keyword">float</span>) Math.pow(endG, <span class="hljs-number">2.2</span>);<br>    endB = (<span class="hljs-keyword">float</span>) Math.pow(endB, <span class="hljs-number">2.2</span>);<br><br>    <span class="hljs-comment">// compute the interpolated color in linear space</span><br>    <span class="hljs-keyword">float</span> a = startA + fraction * (endA - startA);<br>    <span class="hljs-keyword">float</span> r = startR + fraction * (endR - startR);<br>    <span class="hljs-keyword">float</span> g = startG + fraction * (endG - startG);<br>    <span class="hljs-keyword">float</span> b = startB + fraction * (endB - startB);<br><br>    <span class="hljs-comment">// convert back to sRGB in the [0..255] range</span><br>    a = a * <span class="hljs-number">255.0f</span>;<br>    r = (<span class="hljs-keyword">float</span>) Math.pow(r, <span class="hljs-number">1.0</span> / <span class="hljs-number">2.2</span>) * <span class="hljs-number">255.0f</span>;<br>    g = (<span class="hljs-keyword">float</span>) Math.pow(g, <span class="hljs-number">1.0</span> / <span class="hljs-number">2.2</span>) * <span class="hljs-number">255.0f</span>;<br>    b = (<span class="hljs-keyword">float</span>) Math.pow(b, <span class="hljs-number">1.0</span> / <span class="hljs-number">2.2</span>) * <span class="hljs-number">255.0f</span>;<br><br>    <span class="hljs-keyword">return</span> Math.round(a) &lt;&lt; <span class="hljs-number">24</span> | Math.round(r) &lt;&lt; <span class="hljs-number">16</span> | Math.round(g) &lt;&lt; <span class="hljs-number">8</span> | Math.round(b);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>嗯，看上去代码很多，但是我们这里取 R 来分析，G、B 是一样的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 拿到起始颜色值的16-24位</span><br><span class="hljs-keyword">float</span> startR = ((startInt &gt;&gt; <span class="hljs-number">16</span>) &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br><br><span class="hljs-comment">// 拿到终止颜色值的16-24位</span><br><span class="hljs-keyword">float</span> endR = ((endInt &gt;&gt; <span class="hljs-number">16</span>) &amp; <span class="hljs-number">0xff</span>) / <span class="hljs-number">255.0f</span>;<br><br><span class="hljs-comment">// 将起始颜色与终止颜色转化为线性的，便于用百分比计算</span><br>startR = (<span class="hljs-keyword">float</span>) Math.pow(startR, <span class="hljs-number">2.2</span>);<br>endR = (<span class="hljs-keyword">float</span>) Math.pow(endR, <span class="hljs-number">2.2</span>);<br><br><span class="hljs-comment">// 这里我们就很熟悉了，与 int 是一样的</span><br><span class="hljs-keyword">float</span> r = startR + fraction * (endR - startR);<br><br><span class="hljs-comment">// 再将线性的转回 RGB</span><br>r = (<span class="hljs-keyword">float</span>) Math.pow(r, <span class="hljs-number">1.0</span> / <span class="hljs-number">2.2</span>) * <span class="hljs-number">255.0f</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这样一看，是不是条理很清晰。</p>
+<p>总结一下：</p>
+<ul>
+<li>插值器负责计算动画执行的百分比</li>
+<li>估值器起始就是根据动画的百分比、动画变化量（插值器计算得到的）来计算动画值，如果不能直接计算的，需要转换一下再计算。嗯，就这么多。</li>
+</ul>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/View/">View</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/ViewGroup%20%E7%9A%84%20generateLayoutParams%20%E6%96%B9%E6%B3%95%E7%9A%84%E4%BD%9C%E7%94%A8/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">ViewGroup 的 generateLayoutParams 方法的作用</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/%E8%87%AA%E5%AE%9A%E4%B9%89LayoutManager/">
+                        <span class="hidden-mobile">自定义LayoutManager</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,575 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>LinkedHashMap与LruCache - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="LinkedHashMap与LruCache">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-04-11 00:00" pubdate>
+        2020年4月11日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      16
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">LinkedHashMap与LruCache</h1>
+            
+            <div class="markdown-body">
+              <h2 id="与HashMap的关系"><a href="#与HashMap的关系" class="headerlink" title="与HashMap的关系"></a>与HashMap的关系</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java?linenums">public class LinkedHashMap&lt;K,V&gt; extends HashMap&lt;K,V&gt; implements Map&lt;K,V&gt; &#123;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="accessOrder-字段"><a href="#accessOrder-字段" class="headerlink" title="accessOrder 字段"></a>accessOrder 字段</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java?linenums">/**<br> * The iteration ordering method for this linked hash map: &lt;tt&gt;true&lt;/tt&gt;<br> * for access-order, &lt;tt&gt;false&lt;/tt&gt; for insertion-order.<br> *<br> * @serial<br> */<br>final boolean accessOrder;<br></code></pre></td></tr></table></figure>
+<p>当这个字段为true的时候，迭代器的顺序是按照访问的顺序来输出的，为false的时候，是按照插入的顺序来输出的。</p>
+<p>看几个例子：</p>
+<ul>
+<li><p><strong>当使用默认的构造函数，accessOrder为false</strong></p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java?linenums">public static void main(String[] args) &#123;<br>        LinkedHashMap&lt;Integer, Integer&gt; map = new LinkedHashMap&lt;Integer, Integer&gt;();<br>        for (int i = 0; i &lt; 10; i++) &#123;//按顺序放入0~9<br>            map.put(i, i);<br>        &#125;<br>        System.out.println(&quot;原数据：&quot;+map.toString());<br>        map.get(3);<br>        System.out.println(&quot;查询存在的某一个：&quot;+map.toString());<br>        map.put(4, 4);<br>        System.out.println(&quot;插入已存在的某一个：&quot;+map.toString()); //直接调用已存在的toString方法，不然自己需要用迭代器实现<br>        map.put(10, 10);<br>        System.out.println(&quot;插入一个原本没存在的：&quot;+map.toString());<br>    &#125;<br></code></pre></td></tr></table></figure>
+<p>  <strong>输出</strong>：</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs console?linenums">//  输出结果<br>//  原数据：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9&#125;<br>//  查询存在的某一个：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9&#125;<br>//  插入已存在的某一个：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9&#125;<br>//  插入一个原本没存在的：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, 10=10&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>使用带参数的构造函数</strong></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>    LinkedHashMap&lt;Integer, Integer&gt; map = <span class="hljs-keyword">new</span> LinkedHashMap&lt;Integer, Integer&gt;(<span class="hljs-number">20</span>, <span class="hljs-number">0.75f</span>, <span class="hljs-keyword">true</span>);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;<span class="hljs-comment">//按顺序放入1~9</span><br>        map.put(i, i);<br>    &#125;<br>    System.out.println(<span class="hljs-string">&quot;原数据：&quot;</span>+map.toString());<br>    map.get(<span class="hljs-number">3</span>);<br>    System.out.println(<span class="hljs-string">&quot;查询存在的某一个：&quot;</span>+map.toString());<br>    map.put(<span class="hljs-number">4</span>, <span class="hljs-number">4</span>);<br>    System.out.println(<span class="hljs-string">&quot;插入已存在的某一个：&quot;</span>+map.toString()); <span class="hljs-comment">//直接调用已存在的toString方法，不然自己需要用迭代器实现</span><br>    map.put(<span class="hljs-number">10</span>, <span class="hljs-number">10</span>);<br>    System.out.println(<span class="hljs-string">&quot;插入一个原本没存在的：&quot;</span>+map.toString());<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>  <strong>输出</strong>：</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//  输出结果</span><br><span class="hljs-comment">//  原数据：&#123;0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9&#125;</span><br><span class="hljs-comment">//  查询存在的某一个：&#123;0=0, 1=1, 2=2, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, 3=3&#125;，被访问（get）的3放到了最后面</span><br><span class="hljs-comment">//  插入已存在的某一个：&#123;0=0, 1=1, 2=2, 5=5, 6=6, 7=7, 8=8, 9=9, 3=3, 4=4&#125;，被访问（put）的4放到了最后面</span><br><span class="hljs-comment">//  插入一个原本没存在的：&#123;0=0, 1=1, 2=2, 5=5, 6=6, 7=7, 8=8, 9=9, 3=3, 4=4, 10=10&#125;，新增一个放到最后面</span><br></code></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>迭代顺序正如注释所说。那么为何会这样呢？让我们慢慢来揭开LinkedHashMap神秘的面纱。</p>
+<h2 id="头尾指针"><a href="#头尾指针" class="headerlink" title="头尾指针"></a>头尾指针</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java?linenums">/**<br> * The head (eldest) of the doubly linked list.<br> */<br>transient LinkedHashMapEntry&lt;K,V&gt; head;<br><br>/**<br> * The tail (youngest) of the doubly linked list.<br> */<br>transient LinkedHashMapEntry&lt;K,V&gt; tail;<br></code></pre></td></tr></table></figure>
+
+<p>head是双链表的头节点，tail自然是双链表的尾节点。那么这两个变量有什么用呢？他们与accesOrder有啥关系？</p>
+<p>我们先来分析，上面例子的行为。在第二个例子中，设置了 accessOrder 为 true，当我们调用 get() 方法之后，发现被访问的那个元素移动到了最后面。顺着get()方法来分析，为何为出现这种情况。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(Object key)</span> </span>&#123;<br>    Node&lt;K,V&gt; e;<br>    <span class="hljs-keyword">if</span> ((e = getNode(hash(key), key)) == <span class="hljs-keyword">null</span>)<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>    <span class="hljs-keyword">if</span> (accessOrder)<br>        afterNodeAccess(e);<br>    <span class="hljs-keyword">return</span> e.value;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>getNode 是父类的方法，没有什么可以说的，值得深入的地方是最后的那个判断语句</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (accessOrder)<br>    afterNodeAccess(e);<br></code></pre></td></tr></table></figure>
+<p>只有 accessOrder 为 true 的时候，才会执行 afterNodeAccess 这个判断似乎比较符合上面的行为。看来一切玄机都在这个方法里面。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; e)</span> </span>&#123; <span class="hljs-comment">// move node to last</span><br>    LinkedHashMapEntry&lt;K,V&gt; last;<br>    <span class="hljs-keyword">if</span> (accessOrder &amp;&amp; (last = tail) != e) &#123;<br>        LinkedHashMapEntry&lt;K,V&gt; p =<br>            (LinkedHashMapEntry&lt;K,V&gt;)e, b = p.before, a = p.after;<br>        p.after = <span class="hljs-keyword">null</span>;<br>        <span class="hljs-keyword">if</span> (b == <span class="hljs-keyword">null</span>)<br>            head = a;<br>        <span class="hljs-keyword">else</span><br>            b.after = a;<br>        <span class="hljs-keyword">if</span> (a != <span class="hljs-keyword">null</span>)<br>            a.before = b;<br>        <span class="hljs-keyword">else</span><br>            last = b;<br>        <span class="hljs-keyword">if</span> (last == <span class="hljs-keyword">null</span>)<br>            head = p;<br>        <span class="hljs-keyword">else</span> &#123;<br>            p.before = last;<br>            last.after = p;<br>        &#125;<br>        tail = p;<br>        ++modCount;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>方法名后面的注释解释了这个方法的作用：将参数节点移动到双向链表的最后面去，即让 tail 节点指向 e。<br>下面用一幅图来解释这个方法运作的原理：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/access_order.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>如此这般，就将访问的节点e，移动到了双链表的尾节点。</p>
+<p>同样的，我们在看看put()方法，由于LinkedHashMap没有覆盖put()方法，我们就去HashMap的源码中找找源头：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span>) &#123; <span class="hljs-comment">// existing mapping for key</span><br>    V oldValue = e.value;<br>    <span class="hljs-keyword">if</span> (!onlyIfAbsent || oldValue == <span class="hljs-keyword">null</span>)<br>        e.value = value;<br>    afterNodeAccess(e);<br>    <span class="hljs-keyword">return</span> oldValue;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里有个陷阱，你突然猛地一看，感觉是那么回事，调用了 afterNodeAccess 方法，但是调用这个方法的前提条件是 e != null，用普通话说就是 如果key已经在map里面存在的时候，才会调用这个方法，那么当 e == null 的时候呢，源码里面调用了 newNode 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// tab[i] 为null的时候</span><br>tab[i] = newNode(hash, key, value, <span class="hljs-keyword">null</span>);<br><br><span class="hljs-comment">// 红黑树上添加一个</span><br>TreeNode&lt;K,V&gt; x = map.newTreeNode(h, k, v, xpn);<br><br><span class="hljs-comment">// 链表上添加一个</span><br>p.next = newNode(hash, key, value, <span class="hljs-keyword">null</span>);<br></code></pre></td></tr></table></figure>
+<p>这里又有一个坑，当我天真的查看 newNode 与 newTreeNode 的时候，发现根本就只是调用了一个构造方法，突然就懵逼了，这根本说不通啊，按照之前的例子的行为，每次添加一个新的元素，也应该要放到双链表的最后才对。在我翻了几篇博客的时候突然想到，这两个方法会不会被LinkedHashMap重写了，查看源码，果然：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function">Node&lt;K,V&gt; <span class="hljs-title">newNode</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; e)</span> </span>&#123;<br>    LinkedHashMapEntry&lt;K,V&gt; p =<br>        <span class="hljs-keyword">new</span> LinkedHashMapEntry&lt;K,V&gt;(hash, key, value, e);<br>    linkNodeLast(p);<br>    <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function">TreeNode&lt;K,V&gt; <span class="hljs-title">newTreeNode</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; next)</span> </span>&#123;<br>    TreeNode&lt;K,V&gt; p = <span class="hljs-keyword">new</span> TreeNode&lt;K,V&gt;(hash, key, value, next);<br>    linkNodeLast(p);<br>    <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这两个货都调用了 linkNodeLast 方法，这个方法看名字就知道是将节点放到最后面，虽然它没有调用 afterNodeAccess，但是他们的作用确是一样的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// link at the end of list</span><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">linkNodeLast</span><span class="hljs-params">(LinkedHashMapEntry&lt;K,V&gt; p)</span> </span>&#123;<br>    LinkedHashMapEntry&lt;K,V&gt; last = tail;<br>    tail = p;<br>    <span class="hljs-keyword">if</span> (last == <span class="hljs-keyword">null</span>)<br>        head = p;<br>    <span class="hljs-keyword">else</span> &#123;<br>        p.before = last;<br>        last.after = p;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这个很简单，就不多说了。稍微提一下，按照源码的逻辑，每次新增的元素都是放在迭代器最后的，无论有没有开启 accessOrder，因为这里没有判断 accessOrder 字段，可以写demo验证一下。</p>
+<p>还有一个忽略的地方，就是 LinkedHashMapEntry 这个 Entry 里面有两个变量 before，after，他们是前后指针，有了他们才能形成双链表。</p>
+<h2 id="LinkedHashMap的结构"><a href="#LinkedHashMap的结构" class="headerlink" title="LinkedHashMap的结构"></a>LinkedHashMap的结构</h2><p>上面也说到过，LinkedHashMap是继承HashMap的，所以底层的数据结构与HashMap一样，不过它有自己的成员变量：head与tail。也就是说它增强了HashMap，在HashMap的基础上又维护了一个双链表。上图便于理解：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/structure.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>红色的箭头就是LinkedHashMap自己维护的双链表，其他的还是HashMap自己的东西。</p>
+<h2 id="LruCache-原理"><a href="#LruCache-原理" class="headerlink" title="LruCache 原理"></a>LruCache 原理</h2><p>LruCache 解释：LRU是Least Recently Used的缩写，即最近最少使用。</p>
+<p><strong>为什么会有这个算法？</strong></p>
+<p>LRU算法的提出，是基于这样一个事实：之前使用过的数据，很可能在后面会频繁的使用到。反过来说，已经很久没有使用的数据很可能在未来较长的一段时间内不会被用到。这个，就是著名的局部性原理。因此，我们只需要在每次缓存满了的时候，移除最长时间没有使用的元素就好了。</p>
+<p>其实看了这段解释，你应该能够想到LinkedHashMap，因为这个货设置 accessOrder 为 true的时候，每次都会将访问的元素放在双链表的最后面，那么当存放的数据满了之后，我们只需要移除head指向的元素就好了，这样的行为非常符合Lru的原理。</p>
+<p>先上类图，搞清楚关系：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/LruCache_class_uml.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>根据类图可以看出一个大概，LruCache的核心还是利用LinkedHashMap来实现的。LruCache的代码并不多，而且不难，300行不到，我们一点一点来看。</p>
+<h3 id="LruCache-构造函数"><a href="#LruCache-构造函数" class="headerlink" title="LruCache 构造函数"></a>LruCache 构造函数</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> maxSize for caches that do not override &#123;<span class="hljs-doctag">@link</span> #sizeOf&#125;, this is</span><br><span class="hljs-comment"> *     the maximum number of entries in the cache. For all other caches,</span><br><span class="hljs-comment"> *     this is the maximum sum of the sizes of the entries in this cache.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LruCache</span><span class="hljs-params">(<span class="hljs-keyword">int</span> maxSize)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (maxSize &lt;= <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;maxSize &lt;= 0&quot;</span>);<br>    &#125;<br>    <span class="hljs-keyword">this</span>.maxSize = maxSize;<br>    <span class="hljs-keyword">this</span>.map = <span class="hljs-keyword">new</span> LinkedHashMap&lt;K, V&gt;(<span class="hljs-number">0</span>, <span class="hljs-number">0.75f</span>, <span class="hljs-keyword">true</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>look，它将 accessOrder 字段设置为 true，负载因子使用推荐（默认）的0.75。</p>
+<h3 id="LruCache-get-方法"><a href="#LruCache-get-方法" class="headerlink" title="LruCache get 方法"></a>LruCache get 方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Returns the value for &#123;<span class="hljs-doctag">@code</span> key&#125; if it exists in the cache or can be</span><br><span class="hljs-comment"> * created by &#123;<span class="hljs-doctag">@code</span> #create&#125;. If a value was returned, it is moved to the</span><br><span class="hljs-comment"> * head of the queue. This returns null if a value is not cached and cannot</span><br><span class="hljs-comment"> * be created.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> V <span class="hljs-title">get</span><span class="hljs-params">(K key)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (key == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">&quot;key == null&quot;</span>);<br>    &#125;<br><br>    V mapValue;<br>    <span class="hljs-comment">// 统计 hitCount 与 missCount</span><br>    <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>        mapValue = map.get(key);<br>        <span class="hljs-keyword">if</span> (mapValue != <span class="hljs-keyword">null</span>) &#123;<br>            hitCount++;<br>            <span class="hljs-keyword">return</span> mapValue;<br>        &#125;<br>        missCount++;<br>    &#125;<br><br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * Attempt to create a value. This may take a long time, and the map</span><br><span class="hljs-comment">     * may be different when create() returns. If a conflicting value was</span><br><span class="hljs-comment">     * added to the map while create() was working, we leave that value in</span><br><span class="hljs-comment">     * the map and release the created value.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-comment">// 如果key值不存在与map中，那么调用 create 方法创建一个，注意这个方法没有同步</span><br>    V createdValue = create(key);<br>    <span class="hljs-comment">// create 方法默认返回 </span><br>    <span class="hljs-keyword">if</span> (createdValue == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// </span><br>    <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>        createCount++;<br>        <span class="hljs-comment">// 将创建的值放入map中，如果map在前面的过程中有别的线程放入了这对key-value，那么会返回放入的value</span><br>        mapValue = map.put(key, createdValue);<br>        <span class="hljs-comment">// 不为空，说明不需要我们所创建的值，所以又把返回的值放进去</span><br>        <span class="hljs-comment">// 将新创建的值丢弃</span><br>        <span class="hljs-keyword">if</span> (mapValue != <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-comment">// There was a conflict so undo that last put</span><br>            map.put(key, mapValue);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-comment">//为空，说明我们更新了这个key的值，需要重新计算大小</span><br>            size += safeSizeOf(key, createdValue);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (mapValue != <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-comment">// 通知创建的值需要被移除，已经有别的线程创建了对应的key-value</span><br>        entryRemoved(<span class="hljs-keyword">false</span>, key, createdValue, mapValue);<br>        <span class="hljs-keyword">return</span> mapValue;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">// 没有冲突时，因为放入了新创建的值，大小已经有变化，所以需要修整大小</span><br>        trimToSize(maxSize);<br>        <span class="hljs-keyword">return</span> createdValue;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>本来是不想贴代码的，因为贴了之后自己记不住，别人也懒得看，但是这个类确实很简单，自己看看就明白了。不帖代码也不知道该怎么写。</p>
+<h2 id="LruCache-put-方法"><a href="#LruCache-put-方法" class="headerlink" title="LruCache put 方法"></a>LruCache put 方法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> V <span class="hljs-title">put</span><span class="hljs-params">(K key, V value)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (key == <span class="hljs-keyword">null</span> || value == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">&quot;key == null || value == null&quot;</span>);<br>    &#125;<br><br>    V previous;<br>    <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>        putCount++;<br>        <span class="hljs-comment">// 计算该 value 占用的缓存大小</span><br>        size += safeSizeOf(key, value);<br>        previous = map.put(key, value);<br>        <span class="hljs-comment">// 如果 key 存在，总的大小需要减去key对应的旧value的大小</span><br>        <span class="hljs-keyword">if</span> (previous != <span class="hljs-keyword">null</span>) &#123;<br>            size -= safeSizeOf(key, previous);<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">// 调用钩子函数</span><br>    <span class="hljs-keyword">if</span> (previous != <span class="hljs-keyword">null</span>) &#123;<br>        entryRemoved(<span class="hljs-keyword">false</span>, key, previous, value);<br>    &#125;<br>    <span class="hljs-comment">// 查看是否需要释放缓存空间</span><br>    trimToSize(maxSize);<br>    <span class="hljs-keyword">return</span> previous;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="LruCache-trimToSize-方法"><a href="#LruCache-trimToSize-方法" class="headerlink" title="LruCache trimToSize 方法"></a>LruCache trimToSize 方法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">trimToSize</span><span class="hljs-params">(<span class="hljs-keyword">int</span> maxSize)</span> </span>&#123;<br>        <span class="hljs-keyword">while</span> (<span class="hljs-keyword">true</span>) &#123;<br>            K key;<br>            V value;<br>            <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>                <span class="hljs-keyword">if</span> (size &lt; <span class="hljs-number">0</span> || (map.isEmpty() &amp;&amp; size != <span class="hljs-number">0</span>)) &#123;<br>                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(getClass().getName()<br>                            + <span class="hljs-string">&quot;.sizeOf() is reporting inconsistent results!&quot;</span>);<br>                &#125;<br><br>                <span class="hljs-keyword">if</span> (size &lt;= maxSize) &#123;<br>                    <span class="hljs-keyword">break</span>;<br>                &#125;<br><br>                <span class="hljs-comment">// BEGIN LAYOUTLIB CHANGE</span><br>                <span class="hljs-comment">// get the last item in the linked list.</span><br>                <span class="hljs-comment">// This is not efficient, the goal here is to minimize the changes</span><br>                <span class="hljs-comment">// compared to the platform version.</span><br>                Map.Entry&lt;K, V&gt; toEvict = <span class="hljs-keyword">null</span>;<br>                <span class="hljs-keyword">for</span> (Map.Entry&lt;K, V&gt; entry : map.entrySet()) &#123;<br>                    toEvict = entry;<br>                &#125;<br>                <span class="hljs-comment">// END LAYOUTLIB CHANGE</span><br><br>                <span class="hljs-keyword">if</span> (toEvict == <span class="hljs-keyword">null</span>) &#123;<br>                    <span class="hljs-keyword">break</span>;<br>                &#125;<br><br>                key = toEvict.getKey();<br>                value = toEvict.getValue();<br>                map.remove(key);<br>                size -= safeSizeOf(key, value);<br>                evictionCount++;<br>            &#125;<br><br>            entryRemoved(<span class="hljs-keyword">true</span>, key, value, <span class="hljs-keyword">null</span>);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+<p>看起来很长，但是其实就是不断的删除Head节点，直到缓存大小小于我们设置的最大缓存大小。没啥说的。</p>
+<h2 id="LruCahe-使用例子"><a href="#LruCahe-使用例子" class="headerlink" title="LruCahe 使用例子"></a>LruCahe 使用例子</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs java">    mMemoryCache = <span class="hljs-keyword">new</span> LruCache&lt;String, BitmapDrawable&gt;(mCacheParams.memCacheSize) &#123;<br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * Notify the removed entry that is no longer being cached</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">entryRemoved</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> evicted, String key,</span></span><br><span class="hljs-params"><span class="hljs-function">                BitmapDrawable oldValue, BitmapDrawable newValue)</span> </span>&#123;<br>            <span class="hljs-keyword">if</span> (RecyclingBitmapDrawable.class.isInstance(oldValue)) &#123;<br>                <span class="hljs-comment">// The removed entry is a recycling drawable, so notify it</span><br>                <span class="hljs-comment">// that it has been removed from the memory cache</span><br>                ((RecyclingBitmapDrawable) oldValue).setIsCached(<span class="hljs-keyword">false</span>);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-comment">// The removed entry is a standard BitmapDrawable</span><br>                <span class="hljs-keyword">if</span> (Utils.hasHoneycomb()) &#123;<br>                    <span class="hljs-comment">// We&#x27;re running on Honeycomb or later, so add the bitmap</span><br>                    <span class="hljs-comment">// to a SoftReference set for possible use with inBitmap later</span><br>                    mReusableBitmaps.add(<span class="hljs-keyword">new</span> SoftReference&lt;Bitmap&gt;(oldValue.getBitmap()));<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * Measure item size in kilobytes rather than units which is more practical</span><br><span class="hljs-comment">         * for a bitmap cache</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">int</span> <span class="hljs-title">sizeOf</span><span class="hljs-params">(String key, BitmapDrawable value)</span> </span>&#123;<br>            <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> bitmapSize = getBitmapSize(value) / <span class="hljs-number">1024</span>;<br>            <span class="hljs-keyword">return</span> bitmapSize == <span class="hljs-number">0</span> ? <span class="hljs-number">1</span> : bitmapSize;<br>        &#125;<br>    &#125;;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>上面的代码是Google很老的例子，因为Lru使用很简单，所以仍然用这个说明一下。</p>
+<p>构造函数传递一个值，是用来限制缓存的大小的，比如你存放 bitmap，那么就需要根据App的可用内存来动态计算这个缓存应该占据多少。</p>
+<p>entryRemoved 就是当资源被回收是会自动回调的一个钩子函数，如果你的缓存里面存放的资源被回收时，你还需要做一些别的操作，那么你需要实现这个方法。举个不恰当的例子，你想缓存一些连接，那么当这个连接被移除的时候，你肯定需要关闭这个连接，这个时候，在 entryRemoved 里面关闭就很容易了。</p>
+<p>sizeOf 就是用来计算每个元素占用空间的大小。比如，图片一般的计算方式是计算图片被读取到内存中的大小，但是有时候可能产品脑子被驴踢了（不恰当的例子），它就要缓存固定个数的图片，不论图片大小，这个时候，sizeOf 就需要返回 1，只有这样才能满足要求。</p>
+<h2 id="LruCache-工作流程图"><a href="#LruCache-工作流程图" class="headerlink" title="LruCache 工作流程图"></a>LruCache 工作流程图</h2><p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Java/link_haskmap/LruCache_flow.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/maosidiaoxian/article/details/51393753">https://blog.csdn.net/maosidiaoxian/article/details/51393753</a></li>
+</ul>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/04/11/blog_bak/Blog/Java/HashMap%E7%9A%84%E6%89%A9%E5%AE%B9%E5%8E%9F%E7%90%86/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">HashMap的扩容原理(基于JDK1.8)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/04/08/blog_bak/Blog/Android-View/%E5%A4%9A%E6%8C%87%E8%A7%A6%E6%8E%A7/">
+                        <span class="hidden-mobile">多指触控</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

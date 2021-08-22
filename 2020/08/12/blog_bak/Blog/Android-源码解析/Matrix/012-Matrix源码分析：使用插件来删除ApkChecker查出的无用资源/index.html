@@ -1,0 +1,568 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>012-Matrix源码分析：使用插件来删除ApkChecker查出的无用资源 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="012-Matrix源码分析：使用插件来删除ApkChecker查出的无用资源">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-08-12 00:00" pubdate>
+        2020年8月12日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.9k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      9
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">012-Matrix源码分析：使用插件来删除ApkChecker查出的无用资源</h1>
+            
+            <div class="markdown-body">
+              <p>在第 010 篇文章中，我们说过了 ApkChecker 是如何查找 apk 中的无用资源的，那么找到之后，如果你不想手动删除资源，然后重新打包的话，该怎么办？</p>
+<p>Matrix 也提供了一个插件来做这个事情，也是在 matrix-gradle-plugin 中，我们介绍方法插桩的时候分析过其中一个插件，还有一个没有介绍，就留到现在说，串起来舒服些。</p>
+<p>里面有个 RemoveUnusedResourcesTask，它就是用来删除无用资源的。</p>
+<p>直接上源码部分：</p>
+<blockquote>
+<p>com.tencent.matrix.plugin.task.RemoveUnusedResourcesTask#removeResources</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 获取未签名的 apk 路径，这些都是 gradle 的 api，就不介绍了，需要自己看文档</span><br>String unsignedApkPath = output.outputFile.getAbsolutePath();<br>Log.i(RemoveUnusedResourcesTask.TAG, <span class="hljs-string">&quot;original apk file %s&quot;</span>, unsignedApkPath);<br><span class="hljs-keyword">long</span> startTime = System.currentTimeMillis();<br><span class="hljs-comment">// 获取 R.txt 文件路径，已经签名信息</span><br>removeUnusedResources(unsignedApkPath, project.getBuildDir().getAbsolutePath() + <span class="hljs-string">&quot;/intermediates/symbols/$&#123;variant.name&#125;/R.txt&quot;</span>, variant.variantData.variantConfiguration.signingConfig);<br></code></pre></td></tr></table></figure>
+
+<p>上面就是获取必要的信息。</p>
+<blockquote>
+<p>com.tencent.matrix.plugin.task.RemoveUnusedResourcesTask#removeUnusedResources</p>
+</blockquote>
+<p>removeUnusedResources 还是比较长的，只截取部分代码，主要流程有就行，其他的可以自行拉我 fork 库的 note 分支查看。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java">File inputFile = <span class="hljs-keyword">new</span> File(originalApk);<br>Set&lt;String&gt; ignoreRes = project.extensions.matrix.removeUnusedResources.ignoreResources;<br><span class="hljs-comment">// 加载配置的应该忽略的资源</span><br><span class="hljs-keyword">for</span> (String res : ignoreRes) &#123;<br>    <span class="hljs-comment">// 通配符转转正则表达式</span><br>    <span class="hljs-comment">// 配置的语法应该支持 * 啥的吧</span><br>    ignoreResources.add(Util.globToRegexp(res));<br>&#125;<br><span class="hljs-comment">// 加载配置的 未使用的资源，这个就是 ApkChecker 分析出来的资源</span><br>Set&lt;String&gt; unusedResources = project.extensions.matrix.removeUnusedResources.unusedResources;<br></code></pre></td></tr></table></figure>
+
+<p>这里是从我们的 build.gradle 文件中，读取配置信息，配置信息长这样：</p>
+<blockquote>
+<p>build.gradle</p>
+</blockquote>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs groovy">apply <span class="hljs-attr">plugin:</span> <span class="hljs-string">&#x27;com.tencent.matrix-plugin&#x27;</span><br>matrix &#123;<br>    trace &#123;<br>        enable = <span class="hljs-literal">true</span><br>        baseMethodMapFile = <span class="hljs-string">&quot;$&#123;project.projectDir&#125;/matrixTrace/methodMapping.txt&quot;</span><br>        blackListFile = <span class="hljs-string">&quot;$&#123;project.projectDir&#125;/matrixTrace/blackMethodList.txt&quot;</span><br>    &#125;<br>    removeUnusedResources &#123;<br>        enable <span class="hljs-literal">true</span><br>        variant = <span class="hljs-string">&quot;debug&quot;</span><br>        needSign <span class="hljs-literal">true</span><br>        shrinkArsc <span class="hljs-literal">true</span><br>        <span class="hljs-comment">//Notice: You need to modify the  value of $apksignerPath on different platform. the value below only suitable for Mac Platform,</span><br>        <span class="hljs-comment">//if on Windows, you may have to  replace apksigner with apksigner.bat.</span><br>        apksignerPath = <span class="hljs-string">&quot;$&#123;android.getSdkDirectory().getAbsolutePath()&#125;/build-tools/$&#123;android.getBuildToolsVersion()&#125;/apksigner.bat&quot;</span><br>        unusedResources = project.ext.unusedResourcesSet<br>        ignoreResources = [<span class="hljs-string">&quot;R.id.*&quot;</span>, <span class="hljs-string">&quot;R.bool.*&quot;</span>]<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>看上面的removeUnusedResources部分，里面有个 unusedResources，这里就应该填上 ApkChecker 分析出来的资源，我们直到 ApkChecker 分析出来的结果是一个 json 文件，那么应该怎么与它关联起来呢？</p>
+<p>官方的 Sample 里面，有一个用法是这样的。</p>
+<p>首先，我们定义一个 ext 属性：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs groovy">ext.unusedResourcesSet = <span class="hljs-keyword">new</span> HashSet&lt;String&gt;();<br></code></pre></td></tr></table></figure>
+
+<p>然后，在打包的时候，插入如下动作：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs groovy">applicationVariants.all &#123; variant -&gt;<br>    <span class="hljs-comment">// 只对 debug 包做处理</span><br>    <span class="hljs-keyword">if</span> (variant.name.equalsIgnoreCase(<span class="hljs-string">&quot;debug&quot;</span>)) &#123;<br>        <span class="hljs-comment">// packageDebug 是一个内置属性</span><br>        packageDebug.doLast &#123;<br>            <span class="hljs-comment">// 打包完成之后，使用 apkchecker 分析这个包</span><br>            ProcessBuilder processBuilder = <span class="hljs-keyword">new</span> ProcessBuilder();<br>            println configurations.apkCheckerDependency.getAt(<span class="hljs-number">0</span>).getAbsolutePath()<br>            processBuilder.command(<span class="hljs-string">&quot;java&quot;</span>,<br>                                   <span class="hljs-string">&quot;-jar&quot;</span>, configurations.apkCheckerDependency.getAt(<span class="hljs-number">0</span>).getAbsolutePath(),<br>                                   <span class="hljs-string">&quot;--apk&quot;</span>, variant.outputs.first().outputFile.getAbsolutePath(),<br>                                   <span class="hljs-string">&quot;--output&quot;</span>, project.getProjectDir().getAbsolutePath() + <span class="hljs-string">&quot;/unused_resources&quot;</span>,<br>                                   <span class="hljs-string">&quot;--format&quot;</span>, <span class="hljs-string">&quot;json&quot;</span>,<br>                                   <span class="hljs-string">&quot;-unusedResources&quot;</span>, <span class="hljs-string">&quot;--rTxt&quot;</span>, project.getBuildDir().getAbsolutePath() + <span class="hljs-string">&quot;/intermediates/symbols/$&#123;variant.name&#125;/R.txt&quot;</span>);<br>            Process process = processBuilder.start();<br>            <span class="hljs-comment">// 等待程序执行完成</span><br>            process.waitFor();<br>            File outputFile = <span class="hljs-keyword">new</span> File(project.getProjectDir().getAbsolutePath() + <span class="hljs-string">&quot;/unused_resources.json&quot;</span>);<br>            <span class="hljs-comment">// 读取 json 文件到 unusedResourcesSet 里面</span><br>            <span class="hljs-keyword">if</span> (outputFile.exists()) &#123;<br>                Gson gson = <span class="hljs-keyword">new</span> Gson();<br>                JsonArray jsonArray = gson.fromJson(outputFile.text, JsonArray.<span class="hljs-keyword">class</span>);<br>                <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; jsonArray.size(); i++) &#123;<br>                    <span class="hljs-keyword">if</span> (jsonArray.get(i).asJsonObject.get(<span class="hljs-string">&quot;taskType&quot;</span>).asInt == <span class="hljs-number">12</span>) &#123;<br>                        JsonArray resList = jsonArray.get(i).asJsonObject.get(<span class="hljs-string">&quot;unused-resources&quot;</span>).asJsonArray;<br>                        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; resList.size(); j++) &#123;<br>                            project.ext.unusedResourcesSet.add(resList.get(j).asString);<br>                        &#125;<br>                        println <span class="hljs-string">&quot;find unused resources:\n&quot;</span> + unusedResourcesSet<br>                        <span class="hljs-keyword">break</span>;<br>                    &#125;<br>                &#125;<br>                outputFile.delete();<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样，我们就拿到了 ApkChecker 里面分析出来的结果，而且还是一步到位。回到源码部分，接着是读取 rTxt 文件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">readResourceTxtFile(resTxtFile, resourceMap, styleableMap);<br></code></pre></td></tr></table></figure>
+
+<p>就是将 R.txt 中的符号表内存读到map里面。</p>
+<p>比如：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">int</span> attr layout_editor_absoluteY <span class="hljs-number">0x7f0200c5</span> <br>就会变成 &#123;<span class="hljs-string">&quot;R.attr.layout_editor_absoluteY&quot;</span>:<span class="hljs-number">0x7f0200c5</span>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">int</span>[] styleable ViewStubCompat &#123; <span class="hljs-number">0x010100d0</span>, <span class="hljs-number">0x010100f2</span>, <span class="hljs-number">0x010100f3</span> &#125; <br>会变成 &#123;<span class="hljs-string">&quot;R.styleable.ViewStubCompat&quot;</span> : [Pair(<span class="hljs-string">&quot;R.styleable.ViewStubCompat&quot;</span>, <span class="hljs-number">0x010100d0</span>)]&#125;<br></code></pre></td></tr></table></figure>
+
+<p>接下来是，拷贝apk里面的文件，针对 res 文件做如下处理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (zipEntry.name.startsWith(<span class="hljs-string">&quot;res/&quot;</span>)) &#123;<br>    <span class="hljs-comment">// zipEntry.name --&gt; res/mipmap-hdpi-v4/ic_launcher_round.png</span><br>    <span class="hljs-comment">// resourceName --&gt; R.mipmap.ic_launcher_round.png</span><br>    String resourceName = entryToResouceName(zipEntry.name);<br>    <span class="hljs-keyword">if</span> (!Util.isNullOrNil(resourceName)) &#123;<br>        <span class="hljs-comment">// 如果有配置了 unusedResources，这里就不拷贝这个资源到新的 apk 里面了</span><br>        <span class="hljs-keyword">if</span> (removeResources.containsKey(resourceName)) &#123;<br>            Log.i(TAG, <span class="hljs-string">&quot;remove unused resource %s&quot;</span>, resourceName);<br>            <span class="hljs-keyword">continue</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            addZipEntry(zipOutputStream, zipEntry, zipInputFile);<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        addZipEntry(zipOutputStream, zipEntry, zipInputFile);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>因为 unusedResources 里面的资源是需要移除的，所以这里只拷贝不在该集合中的资源。</p>
+<p>拷贝文件，针对非 res 文件做如下处理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 为啥 META-INF/ 下的文件也不拷贝</span><br><span class="hljs-comment">// 里面的几个签名文件可以不用管，因为后面会重新签名，但是还有别的文件呢</span><br><span class="hljs-keyword">if</span> (needSign &amp;&amp; zipEntry.name.startsWith(<span class="hljs-string">&quot;META-INF/&quot;</span>)) &#123;<br>    <span class="hljs-keyword">continue</span>;<br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// shrinkArsc 需要精简 arsc 文件，这是大头</span><br>    <span class="hljs-keyword">if</span> (shrinkArsc &amp;&amp; zipEntry.name.equalsIgnoreCase(<span class="hljs-string">&quot;resources.arsc&quot;</span>) &amp;&amp; unusedResources.size() &gt; <span class="hljs-number">0</span>) &#123;<br>        File srcArscFile = <span class="hljs-keyword">new</span> File(inputFile.getParentFile().getAbsolutePath() + <span class="hljs-string">&quot;/resources.arsc&quot;</span>);<br>        File destArscFile = <span class="hljs-keyword">new</span> File(inputFile.getParentFile().getAbsolutePath() + <span class="hljs-string">&quot;/resources_shrinked.arsc&quot;</span>);<br>        <span class="hljs-keyword">if</span> (srcArscFile.exists()) &#123;<br>            srcArscFile.delete();<br>            srcArscFile.createNewFile();<br>        &#125;<br>        <span class="hljs-comment">// 将 zip 文件中的 .asrs 文件解压出来</span><br>        unzipEntry(zipInputFile, zipEntry, srcArscFile);<br><br>        <span class="hljs-comment">// 分析 .arsc 文件，需要一张图配合看</span><br>        <span class="hljs-comment">// https://user-gold-cdn.xitu.io/2019/5/24/16ae9b85b2f4e918?imageView2/0/w/1280/h/960/format/webp/ignore-error/1</span><br>        <span class="hljs-comment">// 或者使用 010 打开看看（推荐）</span><br>        ArscReader reader = <span class="hljs-keyword">new</span> ArscReader(srcArscFile.getAbsolutePath());<br>        ResTable resTable = reader.readResourceTable();<br>        <span class="hljs-keyword">for</span> (String resName : removeResources.keySet()) &#123;<br>            ArscUtil.removeResource(resTable, removeResources.get(resName), resName);<br>        &#125;<br>        <span class="hljs-comment">// 重新生成 .arsc 文件</span><br>        ArscWriter writer = <span class="hljs-keyword">new</span> ArscWriter(destArscFile.getAbsolutePath());<br>        writer.writeResTable(resTable);<br>        Log.i(TAG, <span class="hljs-string">&quot;shrink resources.arsc size %f KB&quot;</span>, (srcArscFile.length() - destArscFile.length()) / <span class="hljs-number">1024.0</span>);<br>        addZipEntry(zipOutputStream, zipEntry, destArscFile);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        addZipEntry(zipOutputStream, zipEntry, zipInputFile);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>里面主要是针对 arsc 文件做了处理，其他的文件原封不动的拷贝就好了。对于 arsc 文件结构，番外篇已经介绍了一部分，这里就只说说它处理了什么吧。</p>
+<p>使用 010 Editor 打开 arsc 文件，会发现如下结构：</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">TablePackageType<br>	<span class="hljs-string">...</span><br>	<span class="hljs-params">--ResTable_typeSpec</span><br>	<span class="hljs-params">--ResTable_type</span><br>		<span class="hljs-params">--ResTable_entry</span><br>		<span class="hljs-params">--Res_value</span><br></code></pre></td></tr></table></figure>
+
+<p>当我们从apk中删除了一些资源后，比如，我们删除了一个 drawable 资源（因为 values 下面的资源都在一个文件中，比如 string.xml 等，所以拷贝时无法删除其中的某一项），那么它的 ResTable_type 这个结构就需要改一下，需要将这个资源对应的 ResTable_entry 与 Res_value 删除才行。这里还要考虑文件的格式，删除还是挺麻烦的，具体可以看代码。</p>
+<p>需要注意的时，删除的时候，需要保证原来的索引不变。比如，有两个 String，A 与 B，假设他们生成的 id 为 （A）0x01 与 （B）0x02，A是个无用资源，当你删除之后，仍然要保证 arsc 文件中，B的id是0X02，而 id 是与该 entry 在数组中的index有关。</p>
+<p>文件都拷贝完成之后，就需要进行签名：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 调用 apksigner 程序，进行签名</span><br>Log.i(TAG, <span class="hljs-string">&quot;resign apk...&quot;</span>);<br>ProcessBuilder processBuilder = <span class="hljs-keyword">new</span> ProcessBuilder();<br>processBuilder.command(apksigner, <span class="hljs-string">&quot;sign&quot;</span>, <span class="hljs-string">&quot;-v&quot;</span>,<br>                       <span class="hljs-string">&quot;--ks&quot;</span>, signingConfig.storeFile.getAbsolutePath(),<br>                       <span class="hljs-string">&quot;--ks-pass&quot;</span>, <span class="hljs-string">&quot;pass:&quot;</span> + signingConfig.storePassword,<br>                       <span class="hljs-string">&quot;--key-pass&quot;</span>, <span class="hljs-string">&quot;pass:&quot;</span> + signingConfig.keyPassword,<br>                       <span class="hljs-string">&quot;--ks-key-alias&quot;</span>, signingConfig.keyAlias,<br>                       outputFile.getAbsolutePath());<br><span class="hljs-comment">//Log.i(TAG, &quot;%s&quot;, processBuilder.command());</span><br>Process process = processBuilder.start();<br>process.waitFor();<br></code></pre></td></tr></table></figure>
+
+<p>直接调用了 apksigner 来做这件事。</p>
+<p>然后是移除 styleable，上面的逻辑只处理了非 styleable 资源：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java">Iterator&lt;String&gt; styleableItera =  styleableMap.keySet().iterator();<br><span class="hljs-keyword">while</span> (styleableItera.hasNext()) &#123;<br>    String styleable = styleableItera.next();<br>    Pair&lt;String, Integer&gt;[] attrs = styleableMap.get(styleable);<br>    <span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; attrs.length; i++) &#123;<br>        <span class="hljs-keyword">if</span> (!removeResources.containsValue(attrs[i].right)) &#123;<br>            <span class="hljs-keyword">break</span><br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (attrs.length &gt; <span class="hljs-number">0</span> &amp;&amp; i == attrs.length) &#123;<br>        Log.i(TAG, <span class="hljs-string">&quot;removed styleable &quot;</span> + styleable);<br>        styleableItera.remove();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>最后，压缩 R.txt，因为删除了些资源：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">shrinkResourceTxtFile(newResTxtFile, resourceMap, styleableMap);<br></code></pre></td></tr></table></figure>
+
+<p>这样，整个流程就完毕了。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Matrix/">Matrix</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/08/17/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/013-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9A%E6%A3%80%E6%B5%8BActivity%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">013-Matrix源码分析：检测Activity内存泄漏</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/08/12/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%95%AA%E5%A4%96%E7%AF%87%EF%BC%9ADex%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+                        <span class="hidden-mobile">Matrix源码分析番外篇：Dex文件结构</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

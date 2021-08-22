@@ -1,0 +1,585 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>View 的 onMeasure 方法 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="View 的 onMeasure 方法">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.9k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      7
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">View 的 onMeasure 方法</h1>
+            
+            <div class="markdown-body">
+              <p>View 的测量过程中，有一个比较重要的类需要掌握：MeasureSpec。我们在阅读源码的时候会发现，在 View 的测量过程中，MeasureSpec 是一个会经常出现的类，如果不先掌握这个类的话，是没法阅读下去的。</p>
+<p>MeasureSpec 会在很大程度上决定一个 View 的尺寸规格，之所以是很大程度上是因为这个过程还受父容器的影响，因为父容器影响 View 的 MesaureSpec 的创建过程。</p>
+<p>在测量过程中，系统会将 View 的 LayoutParams 根据父容器所施加的规则转换成对应的 MeasureSpec，然后再根据这个 MeasureSpec 来测量出 View 的宽/高。</p>
+<h3 id="MeasureSpec"><a href="#MeasureSpec" class="headerlink" title="MeasureSpec"></a>MeasureSpec</h3><p>MeasureSpec 是一个int值，但是这个int值被分为了两部分，一部分表示 SpecMode （测量模式），一部分表示 SpecSize（在某种测量模式下的大小）。</p>
+<p>可能有很多人想不通，一个int型整数怎么可以表示两个东西（大小模式和大小的值），一个int类型我们知道有32位。而<strong>模式有三种</strong>，要表示三种状态，至少得2位二进制位。于是系统采用了最高的2位表示模式。如图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/1346374636_1935.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>最高两位是00的时候表示”未指定模式”，即MeasureSpec.UNSPECIFIED。</p>
+<p>最高两位是01的时候表示”‘精确模式”，即MeasureSpec.EXACTLY。</p>
+<p>最高两位是11的时候表示”最大模式”，即MeasureSpec.AT_MOST。</p>
+<ul>
+<li><p>精确模式（MeasureSpec.EXACTLY）</p>
+<p>在这种模式下，尺寸的值是多少，那么这个组件的长或宽就是多少。</p>
+</li>
+<li><p>最大模式（MeasureSpec.AT_MOST）</p>
+<p>这个也就是父组件，能够给出的最大的空间，当前组件的长或宽最大只能为这么大，当然也可以比这个小。</p>
+</li>
+<li><p>未指定模式（MeasureSpec.UNSPECIFIED）</p>
+<p>这个就是说，当前组件，可以随便用空间，不受限制。</p>
+</li>
+</ul>
+<p>MeasureSpec 通过将 SpecMode 与 SpecSize 打包成一个 int 值来避免过多的对象内存分配。为了方便操作，它还提供了对应的打包与解包方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 将 size 与 mode 组合成一个 MeasureSpec 对象</span><br>android.view.View.MeasureSpec#makeMeasureSpec<br><br><span class="hljs-comment">// 从 MeasureSpec 中获取 mode</span><br>android.view.View.MeasureSpec#getMode<br><br><span class="hljs-comment">// 从 MeasureSpec 中获取 size</span><br>android.view.View.MeasureSpec#getSize<br></code></pre></td></tr></table></figure>
+
+
+
+<p>在 View 测量的时候，系统会将 LayoutParams 在父容器的约束下转换成对应的 MeasureSpec，然后再根据这个 MeasureSpec 来确定 View 测量后的大小。（<strong>这里需要注意，MeasureSpec 不是由 LayoutParams 唯一决定的，而是由 LayoutParams 与父布局一起决定的</strong>）</p>
+<h3 id="各种-View-测量的区别"><a href="#各种-View-测量的区别" class="headerlink" title="各种 View 测量的区别"></a>各种 View 测量的区别</h3><h4 id="顶层-View"><a href="#顶层-View" class="headerlink" title="顶层 View"></a>顶层 View</h4><p>我们知道一般的 View 都会有父布局，但是最顶层的 View 是没有的，那么它是如何测量的呢？</p>
+<p>首先它会获取 LayoutParams，再判断 LayoutParams 宽高的值：</p>
+<ul>
+<li>如果为 LayoutParams.MATCH_PARENT，这表示精确模式，大小就是窗口大小。</li>
+<li>如果为 LayoutParams.WRAP_CONTENT，这表示最大模式，大小未定，但是不能超过窗口大小。</li>
+</ul>
+<p>这就比较简单了，顶层View的测量，一般宽高都是 LayoutParams.MATCH_PARENT，大小为窗口大小。</p>
+<h4 id="子-View"><a href="#子-View" class="headerlink" title="子 View"></a>子 View</h4><p>对于普通的 View 来说，它的测量与父布局有关，而每个父布局的特性又不同，无法每个都涉及到，所以这里采取一个“管中窥豹，可见一斑”的方法。</p>
+<p>这里介绍一下 ViewGroup 的 measureChildWithMargins 方法。</p>
+<blockquote>
+<p>android.view.ViewGroup#measureChildWithMargins</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">measureChildWithMargins</span><span class="hljs-params">(View child,</span></span><br><span class="hljs-params"><span class="hljs-function">        <span class="hljs-keyword">int</span> parentWidthMeasureSpec, <span class="hljs-keyword">int</span> widthUsed,</span></span><br><span class="hljs-params"><span class="hljs-function">        <span class="hljs-keyword">int</span> parentHeightMeasureSpec, <span class="hljs-keyword">int</span> heightUsed)</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();<br><br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,<br>            mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin<br>                    + widthUsed, lp.width);<br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,<br>            mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin<br>                    + heightUsed, lp.height);<br><br>    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>方法中的 getChildMeasureSpec 方法比较长，就不贴代码了，下面会有文字说明。</p>
+<p>getChildMeasureSpec 其实最后就是生成了一个 MeasureSpec 对象。</p>
+<p>它的 size 由<strong>两部分决定</strong>，一个是 <code>parentWidthMeasureSpec</code>，一个是 <code>lp.width / lp.height</code>。</p>
+<p>具体的规则用表说明：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B7.PNG?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>从这个表中我们可以看到，在构造 child 的 MeasureSpec 还是优先考虑了 child 自身的 size 的，特别是 child 直接要求一个固定的值的时候。</p>
+<p>我们深入思考一下，比如我们经常使用到的 LinearLayout（竖向），它在决定 child 的大小的时，肯定不能让 child 的高度与自己的高度一样大，那么它是如何处理的呢？我们看看源码：</p>
+<blockquote>
+<p>android.widget.LinearLayout#measureVertical</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(Math.max(<span class="hljs-number">0</span>, childHeight), MeasureSpec.EXACTLY);<br><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> childWidthMeasureSpec = getChildMeasureSpec(widthMeasureSpec,mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin,lp.width);<br>child.measure(childWidthMeasureSpec, childHeightMeasureSpec);<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，LinearLayout 并没有使用 ViewGroup 提供的 measureChild 方法，因为它并不符合 LinearLayout 的特性。那么哪一个布局符合呢？？？FrameLayout！！！</p>
+<blockquote>
+<p>android.widget.FrameLayout#onMeasure</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onMeasure</span><span class="hljs-params">(<span class="hljs-keyword">int</span> widthMeasureSpec, <span class="hljs-keyword">int</span> heightMeasureSpec)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> count = getChildCount();<br>			<br>    ...<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; count; i++) &#123;<br>        <span class="hljs-keyword">final</span> View child = getChildAt(i);<br>        <span class="hljs-keyword">if</span> (mMeasureAllChildren || child.getVisibility() != GONE) &#123;<br>            measureChildWithMargins(child, widthMeasureSpec, <span class="hljs-number">0</span>, heightMeasureSpec, <span class="hljs-number">0</span>);<br>...<br>        &#125;<br>    &#125;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，它就是直接使用了 measureChildWithMargins 方法，因为它的特性只是做了一个层叠，并没有其他对 child 有其他限制，所以可以直接使用。</p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p>说了这么多，我们来看看一个实际的应用场景吧。</p>
+<p>我们知道，TextView 是有自己的 onMeasure 方法的。系统提供的 TextView，文字是从做到右的，那么我们现在想做这样的一个效果，将 TextView 的显示旋转一下，从上到下。如下图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B71.PNG?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>变成这样：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-View/View/%E6%8D%95%E8%8E%B72.PNG?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>那么，有的同学就说话了，这旋转一下不就不可以了吗！是这样吗？在我们的屏幕中，不可能只会有一个 TextView，所以这个 TextView 很可能会与其他控件一起排列，当我们在旋转之前，假设它的宽与高是 100*300，那么旋转之后，它的高度变成了300，这个时候，由于父布局的限制，我们很可能看不到整个 TextView。而且我们在 xml 中也不好去预览它的效果。</p>
+<p>那么下面，我们就来实现一下这个效果。</p>
+<p>首先我们需要处理该控件的大小。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onMeasure</span><span class="hljs-params">(<span class="hljs-keyword">int</span> widthMeasureSpec, <span class="hljs-keyword">int</span> heightMeasureSpec)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>.measure(heightMeasureSpec, widthMeasureSpec);<br>    setMeasuredDimension(getMeasuredHeight(), getMeasuredWidth());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们首先来看这个方法：<code>super.measure(heightMeasureSpec, widthMeasureSpec);</code>。</p>
+<p>这行代码非常容易引起误解，<strong>有的人就以为，我们将 widthMeasureSpec 与 heightMeasureSpec 换了一下，那么它测量出来的宽高自然就会互换。这是错误的理解！！！</strong></p>
+<p>比如，我们在 xml 中是这样使用这个自定义控件的：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">RelativeLayout</span> <span class="hljs-attr">xmlns:android</span>=<span class="hljs-string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">xmlns:tools</span>=<span class="hljs-string">&quot;http://schemas.android.com/tools&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">xmlns:app</span>=<span class="hljs-string">&quot;http://schemas.android.com/apk/res/com.yoog.widget&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;match_parent&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;match_parent&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">tools:context</span>=<span class="hljs-string">&quot;.MainActivity&quot;</span> &gt;</span><br>    <br>    <span class="hljs-tag">&lt;<span class="hljs-name">com.yoog.widget.VerticalTextView</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:text</span>=<span class="hljs-string">&quot;20:59&quot;</span>                              </span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;wrap_content&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;wrap_content&quot;</span> /&gt;</span><br>    <br><span class="hljs-tag">&lt;/<span class="hljs-name">RelativeLayout</span>&gt;</span><br><br></code></pre></td></tr></table></figure>
+
+<p>我们假设<code>20：59</code>这串文字的长度为 300，高度为 100。父布局的宽高均大于 300。</p>
+<p>所以，TextView 测量出来的就是 300*100，VerticalTextView 测量出来的值应该是 100 * 300。</p>
+<p>但是，如果父布局的高度只有 250 的时候，横着测量的时候，是完全没有问题的，仍然测量出 300 * 100，但是竖着测量的时候，高度只能有 250，它需要换行，所以，结果是 100 * 250。</p>
+<p>所以说，<strong>将 widthMeasureSpec 与 heightMeasureSpec 互换，只是为了正确的将父布局对 child 的影响正确的传递进去</strong>。</p>
+<p>由于，正确的传递了父容器的宽与高，走 TextView 的方法自然就会测量出正确的值，然后我们调用 <code>setMeasuredDimension(getMeasuredHeight(), getMeasuredWidth());</code> 方法，就可以将宽与高换过来了。</p>
+<p>至于 onDraw 方法，我们就不深入了，只需要在 view 的左上角旋转一下画布就好了。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/View/">View</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/Drawable%20%E4%BB%8B%E7%BB%8D/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Drawable 介绍</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/View%20%E7%9A%84%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91/">
+                        <span class="hidden-mobile">View 的事件分发</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

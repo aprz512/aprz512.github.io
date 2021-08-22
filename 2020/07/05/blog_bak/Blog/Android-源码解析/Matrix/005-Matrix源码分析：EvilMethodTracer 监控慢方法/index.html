@@ -1,0 +1,541 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>005-Matrix源码分析：EvilMethodTracer 监控慢方法 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="005-Matrix源码分析：EvilMethodTracer 监控慢方法">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-07-05 00:00" pubdate>
+        2020年7月5日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      5
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">005-Matrix源码分析：EvilMethodTracer 监控慢方法</h1>
+            
+            <div class="markdown-body">
+              <p>这里我们来分析一下如何监测主线程里面的一些慢方法。</p>
+<p>我们先写一个例子，例子很简单，点击一个按钮，执行一个方法，这个方法里面又调用了许多别的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs java">Button test = findViewById(R.id.test);<br>test.setOnClickListener(<span class="hljs-keyword">new</span> View.OnClickListener() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onClick</span><span class="hljs-params">(View v)</span> </span>&#123;<br>        f();<br>    &#125;<br>&#125;);<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span> </span>&#123;<br>    A();<br>    A();<br>    A();<br>    A();<br>    B();<br>    C();<br>    D();<br>    E();<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">A</span><span class="hljs-params">()</span> </span>&#123;<br>    SystemClock.sleep(<span class="hljs-number">100</span>);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">B</span> <span class="hljs-params">()</span> </span>&#123;<br>    SystemClock.sleep(<span class="hljs-number">200</span>);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">C</span><span class="hljs-params">()</span> </span>&#123;<br>    SystemClock.sleep(<span class="hljs-number">300</span>);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">D</span><span class="hljs-params">()</span> </span>&#123;<br>    SystemClock.sleep(<span class="hljs-number">1</span>);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">E</span><span class="hljs-params">()</span> </span>&#123;<br>    SystemClock.sleep(<span class="hljs-number">5</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里可以想一下，如果是你自己的话，你希望得出一个什么样的足够直观的监测结果呢？</p>
+<p>这里其实 A B C 三个方法都比较耗时，我们看看日志输出：</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs 1c">&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; maybe happens Jankiness!(<span class="hljs-number">916</span>ms) &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br><span class="hljs-string">|* scene: com.example.sample.MainActivity</span><br><span class="hljs-string">|* [ProcessStat]</span><br><span class="hljs-string">|*		Priority: 10</span><br><span class="hljs-string">|*		Nice: -10</span><br><span class="hljs-string">|*		Foreground: true</span><br><span class="hljs-string">|* [CPU]</span><br><span class="hljs-string">|*		usage: 0.33%</span><br><span class="hljs-string">|* [doFrame]</span><br><span class="hljs-string">|*		inputCost: 120000</span><br><span class="hljs-string">|*		animationCost: 418100</span><br><span class="hljs-string">|*		traversalCost: 6311100</span><br><span class="hljs-string">|* [Trace]</span><br><span class="hljs-string">|*		StackSize: 8</span><br><span class="hljs-string">|*		StackKey: 2|</span><br><span class="hljs-string">|*		TraceStack:</span><br><span class="hljs-string">|*			[id count cost]</span><br><span class="hljs-string">|*		1048574 1 916</span><br><span class="hljs-string">|*		.1 1 913</span><br><span class="hljs-string">|*		..2 1 913</span><br><span class="hljs-string">|*		...3 4 403</span><br><span class="hljs-string">|*		...4 1 198</span><br><span class="hljs-string">|*		...5 1 300</span><br><span class="hljs-string">|*		...6 1 6</span><br><span class="hljs-string">|*		...7 1 6</span><br>=========================================================================<br></code></pre></td></tr></table></figure>
+
+<p>doFrame 项里面的参数都是 ns，所以他们都是正常范围的。</p>
+<p>我们看 trace 项，发现有个方法耗时 913 毫秒，这个肯定就是不正常了。</p>
+<p>看下 methodMapping：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs less"><span class="hljs-selector-tag">1</span>,<span class="hljs-selector-tag">4</span>,<span class="hljs-selector-tag">com</span><span class="hljs-selector-class">.example</span><span class="hljs-selector-class">.sample</span><span class="hljs-selector-class">.MainActivity</span> <span class="hljs-selector-tag">onCreate</span> (Landroid.os.Bundle;)<span class="hljs-selector-tag">V</span><br><span class="hljs-selector-tag">2</span>,<span class="hljs-selector-tag">0</span>,<span class="hljs-selector-tag">com</span><span class="hljs-selector-class">.example</span><span class="hljs-selector-class">.sample</span><span class="hljs-selector-class">.MainActivity</span> <span class="hljs-selector-tag">f</span> ()<span class="hljs-selector-tag">V</span><br><span class="hljs-selector-tag">3</span>,<span class="hljs-selector-tag">0</span>,<span class="hljs-selector-tag">com</span><span class="hljs-selector-class">.example</span><span class="hljs-selector-class">.sample</span><span class="hljs-selector-class">.MainActivity</span> <span class="hljs-selector-tag">A</span> ()<span class="hljs-selector-tag">V</span><br><span class="hljs-selector-tag">4</span>,<span class="hljs-selector-tag">0</span>,<span class="hljs-selector-tag">com</span><span class="hljs-selector-class">.example</span><span class="hljs-selector-class">.sample</span><span class="hljs-selector-class">.MainActivity</span> <span class="hljs-selector-tag">B</span> ()<span class="hljs-selector-tag">V</span><br><span class="hljs-selector-tag">5</span>,<span class="hljs-selector-tag">0</span>,<span class="hljs-selector-tag">com</span><span class="hljs-selector-class">.example</span><span class="hljs-selector-class">.sample</span><span class="hljs-selector-class">.MainActivity</span> <span class="hljs-selector-tag">C</span> ()<span class="hljs-selector-tag">V</span><br><span class="hljs-selector-tag">6</span>,<span class="hljs-selector-tag">2</span>,<span class="hljs-selector-tag">com</span><span class="hljs-selector-class">.example</span><span class="hljs-selector-class">.sample</span><span class="hljs-selector-class">.MainActivity</span> <span class="hljs-selector-tag">D</span> ()<span class="hljs-selector-tag">V</span><br><span class="hljs-selector-tag">7</span>,<span class="hljs-selector-tag">2</span>,<span class="hljs-selector-tag">com</span><span class="hljs-selector-class">.example</span><span class="hljs-selector-class">.sample</span><span class="hljs-selector-class">.MainActivity</span> <span class="hljs-selector-tag">E</span> ()<span class="hljs-selector-tag">V</span><br><span class="hljs-selector-tag">1048574</span>,<span class="hljs-selector-tag">1</span>,<span class="hljs-selector-tag">android</span><span class="hljs-selector-class">.os</span><span class="hljs-selector-class">.Handler</span> <span class="hljs-selector-tag">dispatchMessage</span> (Landroid.os.Message;)<span class="hljs-selector-tag">V</span><br></code></pre></td></tr></table></figure>
+
+<p>与堆栈一对应，发现就是我们例子的方法。</p>
+<p>仔细想一下，这个的工作原理应该是与 AnrTracer 是一样的，都是以单个 message 为单位，分析所有调用的函数，然后生成堆栈信息。</p>
+<p>我们看看源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">dispatchBegin</span><span class="hljs-params">(<span class="hljs-keyword">long</span> beginMs, <span class="hljs-keyword">long</span> cpuBeginMs, <span class="hljs-keyword">long</span> token)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>.dispatchBegin(beginMs, cpuBeginMs, token);<br>    indexRecord = AppMethodBeat.getInstance().maskIndex(<span class="hljs-string">&quot;EvilMethodTracer#dispatchBegin&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>创建一个 IndexRecord。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doFrame</span><span class="hljs-params">(String focusedActivityName, <span class="hljs-keyword">long</span> start, <span class="hljs-keyword">long</span> end, <span class="hljs-keyword">long</span> frameCostMs, <span class="hljs-keyword">long</span> inputCostNs, <span class="hljs-keyword">long</span> animationCostNs, <span class="hljs-keyword">long</span> traversalCostNs)</span> </span>&#123;<br>    queueTypeCosts[<span class="hljs-number">0</span>] = inputCostNs;<br>    queueTypeCosts[<span class="hljs-number">1</span>] = animationCostNs;<br>    queueTypeCosts[<span class="hljs-number">2</span>] = traversalCostNs;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>记录 doFrame 三个队列的耗时。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">dispatchEnd</span><span class="hljs-params">(<span class="hljs-keyword">long</span> beginMs, <span class="hljs-keyword">long</span> cpuBeginMs, <span class="hljs-keyword">long</span> endMs, <span class="hljs-keyword">long</span> cpuEndMs, <span class="hljs-keyword">long</span> token, <span class="hljs-keyword">boolean</span> isBelongFrame)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>.dispatchEnd(beginMs, cpuBeginMs, endMs, cpuEndMs, token, isBelongFrame);<br>    <span class="hljs-keyword">long</span> start = config.isDevEnv() ? System.currentTimeMillis() : <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-keyword">long</span> dispatchCost = endMs - beginMs;<br>        <span class="hljs-comment">// 消息处理耗时超过 700ms</span><br>        <span class="hljs-keyword">if</span> (dispatchCost &gt;= evilThresholdMs) &#123;<br>            <span class="hljs-keyword">long</span>[] data = AppMethodBeat.getInstance().copyData(indexRecord);<br>            <span class="hljs-keyword">long</span>[] queueCosts = <span class="hljs-keyword">new</span> <span class="hljs-keyword">long</span>[<span class="hljs-number">3</span>];<br>            System.arraycopy(queueTypeCosts, <span class="hljs-number">0</span>, queueCosts, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>);<br>            String scene = AppMethodBeat.getVisibleScene();<br>            <span class="hljs-comment">// 发送到子线程去分析</span><br>            MatrixHandlerThread.getDefaultHandler().post(<span class="hljs-keyword">new</span> AnalyseTask(isForeground(), scene, data, queueCosts, cpuEndMs - cpuBeginMs, endMs - beginMs, endMs));<br>        &#125;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        indexRecord.release();<br>        <span class="hljs-keyword">if</span> (config.isDevEnv()) &#123;<br>            String usage = Utils.calculateCpuUsage(cpuEndMs - cpuBeginMs, endMs - beginMs);<br>            MatrixLog.v(TAG, <span class="hljs-string">&quot;[dispatchEnd] token:%s cost:%sms cpu:%sms usage:%s innerCost:%s&quot;</span>,<br>                    token, endMs - beginMs, cpuEndMs - cpuBeginMs, usage, System.currentTimeMillis() - start);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法最重要，就是在每个 message 处理完成后，分析一下设计到的所有方法的执行时间。</p>
+<p>我们看看 AnalyseTask 做了什么：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs java">     <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">analyse</span><span class="hljs-params">()</span> </span>&#123;<br><br>         <span class="hljs-comment">// process</span><br>         <span class="hljs-keyword">int</span>[] processStat = Utils.getProcessPriority(Process.myPid());<br>         String usage = Utils.calculateCpuUsage(cpuCost, cost);<br>         LinkedList&lt;MethodItem&gt; stack = <span class="hljs-keyword">new</span> LinkedList();<br>         <span class="hljs-keyword">if</span> (data.length &gt; <span class="hljs-number">0</span>) &#123;<br>             TraceDataUtils.structuredDataToStack(data, stack, <span class="hljs-keyword">true</span>, endMs);<br>             TraceDataUtils.trimStack(stack, Constants.TARGET_EVIL_METHOD_STACK, <span class="hljs-keyword">new</span> TraceDataUtils.IStructuredDataFilter() &#123;<br>                 <span class="hljs-meta">@Override</span><br>                 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isFilter</span><span class="hljs-params">(<span class="hljs-keyword">long</span> during, <span class="hljs-keyword">int</span> filterCount)</span> </span>&#123;<br>                     <span class="hljs-keyword">return</span> during &lt; filterCount * Constants.TIME_UPDATE_CYCLE_MS;<br>                 &#125;<br><br>                 <span class="hljs-meta">@Override</span><br>                 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getFilterMaxCount</span><span class="hljs-params">()</span> </span>&#123;<br>                     <span class="hljs-keyword">return</span> Constants.FILTER_STACK_MAX_COUNT;<br>                 &#125;<br><br>                 <span class="hljs-meta">@Override</span><br>                 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">fallback</span><span class="hljs-params">(List&lt;MethodItem&gt; stack, <span class="hljs-keyword">int</span> size)</span> </span>&#123;<br>                     MatrixLog.w(TAG, <span class="hljs-string">&quot;[fallback] size:%s targetSize:%s stack:%s&quot;</span>, size, Constants.TARGET_EVIL_METHOD_STACK, stack);<br>                     Iterator iterator = stack.listIterator(Math.min(size, Constants.TARGET_EVIL_METHOD_STACK));<br>                     <span class="hljs-keyword">while</span> (iterator.hasNext()) &#123;<br>                         iterator.next();<br>                         iterator.remove();<br>                     &#125;<br>                 &#125;<br>             &#125;);<br>         &#125;<br><br><br>         StringBuilder reportBuilder = <span class="hljs-keyword">new</span> StringBuilder();<br>         StringBuilder logcatBuilder = <span class="hljs-keyword">new</span> StringBuilder();<br>         <span class="hljs-keyword">long</span> stackCost = Math.max(cost, TraceDataUtils.stackToString(stack, reportBuilder, logcatBuilder));<br>         String stackKey = TraceDataUtils.getTreeKey(stack, stackCost);<br><br>         MatrixLog.w(TAG, <span class="hljs-string">&quot;%s&quot;</span>, printEvil(scene, processStat, isForeground, logcatBuilder, stack.size(), stackKey, usage, queueCost[<span class="hljs-number">0</span>], queueCost[<span class="hljs-number">1</span>], queueCost[<span class="hljs-number">2</span>], cost)); <span class="hljs-comment">// for logcat</span><br>...<br><br>     &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里差不多与 AnrTracer 一样的流程，因该很好看懂，就不多说了。</p>
+<p>其实只要理清核心之处就好了，AnrTracer 是延迟5s发送分析任务，EvilMethodTracer 是每个消息处理结束后分析，但是它设定了阈值。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在每个 Message 处理的时候，检测了两个方法调用的时间间隔：</p>
+<ul>
+<li>dispatchBegin 记录一个时间</li>
+<li>dispatchEnd 记录一个时间</li>
+</ul>
+<p>如果这两个时间超过了 700ms，那么就分析这两个时间段之间的 long 数组，然后分析堆栈与耗时。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Matrix/">Matrix</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/07/06/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/007-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AStartupTracer%20%E7%9B%91%E6%8E%A7%E5%86%B7%E5%90%AF%E5%8A%A8%E6%97%B6%E9%97%B4/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">007-Matrix源码分析：StartupTracer 监控冷启动时间</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/07/02/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/004-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AAnrTracer%20%E7%9B%91%E6%8E%A7ANR/">
+                        <span class="hidden-mobile">004-Matrix源码分析：AnrTracer 监控ANR</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,550 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>Android进程与应用的生命周期 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Android进程与应用的生命周期">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      6
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Android进程与应用的生命周期</h1>
+            
+            <div class="markdown-body">
+              <p>官方文档在<a target="_blank" rel="noopener" href="https://developer.android.com/guide/components/activities/process-lifecycle">这里</a>。</p>
+<p>本来，官方文档的部分内容已经汉化了，但是翻译实在是惨不忍睹，而且有些内容<strong>与原文还不一致</strong>，真不晓得是怎么回事。</p>
+<p>大多数情况下，每个 Android 应用程序运行在自己的 Liunx 进程当中。在应用中的某些代码需要运行的时候，这个进程就会被创建出来，它会一直运行，直到该进程不再被需要了或者系统需要释放该进程占用的内存以便让别的应用运行。</p>
+<p>Android 有一个特殊的基本特征：<strong>应用程序进程的生命周期不是由自己本身直接控制的</strong>。取而代之的，是由系统通过几个方面的综合考量来决定的：系统知道的正在运行的应用程序，这些应用程序对用户的重要性，系统可用的剩余内存。</p>
+<p>开发者需要理解应用程序的不同组件（特别是 Activity，Service，BroadcastReceiver）对应用程序进程生命周期的影响。如果没有正确的使用这些组件，可能会导致你在执行某些很重要的任务时突然进程被系统给干掉了。</p>
+<p>这里有一个例子，是关于进程生命周期的 bug 的。我们在使用 BroadcastReceiver 的时候，当它的 onReceive 方法被触发，我们会开启一个线程去执行任务，onReceive 方法会直接返回。一旦 onReceive 方法返回了，系统就会认为 BroadcastReceiver 不再处于活动状态，所以，它所在的进程也就不需要了（除非进程里面还有其他的组件处于活动状态）。然后系统可能在任何时候杀掉这个进程来回收内存，这样就会终止进程里面正在运行的线程。这个问题的解决方案是使用 JobService，使用了 JobSerive 之后，系统就会知道进程里面仍然有活要干。</p>
+<p>为了确定在内存不足的时候应该干掉哪些进程，Android 会根据进程中运行的组件以及这个组件的状态来给每个进程分配一个级别（按重要性排序）：</p>
+<ol>
+<li><p><strong>前台进程</strong>：用户正在与之交互的进程。前台进程有多种产生的情况：</p>
+<ul>
+<li>有一个用户正在交互的处于屏幕最顶部的 Activity（onResume 执行过了）</li>
+<li>有一个正在运行的广播（BroadcastReceiver.onReceive() 方法正在执行）</li>
+<li>有一个正在执行回调方法代码（onCreate，onStart，onDestroy）的 Service</li>
+</ul>
+<p>系统中这样的进程非常少，只有当可用内存极少，而且这些进程都无法正常运行的时候，才会将它们杀掉。</p>
+<p>文档还有一句话，我不是很理解：</p>
+<blockquote>
+<p> Generally, at this point, the device has reached a memory paging state, so this action is required in order to keep the user interface responsive.</p>
+</blockquote>
+<p><strong>内存分页我知道，内存分页状态是个啥？？？</strong></p>
+</li>
+<li><p><strong>可见进程</strong>：可见进程中运行的任务用户是可以注意到的，所以杀掉它会给用户体验产生明显的负面影响。满足下面的一些条件的是可见进程：</p>
+<ul>
+<li><p>Activity 可见但是不处于前台，比如：一个前台的 activity 以 dialog 的形式显示出来，那么在它后面的那个 activity 就是可见状态。</p>
+</li>
+<li><p>Service 调用了  <code>Service.startForeground()</code> 方法。这会让系统意识到该服务是会让用户注意到或者可见的。</p>
+</li>
+<li><blockquote>
+<p>It is hosting a service that the system is using for a particular feature that the user is aware, such as a live wallpaper, input method service, etc.</p>
+<p>这个我不太明白意思。</p>
+</blockquote>
+</li>
+</ul>
+<p>可见进程的数量比前台进程要多，但是也多不了多少，处于可管控的范围之内。这些进程是非常重要的，只有在前台进程无法正常运行的时候，才会杀掉它们。</p>
+</li>
+<li><p><strong>服务进程</strong>：一个Service通过 <code>startService()</code> 方法启动即为服务进程。尽管它们对用户不可见，但是它们通常都在后台做一些用户关系的事情（比如：上传与下载）。所以系统一般也不会杀掉它们，除非系统无法保证所有的前台与可见进程正常运行。</p>
+<p>长时间运行的服务（超过30分钟）其优先级会降低（在下面所说的 LRU 表中会向后移动）。这有助于避免出现内存泄漏或其他问题的长时间运行的服务占用大量RAM而导致系统无法有效使用缓存进程的情形。</p>
+</li>
+<li><p><strong>缓存进程</strong>：缓存进程是指当前不需要的，当系统需要内存的时候是可以随意杀掉的进程。在一个正常运行的系统中，内存管理应该只会涉及到缓存进程：运行良好的系统将始终提供多个缓存进程（以便在应用程序之间进行更高效的切换），并根据需要定期终止最旧的进程。只有在非常极端（且不可取）的情况下，系统才会杀死所有缓存进程，而且必须开始终止服务进程。</p>
+<p>这些进程通常保留了一个或者多个 Activity 的实例（onStop 方法被调用而且返回了），这些 Activity 对用户都不可见。如果开发者正确的实现了 Activity 的生命周期，当系统杀掉这些进程的时候，用户是感知不到的，而且当用户返回这个 App 的时候，也不会影响用户体验：因为系统保存了当前 Activity 的状态，会重新创建该 Activity。</p>
+<p>这些进程保存在伪LRU列表中，列表中的最后一个进程是第一个被回收内存的进程。这个列表通常会将更有用的进程（桌面应用程序，用户最后一个使用的 app）放到其他进程的前面。杀掉进程可能还会有其他的策略（依赖于具体平台的实现）：对进程的数量进行限制，对进程可缓存的时间进行限制。</p>
+<p>在决定如何对进程进行分类时，系统将根据进程中当前活动的所有组件中找到的最重要级别做出决策。具体查看  <code>Activity</code>, <code>Service</code>, and <code>BroadcastReceiver</code> 的文档。它们的文档都详细地描述了它们是如何影响应用程序的整个生命周期的。</p>
+<p>当一个进程被其他进程依赖时，该进程的优先级可能会增加。例如，进程A使用Context.BIND_AUTO_CREATE标志绑定到Service，或者正在使用进程B中的ContentProvider，则进程B的重要级别将始终至少与进程A一样重要。</p>
+</li>
+</ol>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android-%E6%B1%89%E5%8C%96/">Android-汉化</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/%E8%87%AA%E5%AE%9A%E4%B9%89LayoutManager/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">自定义LayoutManager</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Gradle/productFlavors%E4%B8%8EbuildTypes/">
+                        <span class="hidden-mobile">productFlavors与buildTypes</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

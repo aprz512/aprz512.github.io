@@ -1,0 +1,571 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>Provider的理解 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Provider的理解">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-03-04 00:00" pubdate>
+        2021年3月4日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.6k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      6
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Provider的理解</h1>
+            
+            <div class="markdown-body">
+              <p>Provider 是官方推荐的状态管理框架。那么状态又是什么东西？在 Flutter 中，万物都是 Widget，Widget 又分为两种：</p>
+<ul>
+<li>StatelessWidget（无状态）</li>
+<li>StatefulWidget  (有状态）</li>
+</ul>
+<figure class="highlight pf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs pf">有些widgets是有状态的, 有些是无状态的<br>如果用户与widget交互，widget会发生变化，那么它就是有状态的.<br>widget的状态（<span class="hljs-keyword">state</span>）是一些可以更改的值, 如一个slider滑动条的当前值或checkbox是否被选中.<br>widget的状态保存在一个State对象中, 它和widget的布局显示分离。<br>当widget状态改变时, State 对象调用<span class="hljs-built_in">set</span>State(), 告诉框架去重绘widget.<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="管理状态"><a href="#管理状态" class="headerlink" title="管理状态"></a>管理状态</h3><figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs erlang">有多种方法可以管理状态.<br>如果不是很清楚时, 那就在父widget中管理状态吧.<br></code></pre></td></tr></table></figure>
+
+<p>以下是管理状态的最常见的方法：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://flutterchina.club/tutorials/interactive/#self-managed">widget管理自己的state</a></li>
+<li><a target="_blank" rel="noopener" href="https://flutterchina.club/tutorials/interactive/#parent-managed">父widget管理 widget状态</a></li>
+<li><a target="_blank" rel="noopener" href="https://flutterchina.club/tutorials/interactive/#mix-and-match">混搭管理（父widget和widget自身都管理状态））</a></li>
+</ul>
+<p>如何决定使用哪种管理方法？以下原则可以帮助您决定：</p>
+<ul>
+<li>如果状态是用户数据，如复选框的选中状态、滑块的位置，则该状态最好由父widget管理</li>
+<li>如果所讨论的状态是有关界面外观效果的，例如动画，那么状态最好由widget本身来管理.</li>
+</ul>
+<h3 id="Provider"><a href="#Provider" class="headerlink" title="Provider"></a>Provider</h3><p>通常，我们的一个页面会有许多控件，对应着许多状态。在看法Android的时候，每个页面对应着一个 ViewModel，这个 ViewModel 里面的数据是变化的，它的每个快照，就是页面该时刻的状态。</p>
+<p>上面，我们说到，Widget 可以将状态的管理交给父类，实际上，通常使用 Provider 的时候，页面上所有的 widget 会将状态交给顶层 Widget 去管理，由于它是对 <a target="_blank" rel="noopener" href="https://api.flutter.dev/flutter/widgets/InheritedWidget-class.html">InheritedWidget</a> 进行了封装，所以页面上所有的子 Widget 可以进行数据共享与监听。</p>
+<h3 id="InheritedWidget"><a href="#InheritedWidget" class="headerlink" title="InheritedWidget"></a>InheritedWidget</h3><p>下面介绍一下，InheritedWidget 是如何做到子 Widget 可以获取父 Widget 的数据的，以及一些特殊的效果。</p>
+<p>我们使用 InheritedWidget 时涉及到的工作量主要有 2 部分：</p>
+<ul>
+<li>创建一个继承自 InheritedWidget 的类，并将其插入 Widget 树</li>
+<li>通过 BuildContext 对象提供的 <code>inheritFromWidgetOfExactType</code> 方法查找 Widget 树中最近的一个特定类型的 InheritedWidget 类的实例</li>
+</ul>
+<p>这里还暗含了一个逻辑，那就是当我们通过 <code>inheritFromWidgetOfExactType</code> 查找特定类型 InheritedWidget 的时候，这个 InheritedWidget 的信息是由父元素层层向子元素传递下来的呢？还是 <code>inheritFromWidgetOfExactType</code> 方法自己层层向上查找的呢？</p>
+<h4 id="InheritedWidget-相关信息的传递机制"><a href="#InheritedWidget-相关信息的传递机制" class="headerlink" title="InheritedWidget 相关信息的传递机制"></a>InheritedWidget 相关信息的传递机制</h4><p>每个 Element 实例上都有一个 <code>_inheritedWidgets</code> 属性。该属性的类型为：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs dart">HashMap&lt;<span class="hljs-built_in">Type</span>, InheritedElement&gt;<br></code></pre></td></tr></table></figure>
+
+<p>其中保存了祖先节点中出现的 InheritedWidget 与其对应 element 的映射关系。在 element 的 <a target="_blank" rel="noopener" href="https://github.com/flutter/flutter/blob/v0.5.7/packages/flutter/lib/src/widgets/framework.dart#L2754"><code>mount</code> 阶段</a>和 <a target="_blank" rel="noopener" href="https://github.com/flutter/flutter/blob/v0.5.7/packages/flutter/lib/src/widgets/framework.dart#L3019"><code>active</code> 阶段</a>，会执行 <code>_updateInheritance()</code> 方法更新这个映射关系。</p>
+<p>对于普通 Element 实例，<code>_updateInheritance()</code> 只是<a target="_blank" rel="noopener" href="https://github.com/flutter/flutter/blob/v0.5.7/packages/flutter/lib/src/widgets/framework.dart#L3251-L3254">单纯把父 element 的 <code>_inheritedWidgets</code> 属性保存在自身 <code>_inheritedWidgets</code> 里</a>。从而实现映射关系的层层向下传递。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs dart"><span class="hljs-keyword">void</span> _updateInheritance() &#123;<br>  <span class="hljs-keyword">assert</span>(_active);<br>  _inheritedWidgets = _parent?._inheritedWidgets;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>由 InheritedWidget 创建的 InheritedElement <a target="_blank" rel="noopener" href="https://github.com/flutter/flutter/blob/v0.5.7/packages/flutter/lib/src/widgets/framework.dart#L4039-L4047">重写了该方法</a>：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs dart"><span class="hljs-keyword">void</span> _updateInheritance() &#123;<br>  <span class="hljs-keyword">assert</span>(_active);<br>  <span class="hljs-keyword">final</span> <span class="hljs-built_in">Map</span>&lt;<span class="hljs-built_in">Type</span>, InheritedElement&gt; incomingWidgets = _parent?._inheritedWidgets;<br>  <span class="hljs-keyword">if</span> (incomingWidgets != <span class="hljs-keyword">null</span>)<br>    _inheritedWidgets = <span class="hljs-keyword">new</span> HashMap&lt;<span class="hljs-built_in">Type</span>, InheritedElement&gt;.from(incomingWidgets);<br>  <span class="hljs-keyword">else</span><br>    _inheritedWidgets = <span class="hljs-keyword">new</span> HashMap&lt;<span class="hljs-built_in">Type</span>, InheritedElement&gt;();<br>  _inheritedWidgets[widget.runtimeType] = <span class="hljs-keyword">this</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看出 InheritedElement 实例会把自身的信息添加到 <code>_inheritedWidgets</code> 属性中，这样其子孙 element 就可以通过前面提到的 <code>_inheritedWidgets</code> 的传递机制获取到此 InheritedElement 的引用。</p>
+<blockquote>
+<p>总结一下：Widget 树中的依赖关系，是一层一层的往下传递的，如果遇到了 InheritedWidget ，还需要将这个 Widget 的依赖关系（这个 Widget 以及它向子Widget 提供的数据类型）添加进去。</p>
+</blockquote>
+<h4 id="InheritedWidget-的更新通知机制"><a href="#InheritedWidget-的更新通知机制" class="headerlink" title="InheritedWidget 的更新通知机制"></a>InheritedWidget 的更新通知机制</h4><p>首先，说一个小知识点。</p>
+<p>前文提到 <code>_inheritedWidgets</code> 属性存在于 Element 实例上，而我们代码中调用的 <code>inheritFromWidgetOfExactType</code> 方法则存在于 BuildContext 实例之上。那么 BuildContext 是如何获取 Element 实例上的信息的呢？答案是<strong>不需要获取</strong>。因为<strong>每一个 Element 实例也都是一个 BuildContext 实例</strong>。</p>
+<p>既然可以拿到 InheritedWidget 的信息了，那接下让我们通过源码看看更新通知机制的具体实现。</p>
+<p>首先看一下 <a target="_blank" rel="noopener" href="https://github.com/flutter/flutter/blob/v0.5.7/packages/flutter/lib/src/widgets/framework.dart#L3230-L3242"><code>inheritFromWidgetOfExactType</code> 的实现</a>：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs dart">InheritedWidget inheritFromWidgetOfExactType(<span class="hljs-built_in">Type</span> targetType) &#123;<br>  <span class="hljs-keyword">assert</span>(_debugCheckStateIsActiveForAncestorLookup());<br>  <span class="hljs-keyword">final</span> InheritedElement ancestor = _inheritedWidgets == <span class="hljs-keyword">null</span> ? <span class="hljs-keyword">null</span> : _inheritedWidgets[targetType];<br>  <span class="hljs-keyword">if</span> (ancestor != <span class="hljs-keyword">null</span>) &#123;<br>    <span class="hljs-keyword">assert</span>(ancestor <span class="hljs-keyword">is</span> InheritedElement);<br>    _dependencies ??= <span class="hljs-keyword">new</span> HashSet&lt;InheritedElement&gt;();<br>    _dependencies.add(ancestor);<br>    ancestor._dependents.add(<span class="hljs-keyword">this</span>);<br>    <span class="hljs-keyword">return</span> ancestor.widget;<br>  &#125;<br>  _hadUnsatisfiedDependencies = <span class="hljs-keyword">true</span>;<br>  <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>首先在 <code>_inheritedWidget</code> 映射中查找是否有特定类型 InheritedWidget 的实例。如果有则将该实例添加到自身的依赖列表中，同时将自身添加到对应的依赖项列表中。这样该 InheritedWidget 在更新后就可以通过其 <code>_dependents</code> 属性知道需要通知哪些依赖了它的 widget。</p>
+<p>每当 <a target="_blank" rel="noopener" href="https://github.com/flutter/flutter/blob/v0.5.7/packages/flutter/lib/src/widgets/framework.dart#L3914-L3923">InheritedElement 实例更新</a>时，会执行实例上的 <a target="_blank" rel="noopener" href="https://github.com/flutter/flutter/blob/v0.5.7/packages/flutter/lib/src/widgets/framework.dart#L4070-L4086"><code>notifyClients</code> 方法</a>通知依赖了它的子 element 同步更新。<code>notifyClients</code> 实现如下：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs dart"><span class="hljs-keyword">void</span> notifyClients(InheritedWidget oldWidget) &#123;<br>  <span class="hljs-keyword">if</span> (!widget.updateShouldNotify(oldWidget))<br>    <span class="hljs-keyword">return</span>;<br>  <span class="hljs-keyword">assert</span>(_debugCheckOwnerBuildTargetExists(<span class="hljs-string">&#x27;notifyClients&#x27;</span>));<br>  <span class="hljs-keyword">for</span> (<span class="hljs-built_in">Element</span> dependent <span class="hljs-keyword">in</span> _dependents) &#123;<br>    <span class="hljs-keyword">assert</span>(() &#123;<br>      <span class="hljs-comment">// check that it really is our descendant</span><br>      <span class="hljs-built_in">Element</span> ancestor = dependent._parent;<br>      <span class="hljs-keyword">while</span> (ancestor != <span class="hljs-keyword">this</span> &amp;&amp; ancestor != <span class="hljs-keyword">null</span>)<br>        ancestor = ancestor._parent;<br>      <span class="hljs-keyword">return</span> ancestor == <span class="hljs-keyword">this</span>;<br>    &#125;());<br>    <span class="hljs-comment">// check that it really depends on us</span><br>    <span class="hljs-keyword">assert</span>(dependent._dependencies.contains(<span class="hljs-keyword">this</span>));<br>    dependent.didChangeDependencies();<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>首先执行相应 InheritedWidget 上的 <code>updateShouldNotify</code> 方法判断是否需要通知，如果该方法返回 <code>true</code> 则遍历 <code>_dependents</code> 列表中的 element 并执行他们的 <code>didChangeDependencies()</code> 方法。这样 InheritedWidget 中的更新就通知到依赖它的子 widget 中了。</p>
+<blockquote>
+<p>总结一下：inheritFromWidgetOfExactType 先根据 type 找到 InheritedElement，然后储存依赖 element ，当 <a target="_blank" rel="noopener" href="https://github.com/flutter/flutter/blob/v0.5.7/packages/flutter/lib/src/widgets/framework.dart#L3914-L3923">InheritedElement 实例更新</a>时，通知储存的 element 去更新。</p>
+</blockquote>
+<h4 id="好处"><a href="#好处" class="headerlink" title="好处"></a>好处</h4><p>看一个例子：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs dart"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyInheritedWidget</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">InheritedWidget</span> </span>&#123;<br>  <span class="hljs-keyword">final</span> <span class="hljs-built_in">int</span> accountId;<br>  <span class="hljs-keyword">final</span> <span class="hljs-built_in">int</span> scopeId;<br><br>  MyInheritedWidget(accountId, scopeId, child): <span class="hljs-keyword">super</span>(child);<br>  <br>  <span class="hljs-meta">@override</span><br>  <span class="hljs-built_in">bool</span> updateShouldNotify(MyInheritedWidget old) =&gt;<br>    accountId != old.accountId || scopeId != old.scopeId;<br>&#125;<br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyPage</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">StatelessWidget</span> </span>&#123;<br>  <span class="hljs-keyword">final</span> <span class="hljs-built_in">int</span> accountId;<br>  <span class="hljs-keyword">final</span> <span class="hljs-built_in">int</span> scopeId;<br>  <br>  MyPage(<span class="hljs-keyword">this</span>.accountId, <span class="hljs-keyword">this</span>.scopeId);<br>  <br>  Widget build(BuildContext context) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> MyInheritedWidget(<br>      accountId,<br>      scopeId,<br>      <span class="hljs-keyword">const</span> MyWidget(),<br>     );<br>  &#125;<br>&#125;<br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyWidget</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">StatelessWidget</span> </span>&#123;<br><br>  <span class="hljs-keyword">const</span> MyWidget();<br>  <br>  Widget build(BuildContext context) &#123;<br>    <span class="hljs-comment">// somewhere down the line</span><br>    <span class="hljs-keyword">const</span> MyOtherWidget();<br>    ...<br>  &#125;<br>&#125;<br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyOtherWidget</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">StatelessWidget</span> </span>&#123;<br><br>  <span class="hljs-keyword">const</span> MyOtherWidget();<br>  <br>  Widget build(BuildContext context) &#123;<br>    <span class="hljs-keyword">final</span> myInheritedWidget = MyInheritedWidget.of(context);<br>    <span class="hljs-built_in">print</span>(myInheritedWidget.scopeId);<br>    <span class="hljs-built_in">print</span>(myInheritedWidget.accountId);<br>    ...<br></code></pre></td></tr></table></figure>
+
+<ol>
+<li><code>accountId</code>或者<code>scopeId</code>值更新的时候，MyInheritedWidget会被重新创建，但是它的child不一定会被创建，取决于是否用到了<code>accountId</code>或者<code>scopeId</code>，上面的这个例子中<code>MyOtherWidget</code>会被rebuild，<strong>但是<code>MyWidget</code>不会被rebuild</strong></li>
+<li>如果tree被其他事件触发rebuild，例如orientation changes，<code>InheritedWidget</code>会被rebuild，但是child同样不一定被rebuild，因为<code>accountId</code>和<code>scopeId</code>没变。</li>
+</ol>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Flutter/">Flutter</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/03/06/blog_bak/Blog/%E6%8A%98%E8%85%BE/%E9%95%9C%E5%83%8F%E4%B8%8E%E4%BB%A3%E7%90%86%E9%97%AE%E9%A2%98/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">镜像与代理问题</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/02/22/blog_bak/Blog/Android/%E4%BA%86%E8%A7%A3%E4%B8%80%E4%B8%8BBinder/">
+                        <span class="hidden-mobile">了解一下Binder</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

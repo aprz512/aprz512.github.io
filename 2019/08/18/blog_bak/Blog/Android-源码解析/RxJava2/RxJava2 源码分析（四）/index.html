@@ -1,0 +1,603 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>RxJava2 源码分析（五） - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="RxJava2 源码分析（五）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      6
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">RxJava2 源码分析（五）</h1>
+            
+            <div class="markdown-body">
+              <h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><p>本文主要分析操作符的实现原理，关于操作符的使用不做讲解，想了解的可以参考<a target="_blank" rel="noopener" href="https://github.com/amitshekhariitbhu/RxJava2-Android-Samples">Github上的例子项目</a>以及<a target="_blank" rel="noopener" href="http://reactivex.io/documentation/operators.html">官方文档</a>。</p>
+<h3 id="从一个例子开始"><a href="#从一个例子开始" class="headerlink" title="从一个例子开始"></a>从一个例子开始</h3><p>这里我们以最常用的 map 为例。首先我们写一个demo：</p>
+<blockquote>
+<p>Demo</p>
+<p>这个demo演示了如何将一个int转成string。Kotlin 赛高！！！</p>
+<p>虽然看起来没有什么屌用，但是如果int值是一个图片的资源id，我们要将这个id转成一个Bitmap，那么也可以用map操作法，再配上前几篇文章说的线程切换，岂不美哉！~</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">Observable.just(<span class="hljs-number">1</span>).map &#123;<br>    <span class="hljs-comment">// map 的作用主要是做一个变化，这里是将发射的 int 值变成 string</span><br>    <span class="hljs-string">&quot;<span class="hljs-variable">$it</span>-covert&quot;</span><br>&#125;.subscribe &#123;<br>    <span class="hljs-comment">// 打印接收到的 string</span><br>    System.<span class="hljs-keyword">out</span>.println(it)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个为了简单我用到了 just 操作符，其实和 create 差不多，如果你强迫症想搞清楚，可以自己戳戳源码，前面的文章如果你真的看懂了，戳进去几分钟就知道它的原理啦。</p>
+<p>这里我们直接从 map 方法开始分析：</p>
+<h4 id="Observable"><a href="#Observable" class="headerlink" title="Observable"></a>Observable</h4><blockquote>
+<p>Observable</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> &lt;R&gt; <span class="hljs-function">Observable&lt;R&gt; <span class="hljs-title">map</span><span class="hljs-params">(Function&lt;? <span class="hljs-keyword">super</span> T, ? extends R&gt; mapper)</span> </span>&#123;<br>    ObjectHelper.requireNonNull(mapper, <span class="hljs-string">&quot;mapper is null&quot;</span>);<br>    <span class="hljs-keyword">return</span> RxJavaPlugins.onAssembly(<span class="hljs-keyword">new</span> ObservableMap&lt;T, R&gt;(<span class="hljs-keyword">this</span>, mapper));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>按住 ctrl 键，点击鼠标左键：</p>
+<h4 id="ObservableMap"><a href="#ObservableMap" class="headerlink" title="ObservableMap"></a>ObservableMap</h4><blockquote>
+<p>类结构</p>
+<p>它也是继承了 AbstractObservableWithUpstream，这个是我们的老相好了，就不介绍了</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObservableMap</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">U</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractObservableWithUpstream</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">U</span>&gt; </span>&#123;...&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>下面看构造函数：</p>
+<blockquote>
+<p>构造函数</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ObservableMap</span><span class="hljs-params">(ObservableSource&lt;T&gt; source, Function&lt;? <span class="hljs-keyword">super</span> T, ? extends U&gt; function)</span> </span>&#123;<br>    <span class="hljs-comment">// source 不多说</span><br>    <span class="hljs-keyword">super</span>(source);<br>    <span class="hljs-comment">// 这里就是我们做变换的函数</span><br>    <span class="hljs-keyword">this</span>.function = function;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>接下来就是看 <code>subscribeActual</code> 方法了，看，只要掌握了套路，分析起源码来，还是比较轻松的。</p>
+<blockquote>
+<p>subscribeActual 方法</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> U&gt; t)</span> </span>&#123;<br>    source.subscribe(<span class="hljs-keyword">new</span> MapObserver&lt;T, U&gt;(t, function));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法很直接，不做作，直接将 t 与 functiaon 全部扔进 MapObserver 里面，交给 MapObserver 去处理。下面来分析分析 MapObserver 这个类。</p>
+<h4 id="ObservableMap-MapObserver"><a href="#ObservableMap-MapObserver" class="headerlink" title="ObservableMap.MapObserver"></a>ObservableMap.MapObserver</h4><blockquote>
+<p>类结构</p>
+<p>MapObserver 继承了 BasicFuseableObserver</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MapObserver</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">U</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">BasicFuseableObserver</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">U</span>&gt; </span>&#123;...&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="BasicFuseableObserver"><a href="#BasicFuseableObserver" class="headerlink" title="BasicFuseableObserver"></a>BasicFuseableObserver</h4><p>书里说过，信息太多与信息太少，都会对理解力造成阻碍。</p>
+<p>这个类的蛋疼之处就在于，里面的代码不多，很简单，但是又没简单到你可以一下子就能明白这个类的作用。所以如果我把这个类的代码贴出来，作用也不大，我说不出一个道道来。</p>
+<p>这里我说一下我自己对这个类的理解：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Base <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">for</span> <span class="hljs-title">a</span> <span class="hljs-title">fuseable</span> <span class="hljs-title">intermediate</span> <span class="hljs-title">observer</span>.</span><br></code></pre></td></tr></table></figure>
+
+<p>上面的一串英文是类的注释，翻译过来就是说 <strong>一个用于可融合的中间观察者的基类</strong>，反正我还是没太明白。</p>
+<p>既然它是一个中间观察者，我们就看看它作为一个“中介”，搞了一些啥事情。</p>
+<blockquote>
+<p>BasicFuseableObserver#onSubscribe</p>
+<p>在这个方法里面，它作为第三者，插入到了原来的 parent 与 observer 之间</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onSubscribe</span><span class="hljs-params">(Disposable s)</span> </span>&#123;<br>    <span class="hljs-comment">// 该方法用于判断 this.s 为 null，并且 s 不为 null</span><br>    <span class="hljs-keyword">if</span> (DisposableHelper.validate(<span class="hljs-keyword">this</span>.s, s)) &#123;<br><br>        <span class="hljs-comment">// 这行代码很重要</span><br>        <span class="hljs-keyword">this</span>.s = s;<br>        <br>        <span class="hljs-comment">// QueueDisposable 是一个接口，后面会讲</span><br>        <span class="hljs-keyword">if</span> (s <span class="hljs-keyword">instanceof</span> QueueDisposable) &#123;<br>            <span class="hljs-keyword">this</span>.qs = (QueueDisposable&lt;T&gt;)s;<br>        &#125;<br><br>        <span class="hljs-comment">// 这里有两个钩子</span><br>        <span class="hljs-keyword">if</span> (beforeDownstream()) &#123;<br><br>            <span class="hljs-comment">// 调用了 actual 的 onSubscribe</span><br>            <span class="hljs-comment">// 这个方法我们在之前分析 subscribeActual 方法的时候，都是跳过的</span><br>            <span class="hljs-comment">// 下面我们会分析这个方法的作用</span><br>            actual.onSubscribe(<span class="hljs-keyword">this</span>);<br><br>            afterDownstream();<br>        &#125;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>由于在之前的文章中，我们忽略了 onSubscribe，而这个类用到了这个方法，所以现在我们拿 ObservableCreate 来分析一下 onSubscribe 这个方法的作用。</p>
+<h4 id="ObservableCreate"><a href="#ObservableCreate" class="headerlink" title="ObservableCreate"></a>ObservableCreate</h4><blockquote>
+<p>ObservableCreate#subscribeActual</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">subscribeActual</span><span class="hljs-params">(Observer&lt;? <span class="hljs-keyword">super</span> T&gt; observer)</span> </span>&#123;<br>    CreateEmitter&lt;T&gt; parent = <span class="hljs-keyword">new</span> CreateEmitter&lt;T&gt;(observer);<br>    observer.onSubscribe(parent);<br><br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其实从这两行代码就可以看出，onSubscribe 的参数就是我们的老父亲 parent。</p>
+<p>之前我们说过，CreateEmitter 就是将 observer 包装了一下，即 CreateEmitter 持有 observer 。</p>
+<p>现在看 onSubscribe 方法就是反过来，即 observer  “参数持有” CreateEmitter 。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/rxjava2_41.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>让我们再次回到 BasicFuseableObserver 类中的 onSubscribe 方法里面：</p>
+<p>####BasicFuseableObserver</p>
+<blockquote>
+<p>BasicFuseableObserver#onSubscribe</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 这行代码很重要</span><br><span class="hljs-comment">// s 是原来的 parent，它把这个对象保存起来</span><br><span class="hljs-keyword">this</span>.s = s;<br><br><span class="hljs-comment">// actual 是我们 demo 中创建的匿名内部类（虽然真正的情况是将 consumer 包成了 observer）</span><br><span class="hljs-comment">// 将 this 作为 parent 传递进去</span><br><span class="hljs-comment">// 所以，这样他就成了一个中间观察者</span><br>actual.onSubscribe(<span class="hljs-keyword">this</span>);<br></code></pre></td></tr></table></figure>
+
+<p>上面的代码，你可以联想一下链表的插入操作。</p>
+<p><strong>前面的文章里面，onSubscribe 的调用都是放在 subscribeActual 中的，这里为啥要放到 Observer 类里面呢</strong>？我猜想是因为操作符会导致数据源的不稳定（同步，异步数据），因为 BasicFuseableObserver 还实现了 QueueDisposable 这个接口，这个接口类注释比较多，可以详细看看。</p>
+<p>那么，分析到了这里，我们就将 MapObserver 当作一个普通的 Observer 的包装类来看待吧。反正这里我们还用不到里面的 poll 方法。</p>
+<h4 id="ObservableMap-MapObserver-1"><a href="#ObservableMap-MapObserver-1" class="headerlink" title="ObservableMap.MapObserver"></a>ObservableMap.MapObserver</h4><p>我们直接看 onNext 方法：</p>
+<blockquote>
+<p>onNext</p>
+<p>这里该方法由 MapObserver 的包装类调用，我们了解了套路，更不需要从头跟踪源码，就知道它由谁调用。只要知道它会被调用，在具体的代码中会被谁调用，分析源码的时候管他调用者是谁呢。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onNext</span><span class="hljs-params">(T t)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (done) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// 在这个 demo 中，sourceMode 一直为 NONE</span><br>    <span class="hljs-keyword">if</span> (sourceMode != NONE) &#123;<br>        actual.onNext(<span class="hljs-keyword">null</span>);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    U v;<br><br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// 这里就执行变化了，注意变换结果不能返回null</span><br>        v = ObjectHelper.requireNonNull(mapper.apply(t), <span class="hljs-string">&quot;The mapper function returned a null value.&quot;</span>);<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable ex) &#123;<br>        fail(ex);<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-comment">// 将变化的结果返回</span><br>    actual.onNext(v);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>嗯，到这里，demo的流程就分析完了，还是很简单的，主要是例子简单。</p>
+<p>其实，该类还有一个 poll 方法，应该会在某些情况下调用，这里没有用到，里面的水应该还有点深。</p>
+<p>其他的操作符，这里就不讲了。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/RxJava2/">RxJava2</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-RxJava2/">Android-源码解析-RxJava2</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/RxJava2/RxJava2%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RxJava2 源码分析（二）</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0001-%E5%BC%95%E8%A8%80/">
+                        <span class="hidden-mobile">0001-引言</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

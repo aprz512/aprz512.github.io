@@ -1,0 +1,573 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>子线程更新UI的问题 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="子线程更新UI的问题">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-12-21 00:00" pubdate>
+        2020年12月21日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      9
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">子线程更新UI的问题</h1>
+            
+            <div class="markdown-body">
+              <blockquote>
+<p>这篇文章，只能算是一个开头吧，后面准备研究一下，facebook 的那个  <a target="_blank" rel="noopener" href="https://engineering.fb.com/android/components-for-android-a-declarative-framework-for-efficient-uis/">Components for Android</a> 里面提到的基于组件的细粒度回收复用机制。因为整体来说，这都属于 RecycleView 的优化，今天介绍的也是其中的一部分，或者说比较通用的一部分。</p>
+<hr>
+<p>了解了之后才发现，与 tangram-view 是一样的思想。但是我想的细粒度应该是复杂卡片拆解那样的，后来发现这应该属于自定义 LayoutManager 的内容，然后我就又想起了 vLayout 这个东西。绕来绕去，原来都是我以前都看过了的……</p>
+</blockquote>
+<p>通常情况下，页面卡顿，都是发生在较为复杂的页面。比如，一个非常大的 xml，它加载起来就会比较耗时，这样，打开该页面的时候，就会造成卡顿。</p>
+<h3 id="异步加载-xml-引起的思考"><a href="#异步加载-xml-引起的思考" class="headerlink" title="异步加载 xml 引起的思考"></a>异步加载 xml 引起的思考</h3><p>一种解决的方式就是使用 <a target="_blank" rel="noopener" href="https://developer.android.com/reference/androidx/asynclayoutinflater/view/AsyncLayoutInflater">AsyncLayoutInflater</a> 这个类来做布局的预加载（在子线程中）。</p>
+<p>那么，有趣的问题来了：</p>
+<blockquote>
+<p>我们刚刚入门 Android 时，便知道「只能在主线程更新 UI」的规定。那为啥可以使用子线程来加载布局呢？</p>
+</blockquote>
+<p>要解答这个问题，我们探究一下，为啥说只能在主线程更新UI。其实是因为，我们在子线程更新 UI 的时候，会报一个异常：</p>
+<blockquote>
+<p>android.view.ViewRootImpl#checkThread</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">checkThread</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (mThread != Thread.currentThread()) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> CalledFromWrongThreadException(<br>                <span class="hljs-string">&quot;Only the original thread that created a view hierarchy can touch its views.&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们先不考虑为啥这里它要检查一下，其实也是因为绝大部分 GUI 系统都是只允许「单个线程对某块区域做绘制操作的」，如果允许多个线程对同一块区域做绘制的话，很有可能导致同步问题。除非加锁，然而加锁极有可能导致死锁，性能等问题。</p>
+<p>那么，我们能不能绕过或者是跳过这个检查逻辑呢？我们看下面这个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">T</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AppCompatActivity</span> </span>&#123;<br><br>    <span class="hljs-keyword">private</span> ImageView iv;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onCreate</span><span class="hljs-params">(<span class="hljs-meta">@Nullable</span> Bundle savedInstanceState)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>.onCreate(savedInstanceState);<br>        iv = <span class="hljs-keyword">new</span> ImageView(<span class="hljs-keyword">this</span>);<br>        iv.setImageResource(R.drawable.ic_launcher_background);<br>        setContentView(iv);<br>        <span class="hljs-keyword">new</span> Thread(() -&gt; iv.setImageResource(R.drawable.ic_launcher_foreground)).start();<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>当我们，打开这个页面的时候，程序并不会出问题，完美运行。这是为什么呢？</p>
+<p>这是因为我们的Thread执行的时候，ViewRootImpl还没有对view tree的根节点DecorView执行performTraversals，view tree里的所有View都没有被赋值mAttachInfo。</p>
+<p>在onCreate完成时，Activity并没有完成初始化view tree。view tree的初始化是从ViewRootImpl执行performTraversals开始，这个过程会对view tree进行从根节点DecorView开始的遍历，对所有视图完成初始化，初始化包括视图的大小布局，以及AttachInfo，ViewParent等域的初始化。</p>
+<p>执行ImageView.setImageResource，调用的过程是</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">ImageView.setImageResource <br>-&gt; View.invalidate <br>-&gt; View.invalidateInternal <br>-&gt; ViewGroup.invalidateChild<br>-&gt; ViewParent.invalidateChildInParent <span class="hljs-comment">//这里会不断Loop去取上一个结点的mParent</span><br>-&gt; ViewRootImpl.invalidateChildInParent <span class="hljs-comment">//DecorView的mParent是ViewRootImpl</span><br>-&gt; ViewRootImpl.checkThread <span class="hljs-comment">//在这里执行checkThread，如果非UI线程则抛出异常</span><br></code></pre></td></tr></table></figure>
+
+
+<p>但是在Thread执行setImageResource时，此时Activity还在初始化，ViewRoot没有初始化整个view tree，ImageView的mAttachInfo是空的（mAttachInfo包含了Window的token等Binder）。而View.invalidateInternal调用ViewGroup.invalidateChild要判断是否存在ViewParent和AttachInfo：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">final</span> AttachInfo ai = mAttachInfo;<br><span class="hljs-keyword">final</span> ViewParent p = mParent;<br><span class="hljs-keyword">if</span> (p != <span class="hljs-keyword">null</span> &amp;&amp; ai != <span class="hljs-keyword">null</span> &amp;&amp; l &lt; r &amp;&amp; t &lt; b) &#123;<br>    <span class="hljs-comment">//....</span><br>    p.invalidateChild(<span class="hljs-keyword">this</span>, damage);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+<p>也就是说，<strong>此时因为不存在ViewParent，invalidate的过程中止而没有完全执行，也即没有发生checkThread。</strong></p>
+<p>所以说，在 View tree 初始化完成之前，我们可以在子线程里面做很多事，比如去加载布局。</p>
+<p>说的更加直白一点，checkThread 是 ViewRootImpl 做的，到了它这里，布局早就已经被加载出来了，也就是说，它<strong>管不到布局是哪个线程加载出来</strong>的。</p>
+<p>这个问题，我们搞定了，那么就再深入一点，我们看 checkThread 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">checkThread</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// 这里是不是有点奇怪</span><br>    <span class="hljs-keyword">if</span> (mThread != Thread.currentThread()) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> CalledFromWrongThreadException(<br>                <span class="hljs-string">&quot;Only the original thread that created a view hierarchy can touch its views.&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>看上面的 if 判断条件，它判断的居然不是主线程，而是当前线程，这说明了什么呢？这是不是意味着，如果我在子线程里面去创建布局，那么是不是就可以在子线程里面去更新布局了呢？</p>
+<h3 id="子线程更新UI-Dialog"><a href="#子线程更新UI-Dialog" class="headerlink" title="子线程更新UI - Dialog"></a>子线程更新UI - Dialog</h3><p>试试吧！！！</p>
+<p>我们先找到 ViewRootImpl 创建的位置：</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs clean">-&gt;android.app.ActivityThread#handleResumeActivity<br>--&gt;android.view.WindowManagerGlobal#addView<br></code></pre></td></tr></table></figure>
+
+<p>在 addView 里面创建了 ViewRootImpl 对象，由于，handleResumeActivity 是工作在主线程，所以，addView 也是在主线程，那就暂时放弃测试 activity。</p>
+<p>我们看看 dialog，它的 window 的 addView 方法是在 show 里面调用的，所以，我们可以拿它来测试：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainActivity</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AppCompatActivity</span> </span>&#123;<br><br>    <span class="hljs-keyword">private</span> HandlerThread handlerThread = <span class="hljs-keyword">new</span> HandlerThread(<span class="hljs-string">&quot;ht&quot;</span>);<br>    <span class="hljs-keyword">private</span> Handler handler;<br>    <span class="hljs-keyword">private</span> EditText editText;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onCreate</span><span class="hljs-params">(Bundle savedInstanceState)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>.onCreate(savedInstanceState);<br>        setContentView(R.layout.activity_main);<br><br>        handlerThread.start();<br>        handler = <span class="hljs-keyword">new</span> Handler(handlerThread.getLooper());<br><br>        <span class="hljs-comment">// 子线程去展示一个弹窗</span><br>        handler.post(<span class="hljs-keyword">new</span> Runnable() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>                Log.i(<span class="hljs-string">&quot;Thread&quot;</span>, Thread.currentThread().getName());<br>                AlertDialog.Builder customizeDialog =<br>                        <span class="hljs-keyword">new</span> AlertDialog.Builder(MainActivity.<span class="hljs-keyword">this</span>);<br>                <span class="hljs-keyword">final</span> View dialogView = LayoutInflater.from(MainActivity.<span class="hljs-keyword">this</span>)<br>                        .inflate(R.layout.dialog_customize, <span class="hljs-keyword">null</span>);<br>                <span class="hljs-comment">// 获取EditView中的输入内容</span><br>                editText = (EditText) dialogView.findViewById(R.id.edit_text);<br>                customizeDialog.setTitle(<span class="hljs-string">&quot;我是一个自定义Dialog&quot;</span>);<br>                customizeDialog.setView(dialogView);<br>                customizeDialog.setPositiveButton(<span class="hljs-string">&quot;确定&quot;</span>,<br>                        <span class="hljs-keyword">new</span> DialogInterface.OnClickListener() &#123;<br>                            <span class="hljs-meta">@Override</span><br>                            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onClick</span><span class="hljs-params">(DialogInterface dialog, <span class="hljs-keyword">int</span> which)</span> </span>&#123;<br>                                Toast.makeText(MainActivity.<span class="hljs-keyword">this</span>,<br>                                        editText.getText().toString(),<br>                                        Toast.LENGTH_SHORT).show();<br>                            &#125;<br>                        &#125;);<br>                customizeDialog.show();<br>            &#125;<br>        &#125;);<br><br>        <span class="hljs-comment">// 在子线程里面去更新弹窗里面的内容</span><br>        handler.postDelayed(<span class="hljs-keyword">new</span> Runnable() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>                Log.i(<span class="hljs-string">&quot;Thread&quot;</span>, Thread.currentThread().getName());<br>                editText.setText(<span class="hljs-string">&quot;hello from handler thread: &quot;</span> + SystemClock.currentThreadTimeMillis());<br>            &#125;<br>        &#125;, <span class="hljs-number">3000</span>);<br><br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>实际上，完美运行！！！</p>
+<h3 id="子线程更新UI-Activity"><a href="#子线程更新UI-Activity" class="headerlink" title="子线程更新UI - Activity"></a>子线程更新UI - Activity</h3><p>想要在子线程更新 UI，那么就需要搞定里面的 checkThread 这个方法。最粗暴的方式，就是使用反射替换掉里面的 mThread 值。</p>
+<p>首先，需要找到界面对应的 ViewRootImpl，经过一番寻找之后，我是这样做的：</p>
+<p>View 有个 getViewRootImpl 方法，但是该方法需要 mAttachInfo 这个值不为 null。那么什么时候这个值不为 null 呢？view attach 到 window上的时候。那么我们的思路就出来了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">hookViewRootImpl</span><span class="hljs-params">()</span> </span>&#123;<br>    getWindow().getDecorView().addOnAttachStateChangeListener(<span class="hljs-keyword">new</span> View.OnAttachStateChangeListener() &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onViewAttachedToWindow</span><span class="hljs-params">(View v)</span> </span>&#123;<br>            v.removeOnAttachStateChangeListener(<span class="hljs-keyword">this</span>);<br>            <span class="hljs-keyword">try</span> &#123;<br>                Method getViewRootImplMethod = v.getClass().getMethod(<span class="hljs-string">&quot;getViewRootImpl&quot;</span>);<br>                Object viewRootImplObject = getViewRootImplMethod.invoke(v);<br>                Class&lt;?&gt; viewRootImplClass = viewRootImplObject.getClass();<br>                Field thread = viewRootImplClass.getDeclaredField(<span class="hljs-string">&quot;mThread&quot;</span>);<br>                thread.setAccessible(<span class="hljs-keyword">true</span>);<br>                thread.set(viewRootImplObject, handlerThread);<br>            &#125; <span class="hljs-keyword">catch</span> (NoSuchMethodException e) &#123;<br>                e.printStackTrace();<br>            &#125; <span class="hljs-keyword">catch</span> (IllegalAccessException e) &#123;<br>                e.printStackTrace();<br>            &#125; <span class="hljs-keyword">catch</span> (InvocationTargetException e) &#123;<br>                e.printStackTrace();<br>            &#125; <span class="hljs-keyword">catch</span> (NoSuchFieldException e) &#123;<br>                e.printStackTrace();<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onViewDetachedFromWindow</span><span class="hljs-params">(View v)</span> </span>&#123;<br>        &#125;<br>    &#125;);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里，我们在 view 添加到 window 上的时候，将 ViewRootImpl 里面的 mThread 字段设置为子线程。</p>
+<p>这样，我们就可以在子线程里面更新UI了。为了防止出啥意外，写一个 UiDispatcher，自动切换 handler：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UiDispatcher</span> </span>&#123;<br><br>    Handler target;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">UiDispatcher</span><span class="hljs-params">(<span class="hljs-keyword">final</span> View root, Handler main, <span class="hljs-keyword">final</span> Handler child)</span> </span>&#123;<br>        target = main;<br>        root.addOnAttachStateChangeListener(<span class="hljs-keyword">new</span> View.OnAttachStateChangeListener() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onViewAttachedToWindow</span><span class="hljs-params">(View v)</span> </span>&#123;<br>                root.removeOnAttachStateChangeListener(<span class="hljs-keyword">this</span>);<br>                target = child;<br>            &#125;<br><br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onViewDetachedFromWindow</span><span class="hljs-params">(View v)</span> </span>&#123;<br>            &#125;<br>        &#125;);<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">post</span><span class="hljs-params">(Runnable runnable)</span> </span>&#123;<br>        target.post(runnable);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后，我们使用这个类，来更新UI：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java">md5.setOnClickListener(<span class="hljs-keyword">new</span> View.OnClickListener() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onClick</span><span class="hljs-params">(View v)</span> </span>&#123;<br>        uiDispatcher.post(<span class="hljs-keyword">new</span> Runnable() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>                text.setText(<span class="hljs-string">&quot;msg from &quot;</span> + Thread.currentThread().getName());<br>            &#125;<br>        &#125;);<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>正常运行！！！当然这个例子只是说明了，可以在子线程来更新UI，而且条件很苛刻。</p>
+<p>需要注意的是：由于其他原因导致的界面更新依然是在主线程，所以很容易导致异常。替换了线程只是让我们可以在子线程更新View，但是View的绘制等操作还是在主线程中。</p>
+<p>所以，最终测试的结果是：子线程也可以更新UI，但是还是有很多限制，比如 activity 就比较麻烦，因为 activityThread 已经限制了创建 ViewRootImpl 的线程在主线程。</p>
+<p>总的来说，只有主线程可以更新UI这句话<strong>大体上还是对的</strong>，但是有两种例外：</p>
+<ul>
+<li>在 View tree 还没有创建出来的时候，是可以在子线程更新的，比如 setText 等操作，这是因为，ViewRootImpl 还没有创建出来，自然也就不会报错。而且它子所以可以更新成功，也是由于 setText 方法储存了 set 的值。</li>
+<li>在子线程X里面创建了 ViewRootImpl ，自然可以在子线程X里面更新UI。</li>
+</ul>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/View/">View</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/12/21/blog_bak/Blog/Android-View/View%20%E7%9A%84%E6%BB%91%E5%8A%A8%E5%A4%84%E7%90%86%EF%BC%88%E5%9B%9B%EF%BC%89/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">View 的滑动处理（四）</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/12/15/blog_bak/Blog/%E6%8A%98%E8%85%BE/%E4%BD%BF%E7%94%A8%E8%99%9A%E6%8B%9F%E5%99%A8%E5%90%AF%E5%8A%A8%E6%9C%AC%E5%9C%B0%E7%A3%81%E7%9B%98%E9%87%8C%E9%9D%A2%E7%9A%84%E7%B3%BB%E7%BB%9F/">
+                        <span class="hidden-mobile">使用虚拟器启动本地磁盘里面的系统</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

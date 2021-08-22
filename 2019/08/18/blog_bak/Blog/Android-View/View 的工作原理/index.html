@@ -1,0 +1,624 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>View 的工作原理 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="View 的工作原理">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      10
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">View 的工作原理</h1>
+            
+            <div class="markdown-body">
+              <h3 id="ViewRootImpl-amp-DecorView"><a href="#ViewRootImpl-amp-DecorView" class="headerlink" title="ViewRootImpl &amp; DecorView"></a>ViewRootImpl &amp; DecorView</h3><p>当我们在 Activity 中调用 setContentView 方法的时候，实际上 Activity 是将这个方法转发给了 Window。</p>
+<blockquote>
+<p>android.app.Activity#setContentView(int)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setContentView</span><span class="hljs-params">(<span class="hljs-meta">@LayoutRes</span> <span class="hljs-keyword">int</span> layoutResID)</span> </span>&#123;<br>    getWindow().setContentView(layoutResID);<br>    initWindowDecorActionBar();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>而 Window 的 setContentView 方法会创建 DecorView 对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br>   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setContentView</span><span class="hljs-params">(<span class="hljs-keyword">int</span> layoutResID)</span> </span>&#123;<br>       <span class="hljs-comment">// Note: FEATURE_CONTENT_TRANSITIONS may be set in the process of installing the window</span><br>       <span class="hljs-comment">// decor, when theme attributes and the like are crystalized. Do not check the feature</span><br>       <span class="hljs-comment">// before this happens.</span><br>       <span class="hljs-keyword">if</span> (mContentParent == <span class="hljs-keyword">null</span>) &#123;<br>           <span class="hljs-comment">// 这个方法里面就实例化了一个 DecorView</span><br>           installDecor();<br>       &#125;<br>       ...<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>那么，有了 DecorView 之后，后面的流程就是解析我们在 xml 中写的布局，将xml转换成真正的 View 对象，然后添加到 DecorView 中（DecorView 是继承至 FrameLayout）。</p>
+<hr>
+<p>但是我们都知道，在 onCreate 中我们是无法看到布局的，就像我们在内存中创建了一个 View 对象，我们是看不到它的，只有将它添加到界面上我们才能看到。</p>
+<p>那么，如何将一个 View 添加到界面上呢？想必大家都知道以前手机上的悬浮按钮很流行，我们自己想要做一个这样的效果，一般都是通过 WindowManager 来实现的。所以说，使用 WindowManger 就可以将一个 View 显示到界面上了。当一个 View 已经显示到界面上之后，在给他添加子 View 就不用 WindowManager 了，可以直接添加，这就是我们可以动态更改布局，而不用通过WindowManager 的原因，因为 Activity 已经通过 WindowManager 将 DecorView 添加到了 PhoneWindow 上。我们操作的是 DecorView 的子 View。</p>
+<blockquote>
+<p>android.app.ActivityThread#handleResumeActivity</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 这里的 l 是 WindowManager.LayoutParams 对象的类型</span><br>wm.addView(decor, l);<br></code></pre></td></tr></table></figure>
+
+<p>可以看到在 Activity 的 onResume 执行后，View 才会被添加到 Window 上，所以在这之前，我们是看不到界面的，故而不要在这之前做太多的事件，以免黑（白）屏时间太长，给用户一个不好的体验。</p>
+<p>看到这里，我们已经知道 DecorView 与 WindowManager 是如何产生关系的了！</p>
+<hr>
+<p>那么 ViewRootImpl 又是如何插一脚的呢？</p>
+<p>上面的 addView 方法中，其实创建了一个 ViewRootImpl 对象：</p>
+<blockquote>
+<p>android.view.WindowManagerGlobal#addView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">ViewRootImpl root;<br>...<br>root = <span class="hljs-keyword">new</span> ViewRootImpl(view.getContext(), display);<br>...<br><span class="hljs-comment">// 这个 view 就是上面的 DecorView 对象</span><br><span class="hljs-comment">// 这里将 view 保存到了自己的成员变量 mView 中</span><br>root.setView(view, wparams, panelParentView);<br></code></pre></td></tr></table></figure>
+
+<p>我们先来看看官方对 ViewRootImpl 的介绍：</p>
+<blockquote>
+<p>ViewRootImpl是View中的最高层级，属于所有View的根（<code>但ViewRootImpl不是View，只是实现了ViewParent接口</code>），实现了View和WindowManager之间的通信协议，实现的具体细节在WindowManagerGlobal这个类当中。</p>
+</blockquote>
+<p>也就是说，View 并不会与 WindowManager 直接交流，他们有一个中间人，就是 ViewRootImpl，但是它的功能不止于此，它还负责 View 的测量-布局-绘制流程。可以看作是 View 树的操纵者。</p>
+<h3 id="View的测量过程"><a href="#View的测量过程" class="headerlink" title="View的测量过程"></a>View的测量过程</h3><p>对于 DecorView ，其 MeasureSpec 由<strong>窗口的尺寸</strong>和其<strong>自身的 LayoutParams</strong> 来共同决定。</p>
+<p>对于普通的 View，其 MeasureSpec 由<strong>父容器的 MeasureSpec</strong> 和<strong>自身的 LayoutParams</strong> 来共同决定。</p>
+<p>具体一点来说：</p>
+<ul>
+<li>当 View 采用具体数值的宽高时，不管父容器的 MeasureSpec 是什么，View 的 MeasureSpec 都是EXACTLY并且其大小遵循 LayoutParams 中的大小。</li>
+<li>当 View 的宽/高是 match_parent 时，如果父容器的模式是EXACTLY模式，那么 View 也是EXACTLY模式并且其大小是父容器的剩余空间。如果父容器是AT_MOST模式，那么View 也是AT_MOST模式并且大小为父容器的剩余空间（可以看出，View 与 父容器的模式一样）。</li>
+<li>当 View 的宽/高是 warp_content 是时，不管父容器的 MeasureSpec 是什么，View 的 MeasureSpec 都是 AT_MOST 模式并且大小为父容器的剩余空间。</li>
+</ul>
+<p>决定了 View 的 MeasureSpec 值之后，就可以开始执行 View 的 measure 方法了。</p>
+<p>measure 方法就是执行测量过程的方法，它会调用 onMeasure 方法，经常自定义控件的就很熟悉这个方法了。我们可以通过复写 onMeasure 这个方法来绝定一个控件在各种情况下应该有多大。</p>
+<p>onMeasure  方法有两个参数：</p>
+<blockquote>
+<p>android.view.View#onMeasure</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onMeasure</span><span class="hljs-params">(<span class="hljs-keyword">int</span> widthMeasureSpec, <span class="hljs-keyword">int</span> heightMeasureSpec)</span> </span>&#123;<br>    setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),<br>            getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>widthMeasureSpec 与 heightMeasureSpec 这两个值就是根据上面的规则得到的（虽然上面我们只说了测量模式，没有测量大小）。View 有了这两个值就可以知道自己在各种情况下应该占多大的位置了。</p>
+<p>一般情况下，View 测量出来的大小就是 widthMeasureSpec / heightMeasureSpec 中的 size 值。</p>
+<p>但是也有例外，这个时候，View 的宽/高由 minWidth 与 background 一起决定，如果 background 为空，那么值就是 minWidth/minHeight，如果有 background，那么值就取 minWidth/minHeight 与 background 的原始宽/高 中的较大者。</p>
+<p>当我们继承一个 View 来自定义控件的时候，如果不复写 onMeasure 就会出现一个问题：</p>
+<p>在使用 wrap_content 属性的时候，是不生效的，效果与 match_parent 一样！！</p>
+<p>导致这个的原因是：View 为 wrap_content 的时候，模式是 AT_MOST，大小为父容器的剩余空间。这样的话，与match_parent 的表现形式是一样的。</p>
+<p>所以，可以这样解决：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onMeasure</span><span class="hljs-params">(<span class="hljs-keyword">int</span> widthMeasureSpec, <span class="hljs-keyword">int</span> heightMeasureSpec)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> modeW = MeasureSpec.getMode(widthMeasureSpec);<br>    <span class="hljs-keyword">int</span> sizeW = MeasureSpec.getSize(widthMeasureSpec);<br><br>    <span class="hljs-keyword">int</span> modeH = MeasureSpec.getMode(heightMeasureSpec);<br>    <span class="hljs-keyword">int</span> sizeH = MeasureSpec.getSize(heightMeasureSpec);<br><br>    <span class="hljs-keyword">int</span> width, height;<br>    <span class="hljs-keyword">if</span> (modeW == MeasureSpec.AT_MOST) &#123;<br>        width = mMyWidth;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        width = sizeW;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (modeH == MeasureSpec.AT_MOST) &#123;<br>        height = mMyHeight;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        width = sizeH;<br>    &#125;<br>    <br>    setMeasuredDimension(width, height);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其实，只是指定了 AT_MOST 模式下的值，其他的没有改变。</p>
+<h3 id="ViewGroup-的测量过程"><a href="#ViewGroup-的测量过程" class="headerlink" title="ViewGroup 的测量过程"></a>ViewGroup 的测量过程</h3><p>ViewGroup 在测量的时候，会先去测量所有的 Child。调用 child 的 measure 方法来测量 child 的大小，然后根据 child 的大小以及自己的布局规则来决定自己的大小。</p>
+<p>之所以，还涉及 ViewGroup 的布局规则，是因为每个ViewGroup 都不一样，比如：LinearLayout 是按照线程布局，FrameLayout是按照层叠布局，即使他们的所有child都一样，测量出来的结果肯定不是一样的。</p>
+<blockquote>
+<p>android.view.ViewGroup#measureChildren</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">measureChildren</span><span class="hljs-params">(<span class="hljs-keyword">int</span> widthMeasureSpec, <span class="hljs-keyword">int</span> heightMeasureSpec)</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> size = mChildrenCount;<br>    <span class="hljs-keyword">final</span> View[] children = mChildren;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; size; ++i) &#123;<br>        <span class="hljs-keyword">final</span> View child = children[i];<br>        <span class="hljs-keyword">if</span> ((child.mViewFlags &amp; VISIBILITY_MASK) != GONE) &#123;<br>            measureChild(child, widthMeasureSpec, heightMeasureSpec);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>android.view.ViewGroup#measureChild</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">measureChild</span><span class="hljs-params">(View child, <span class="hljs-keyword">int</span> parentWidthMeasureSpec,</span></span><br><span class="hljs-params"><span class="hljs-function">        <span class="hljs-keyword">int</span> parentHeightMeasureSpec)</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> LayoutParams lp = child.getLayoutParams();<br><br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,<br>            mPaddingLeft + mPaddingRight, lp.width);<br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,<br>            mPaddingTop + mPaddingBottom, lp.height);<br><br>    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>显然，measureChild 就是取出LayoutParams，然后和 parentMeasureSpec 一起来决定child 的 MeasureSpec，这个过程与 View 的测量过程是一样的。</p>
+<h3 id="android-view-ViewRootImpl-performTraversals-是谁触发的"><a href="#android-view-ViewRootImpl-performTraversals-是谁触发的" class="headerlink" title="android.view.ViewRootImpl#performTraversals 是谁触发的"></a>android.view.ViewRootImpl#performTraversals 是谁触发的</h3><p>我们知道在 ViewRootImpl 创建出来之前，View是不会执行测量等一系列流程的，这是因为View的测量等都是由 ViewRootImpl 操纵的。</p>
+<p>那么，View的第一次测量是从什么时候开始的呢？</p>
+<blockquote>
+<p>android.view.ViewRootImpl#setView</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Schedule the first layout -before- adding to the window</span><br><span class="hljs-comment">// manager, to make sure we do the relayout before receiving</span><br><span class="hljs-comment">// any other events from the system.</span><br>requestLayout();<br></code></pre></td></tr></table></figure>
+
+<p>当 View 被添加到 window 上之前，ViewRootImpl 会执行一次 requestLayout，这个货会触发一系列连锁反应，最后调用到 performTraversals 里面。</p>
+<h3 id="为什么使用-view-post-xxx-可以获取到-view-的宽高？？？"><a href="#为什么使用-view-post-xxx-可以获取到-view-的宽高？？？" class="headerlink" title="为什么使用 view.post(xxx) 可以获取到 view 的宽高？？？"></a>为什么使用 view.post(xxx) 可以获取到 view 的宽高？？？</h3><p>这是因为 view 将 runnable 都存到了自己维护的一个队列中。</p>
+<blockquote>
+<p>android.view.HandlerActionQueue#postDelayed</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">postDelayed</span><span class="hljs-params">(Runnable action, <span class="hljs-keyword">long</span> delayMillis)</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> HandlerAction handlerAction = <span class="hljs-keyword">new</span> HandlerAction(action, delayMillis);<br><br>    <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>        <span class="hljs-keyword">if</span> (mActions == <span class="hljs-keyword">null</span>) &#123;<br>            mActions = <span class="hljs-keyword">new</span> HandlerAction[<span class="hljs-number">4</span>];<br>        &#125;<br>        mActions = GrowingArrayUtils.append(mActions, mCount, handlerAction);<br>        mCount++;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>等到 view 显示出来的时候，才会取出来执行。</p>
+<blockquote>
+<p>android.view.ViewRootImpl#performTraversals</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Execute enqueued actions on every traversal in case a detached view enqueued an action</span><br>getRunQueue().executeActions(mAttachInfo.mHandler);<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，每次执行 performTraversals 的时候，就调用了 View 维护的队列的 executeActions 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">executeActions</span><span class="hljs-params">(Handler handler)</span> </span>&#123;<br>    <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>        <span class="hljs-keyword">final</span> HandlerAction[] actions = mActions;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>, count = mCount; i &lt; count; i++) &#123;<br>            <span class="hljs-keyword">final</span> HandlerAction handlerAction = actions[i];<br>            handler.postDelayed(handlerAction.action, handlerAction.delay);<br>        &#125;<br><br>        mActions = <span class="hljs-keyword">null</span>;<br>        mCount = <span class="hljs-number">0</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>而这个队列，将 runnable 交给了 handler 去执行，这个 handler 是主线程的 handler。那么这个 runnable 会什么时候执行呢？这里我们先不管，我能只需要知道这个 runnable 与 测量流程 那个先执行就好了。</p>
+<p>performTraversals 在调用了 executeActions 之后，将 runnable 放入主线程的队列，然后就接续往下执行，下面就是 View 的测量-布局-绘制流程了，所以说不管 runnable 什么时候执行，它肯定是在测量流程的后面执行，这也是为什么能在 view.post 的 runnable 可以拿到 view 的宽高的原因。</p>
+<h3 id="View-的-layout-过程"><a href="#View-的-layout-过程" class="headerlink" title="View 的 layout 过程"></a>View 的 layout 过程</h3><p>一个 view 在 layout 方法中会决定自己在父布局的位置，如果这个 view 还有 child，那么它会在 onLayout 方法中调用 child 的 layout 方法，决定 child 的位置。这样达到一个循环…</p>
+<p>其实自定义一个 ViewGroup，它的 onLayout 实现还是比较简单的，只要按照业务流程，慢慢写就好了，就和摆东西一样，每个东西的大小你都知道了，想怎么摆就怎么摆。就是里面的 margin 比较蛋疼，需要细心一点。</p>
+<h3 id="View-的-draw-过程"><a href="#View-的-draw-过程" class="headerlink" title="View 的 draw 过程"></a>View 的 draw 过程</h3><ol>
+<li><p>先绘制背景（肯定的，不然内容被背景盖住了）</p>
+</li>
+<li><p>绘制自己（onDraw）</p>
+</li>
+<li><p>绘制 children （dispatchDraw）</p>
+</li>
+<li><p>绘制装饰 （onDrawScrollBars）</p>
+</li>
+</ol>
+<p>与这个过程有关的有一个很重要的东西，就是补间动画执行的原理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">draw</span><span class="hljs-params">(Canvas canvas, ViewGroup parent, <span class="hljs-keyword">long</span> drawingTime)</span> </span>&#123;<br>    ...<br>    <br>    <span class="hljs-comment">//获取当前Animation</span><br>    <span class="hljs-keyword">final</span> Animation a = getAnimation();<br>    <span class="hljs-keyword">if</span> (a != <span class="hljs-keyword">null</span>) &#123;<br>        more = applyLegacyAnimation(parent, drawingTime, a, scalingRequired);<br>        ...<br>    &#125;<br>    ...<br>    <span class="hljs-comment">//处理滑动</span><br>    <span class="hljs-keyword">if</span> (offsetForScroll) &#123;<br>        canvas.translate(mLeft - sx, mTop - sy);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-keyword">if</span> (!drawingWithRenderNode) &#123;<br>             <span class="hljs-comment">//处理滑动</span><br>            canvas.translate(mLeft, mTop);<br>        &#125;<br>        <span class="hljs-keyword">if</span> (scalingRequired) &#123;<br>            ...<br>            <span class="hljs-comment">// mAttachInfo cannot be null, otherwise scalingRequired == false</span><br>            <span class="hljs-keyword">final</span> <span class="hljs-keyword">float</span> scale = <span class="hljs-number">1.0f</span> / mAttachInfo.mApplicationScale;<br>            <span class="hljs-comment">//处理缩放</span><br>            canvas.scale(scale, scale);<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">//处理透明度</span><br>    <span class="hljs-keyword">float</span> alpha = drawingWithRenderNode ? <span class="hljs-number">1</span> : (getAlpha() * getTransitionAlpha());<br>    ...<br>	<span class="hljs-keyword">if</span> (drawingWithRenderNode) &#123;<br>        renderNode.setAlpha(alpha * getAlpha() * getTransitionAlpha());<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (layerType == LAYER_TYPE_NONE) &#123;<br>        canvas.saveLayerAlpha(sx, sy, sx + getWidth(), sy + getHeight(),<br>                              multipliedAlpha);<br>    &#125;<br>    ...<br>    <span class="hljs-keyword">return</span> more;<br>&#125;   <br></code></pre></td></tr></table></figure>
+
+<p>可以看到，在 View 的绘制过程中，会获取 view 相关的动画，然后根据动画来计算当前 view 应该所处的位置，透明度等等。所以，如果一个 view 不执行重绘，动画是显示不出来的。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/View/">View</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/View%20%E7%9A%84%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">View 的事件分发</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android-View/ViewGroup%20%E7%9A%84%20generateLayoutParams%20%E6%96%B9%E6%B3%95%E7%9A%84%E4%BD%9C%E7%94%A8/">
+                        <span class="hidden-mobile">ViewGroup 的 generateLayoutParams 方法的作用</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

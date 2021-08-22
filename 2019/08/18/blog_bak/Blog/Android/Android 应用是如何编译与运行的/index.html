@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>Android 应用是如何编译与运行的 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Android 应用是如何编译与运行的">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-18 00:00" pubdate>
+        2019年8月18日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      5
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Android 应用是如何编译与运行的</h1>
+            
+            <div class="markdown-body">
+              <p>Android Studio 负责如何构建与部署我们的应用。但是你有没有想过当你按下Run按钮时发生了什么？</p>
+<h3 id="构建"><a href="#构建" class="headerlink" title="构建"></a>构建</h3><h4 id="Java-compilation"><a href="#Java-compilation" class="headerlink" title="Java compilation"></a>Java compilation</h4><p>我们的代码是用Java编写的。但是，Java代码的编译和运行方式与Web应用程序相同吗？</p>
+<p>Android应用程序的编译过程与其他Java应用程序有很大不同。</p>
+<p>但是它们的开始过程都是一样的：</p>
+<p>使用javac命令将Java源代码文件编译为.class文件。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/javaCompile.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>它会将下面的java代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">MainActivity</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-keyword">super</span>();<br>  currentPosition = <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>转换成这样的java字节码：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-string">public</span> <span class="hljs-string">com.hfad.bitsandpizzas.MainActivity();</span><br>  <span class="hljs-attr">Code:</span><br>   <span class="hljs-attr">0:</span>	<span class="hljs-string">aload_0</span><br>   <span class="hljs-attr">1:</span>	<span class="hljs-string">invokespecial</span>	<span class="hljs-comment">#5; //Method android/app/Activity.&quot;&lt;init&gt;&quot;:()V</span><br>   <span class="hljs-attr">4:</span>	<span class="hljs-string">aload_0</span><br>   <span class="hljs-attr">5:</span>	<span class="hljs-string">iconst_0</span><br>   <span class="hljs-attr">6:</span>	<span class="hljs-string">putfield</span>	<span class="hljs-comment">#3; //Field currentPosition:I</span><br>   <span class="hljs-attr">9:</span>	<span class="hljs-string">return</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="Conversion-to-Dalvik-bytecodes"><a href="#Conversion-to-Dalvik-bytecodes" class="headerlink" title="Conversion to Dalvik bytecodes"></a>Conversion to Dalvik bytecodes</h4><p>.class文件包含标准的Oracle JVM Java字节码。但Android设备不使用此字节码格式。相反，Android有自己独特的字节码格式，称为Dalvik。</p>
+<p>Dalvik字节码，与Oracle JVM字节码一样，是理论处理器的机器代码指令。</p>
+<p>编译过程需要将.class文件和任何.jar库转换为包含Dalvik字节码的单个classes.dex文件。这是通过dx命令完成的：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/dxConvert.png?raw=true?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>dx命令将所有.class和.jar文件拼接成一个以Dalvik字节码格式编写的classes.dex文件。</p>
+<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs smali">0x0000:<span class="hljs-built_in"> iput-object </span>v1, v0, <span class="hljs-class">Lcom/hfad/bitsandpizzas/MainActivity;</span> com.hfad.bitsandpizzas.MainActivity$2.this$0 // field@4869<br>0x0002:<span class="hljs-built_in"> invoke-direct </span>&#123;v0&#125;, void java.lang.Object.&lt;init&gt;() // method@13682<br>0x0005: return-void<br></code></pre></td></tr></table></figure>
+
+<h4 id="Put-classes-dex-and-resources-into-a-package-file"><a href="#Put-classes-dex-and-resources-into-a-package-file" class="headerlink" title="Put classes.dex and resources into a package file"></a>Put classes.dex and resources into a package file</h4><p>然后将classes.dex文件和应用程序中的资源（如图像和布局）压缩为类似zip的文件，称为Android Package或.apk文件。这是通过 <em>Android Asset Packaging Tool</em> 或 aapt 完成的：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/apkPackage.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>这个步骤完成之后，.apk文件就可以安装了。但是，还有一个步骤需要做…</p>
+<h4 id="You-might-then-also-sign-the-apk-file"><a href="#You-might-then-also-sign-the-apk-file" class="headerlink" title="You might then also sign the .apk file"></a>You might then also sign the .apk file</h4><p>如果想要通过Google Play商店分发应用，则需要对其进行签名。对应用程序包进行签名意味着您在.apk中存储了一个附加文件，该文件基于.apk内容的校验和以及单独生成的私钥。</p>
+<p>.apk文件使用标准的jarsigner工具，该工具是Oracle Java Development Kit的一部分。创建jarsigner工具是为了签署.jar文件，但它也可以使用.apk文件，因为它们也是压缩文件。 </p>
+<p>如果您对.apk文件进行签名，则还需要通过名为zipalign的工具运行它，这将确保文件的压缩部分在字节边界上排列。 Android希望它们按字节对齐，以便它可以轻松读取它们而无需解压缩文件。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/signApk.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>网上还有上面所有步骤的详细图：</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/8f422997.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<h3 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h3><h4 id="The-adb-server-starts-if-it’s-not-already-running"><a href="#The-adb-server-starts-if-it’s-not-already-running" class="headerlink" title="The adb server starts if it’s not already running"></a>The adb server starts if it’s not already running</h4><p>该应用程序将通过Android Debug Bridge部署到Android设备。</p>
+<p>在我们的开发端上开启一个 adb 服务进程，在 Android 设备上开启一个类似的 adb 服务（adbd）。</p>
+<p>如果您的计算机上未运行adb进程，则adb命令将启动它。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/adbUse.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>adb进程将打开网络套接字，并在端口5037上侦听命令。您输入的每个adb命令都会将其指令发送到此端口。</p>
+<h4 id="The-apk-file-is-transferred-to-the-device"><a href="#The-apk-file-is-transferred-to-the-device" class="headerlink" title="The .apk file is transferred to the device"></a>The .apk file is transferred to the device</h4><p>adb命令用于将.apk文件传输到Android设备上的文件系统中。该位置由应用程序的包名定义。</p>
+<p>因此，例如，如果包是com.hfad.bitsandpizzas，则.apk文件将放在/data/app/com.hfad.bitsandpizzas中。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/storeApk.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>Android应用程序的运行方式最近发生了变化。</p>
+<p>从API级别21开始，旧的Dalvik虚拟机已被新的Android Runtime取代。</p>
+<p>让我们看一下应用程序运行时一步一步发生的事情。</p>
+<h4 id="A-user-asks-for-an-app-to-be-launched"><a href="#A-user-asks-for-an-app-to-be-launched" class="headerlink" title="A user asks for an app to be launched"></a>A user asks for an app to be launched</h4><p>一个名为Zygote的过程用于启动应用程序。 Zygote是Android进程的不完整版本 —— 其内存空间包含任何应用程序所需的所有核心库，但它尚未包含特定于特定应用程序的任何代码。 Zygote使用fork系统调用创建自己的副本。</p>
+<p> Android是一个Linux系统，fork调用可以很快复制像Zygote这样的进程。<strong>这就是使用Zygote进程的原因：复制像Zygote这样的半启动进程比从主系统文件加载新进程要快得多。</strong> Zygote意味着您的应用程序启动速度更快。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/forkProcess.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<h4 id="Android-converts-the-dex-code-to-native-OAT-format"><a href="#Android-converts-the-dex-code-to-native-OAT-format" class="headerlink" title="Android converts the .dex code to native OAT format"></a>Android converts the .dex code to native OAT format</h4><p>新的app进程现在需要加载我们的应用程序的代码。请记住，您的应用代码存储在.apk包中的classes.dex文件中。因此，会从.apk中提取classes.dex文件并放入一个单独的目录中。但是，不是简单地放置classes.dex文件的副本，Android会将classes.dex中的Dalvik字节码转换为本机机器码。</p>
+<p>所有以Java代码开头的代码现在都转换为一段本机编译代码。从技术上讲，classes.dex将转换为ELF共享对象。 Android调用此库格式OAT，转换classes.dex文件的工具称为dex2oat。（<strong>Android 5.0 开始，dex -&gt; oat 这个转换过程发生在安装过程中</strong>）</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/runDex2Oat.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>转换后的文件存储在如下的目录中：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">/<span class="hljs-keyword">data</span>/dalvik-cache/x86/<span class="hljs-symbol">data@</span><span class="hljs-symbol">app@</span>com.hfad.<span class="hljs-symbol">bitsandpizzas@</span>base.<span class="hljs-symbol">apk@</span>classes.dex<br></code></pre></td></tr></table></figure>
+
+<p><strong>该路径将包含应用程序的包名称，以确保它不会覆盖任何其他应用程序。</strong></p>
+<p>转换后的代码将在特定于Android设备CPU的机器代码中。例如，如果Android设备是x86，则OAT文件将如下所示：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">0x001db888</span>:         85842400E0FFFF    	<span class="hljs-keyword">test</span>    <span class="hljs-built_in">eax</span>, [<span class="hljs-built_in">esp</span> + -<span class="hljs-number">8192</span>]<br>suspend point dex PC: <span class="hljs-number">0x0000</span><br>GC map objects:  v0 (<span class="hljs-built_in">r5</span>), v1 (<span class="hljs-built_in">r6</span>)<br><span class="hljs-number">0x001db88f</span>:                 83EC1C    	<span class="hljs-keyword">sub</span>     <span class="hljs-built_in">esp</span>, <span class="hljs-number">28</span><br><span class="hljs-number">0x001db892</span>:               896C2410    	<span class="hljs-keyword">mov</span>     [<span class="hljs-built_in">esp</span> + <span class="hljs-number">16</span>], <span class="hljs-built_in">ebp</span><br><span class="hljs-number">0x001db896</span>:               <span class="hljs-number">89742414</span>    	<span class="hljs-keyword">mov</span>     [<span class="hljs-built_in">esp</span> + <span class="hljs-number">20</span>], <span class="hljs-built_in">esi</span><br><span class="hljs-number">0x001db89a</span>:               897C2418    	<span class="hljs-keyword">mov</span>     [<span class="hljs-built_in">esp</span> + <span class="hljs-number">24</span>], <span class="hljs-built_in">edi</span><br><span class="hljs-number">0x001db89e</span>:                   8BF8    	<span class="hljs-keyword">mov</span>     <span class="hljs-built_in">edi</span>, <span class="hljs-built_in">eax</span><br><span class="hljs-number">0x001db8a0</span>:                 <span class="hljs-number">890424</span>    	<span class="hljs-keyword">mov</span>     [<span class="hljs-built_in">esp</span>], <span class="hljs-built_in">eax</span><br>...<br></code></pre></td></tr></table></figure>
+
+<h4 id="The-app-loads-the-native-library"><a href="#The-app-loads-the-native-library" class="headerlink" title="The app loads the native library"></a>The app loads the native library</h4><p>然后将 native library 直接映射到应用程序进程的内存中。</p>
+<p><img src="https://github.com/aprz512/pic4aprz512/blob/master/Blog/Android-%E6%AF%8F%E6%97%A5%E4%B8%80%E9%97%AE/Android%20%E5%BA%94%E7%94%A8%E6%98%AF%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%E4%B8%8E%E8%BF%90%E8%A1%8C%E7%9A%84/mapOat.png?raw=true" srcset="/img/loading.gif" lazyload></p>
+<p>此时开始，应用程序将启动初始界面，应用程序将出现在屏幕上。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Android/">Android</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android/Android%20V1%20V2%20%E7%AD%BE%E5%90%8D%E6%9C%BA%E5%88%B6/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Android V1 V2 签名机制</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/18/blog_bak/Blog/Android/Android%E6%97%A0%E9%9A%9C%E7%A2%8D%E6%9C%8D%E5%8A%A1/">
+                        <span class="hidden-mobile">Android 无障碍服务</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>View 的滑动处理（三） - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="View 的滑动处理（三）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-08-21 00:00" pubdate>
+        2019年8月21日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      4
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">View 的滑动处理（三）</h1>
+            
+            <div class="markdown-body">
+              <h2 id="ViewDragHelper-定义"><a href="#ViewDragHelper-定义" class="headerlink" title="ViewDragHelper 定义"></a>ViewDragHelper 定义</h2><p>Android 官方对 ViewDragHelper 的定义是：</p>
+<ul>
+<li>可以用于自定义 ViewGroup</li>
+<li>可以进行拖拽移动或者重新定位ViewGroup中子视图View</li>
+<li>提供有效操作和状态追踪</li>
+</ul>
+<p>##使用 ViewDragHelper</p>
+<p>下面说说，如何使用 ViewDragHelper（下面简称 VDH） 。</p>
+<p>创建一个 VDH 对象：</p>
+<blockquote>
+<p>androidx.customview.widget.ViewDragHelper#create(android.view.ViewGroup, androidx.customview.widget.ViewDragHelper.Callback)</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> static ViewDragHelper create(<span class="hljs-meta">@NonNull</span> ViewGroup forParent, <span class="hljs-meta">@NonNull</span> Callback cb) &#123;<br>    <span class="hljs-keyword">return</span> new ViewDragHelper(forParent.getContext(), forParent, cb);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>VDH 构造函数是私有的，但是有多个可供访问的静态方法。使用它就可以创建一个 VDH 对象。</p>
+<p>上面的静态方法中，cb 参数很重要，因为，<strong>ViewDragHelper.Callback是用来连接ViewDragHelper和parent view的</strong>。</p>
+<p>要让VDH能够处理相关的拖动事件就需要<strong>将拖动时触发事件状态传给VDH</strong>，所以我们要针对onInterceptTouchEvent、onTouchEvent 做特别的处理。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onInterceptTouchEvent</span><span class="hljs-params">(ev: <span class="hljs-type">MotionEvent</span>?)</span></span>: <span class="hljs-built_in">Boolean</span> &#123;<br>    <span class="hljs-keyword">return</span> viewDragHelper.shouldInterceptTouchEvent(ev!!)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>直接委托给 vdh，让它判断是否需要拦截事件，如果这里有自己的逻辑，也可以添加，比如：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onInterceptTouchEvent</span><span class="hljs-params">(ev: <span class="hljs-type">MotionEvent</span>?)</span></span>: <span class="hljs-built_in">Boolean</span> &#123;<br>    <span class="hljs-keyword">val</span> myIntercept = someCondition(ev)<br>    <span class="hljs-keyword">return</span> myIntercept and viewDragHelper.shouldInterceptTouchEvent(ev!!)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后，就是 onTouchEvent，一般情况下，自定义ViewGroup，而 ViewGroup 默认不会处理事件，所以我们需要在 ACTION_DOWN 的时候，处理这个事件：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-meta">@SuppressLint(<span class="hljs-meta-string">&quot;ClickableViewAccessibility&quot;</span>)</span><br><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onTouchEvent</span><span class="hljs-params">(event: <span class="hljs-type">MotionEvent</span>?)</span></span>: <span class="hljs-built_in">Boolean</span> &#123;<br><br>    <span class="hljs-comment">// 在这里，将事件传递给 VDH，让它去处理</span><br>    viewDragHelper.processTouchEvent(event!!)<br><br>    <span class="hljs-comment">// 处理下 down 事件按，让后续事件都传过来</span><br>    <span class="hljs-keyword">if</span> (event.action == MotionEvent.ACTION_DOWN) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span><br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">super</span>.onTouchEvent(event)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>下面，看看 ViewDragHelper.Callback 中的几个常用方法：</p>
+<blockquote>
+<p>pointerId：区分多点触控时的 id position</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">tryCaptureView</span><span class="hljs-params">(child: <span class="hljs-type">View</span>, pointerId: <span class="hljs-type">Int</span>)</span></span>: <span class="hljs-built_in">Boolean</span> &#123;<br>    <span class="hljs-comment">// 限制指定的控件才可以拖动</span><br>    <span class="hljs-keyword">return</span> child.id == R.id.video<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getViewVerticalDragRange</span><span class="hljs-params">(child: <span class="hljs-type">View</span>)</span></span>: <span class="hljs-built_in">Int</span> &#123;<br>    <span class="hljs-keyword">return</span> verticalRange<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法，需要返回一个大于0的数，然后指定的 View 才会在垂直方向移动。我试过，只要大于 0 即可，似乎没有别的要求。暂时没有去探究这个值有什么意义。</p>
+<blockquote>
+<p>top： 表示拖动指定 view 时，view 的 top 值</p>
+<p>dy ：是每次的差值</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">clampViewPositionVertical</span><span class="hljs-params">(child: <span class="hljs-type">View</span>, top: <span class="hljs-type">Int</span>, dy: <span class="hljs-type">Int</span>)</span></span>: <span class="hljs-built_in">Int</span> &#123;<br>    <span class="hljs-comment">// 限制竖向拖动的范围为 【0，verticalRange】</span><br>    <span class="hljs-keyword">val</span> min = Math.min(top, verticalRange)<br>    <span class="hljs-keyword">return</span> Math.max(<span class="hljs-number">0</span>, min)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>上面的代码，是将 top 的值限制了，避免 view 被拖出指定的范围。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onViewPositionChanged</span><span class="hljs-params">(changedView: <span class="hljs-type">View</span>, left: <span class="hljs-type">Int</span>, top: <span class="hljs-type">Int</span>, dx: <span class="hljs-type">Int</span>, dy: <span class="hljs-type">Int</span>)</span></span> &#123;<br>            <span class="hljs-keyword">super</span>.onViewPositionChanged(changedView, left, top, dx, dy)<br>            changeVideo(changedView, top)<br>            changeVideoDetail(top)<br>            changeVideoTitle(top)<br>            changePlayButton(top)<br>            changeCloseButton(top)<br>        &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法表示，当指定的 View 被拖动时，这个方法就会被回调，然后我们就可以在这个方法里面做一些操作，比如改变另外的View 的位置，这样就可以实现一个联动效果。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onViewReleased</span><span class="hljs-params">(releasedChild: <span class="hljs-type">View</span>, xvel: <span class="hljs-type">Float</span>, yvel: <span class="hljs-type">Float</span>)</span></span> &#123;<br>    <span class="hljs-keyword">super</span>.onViewReleased(releasedChild, xvel, yvel)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>当指定的View 被释放的时候（手指抬起等），这个方法会被回调。如果我们想要一个回弹效果，在这里处理是一个很好的解决方法。比如：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onViewReleased</span><span class="hljs-params">(releasedChild: <span class="hljs-type">View</span>, xvel: <span class="hljs-type">Float</span>, yvel: <span class="hljs-type">Float</span>)</span></span> &#123;<br>    <span class="hljs-keyword">super</span>.onViewReleased(releasedChild, xvel, yvel)<br>    dragHelper.settleCapturedViewAt(mDragOriLeft , mDragOriLeft)<br>    invalidate()<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>settleCapturedViewAt 是 VDH 提供的一个方法，实际上是使用的 scroller，所以调用这个方法，还需要和使用 Scroller 一样，<strong>实现 computeScroll 方法</strong>。</p>
+<p>还有一些判断边缘拖拽的方法就不介绍了，我实现了一些效果，给我的感觉用起来还是挺方便的。</p>
+<p>但是这里有一个问题，就是如果你想实现一些很复杂的效果，其实核心不在拖拽的处理上，而是在一些计算方面，就比如你想要一个回弹效果，直接使用 scroller 可以实现，但是这个回弹效果很普通，UI想要更加炫酷的回弹效果。这个时候考验的不是你对View的理解，<strong>而是你对数学的理解</strong>。就像我刚接触自定义控件的时候，看的aige的系列文章，其中有一个翻书效果，要想实现这个效果，如果你没有空间想象能力，没有一定的数学知识，无论你对View的绘制，对各种工具有多么熟练，你仍然无从下手。</p>
+<p>我实现的一些demo：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/aprz512/NestedScrollingDemos"><strong>NestedScrollingDemos</strong></a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/View/">View</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/22/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0019-%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">0019-锁的可重入性</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/08/21/blog_bak/Blog/Java/%E5%B9%B6%E5%8F%91/0016-%E9%A5%A5%E9%A5%BF%E4%B8%8E%E5%85%AC%E5%B9%B3/">
+                        <span class="hidden-mobile">0016-饥饿与公平</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

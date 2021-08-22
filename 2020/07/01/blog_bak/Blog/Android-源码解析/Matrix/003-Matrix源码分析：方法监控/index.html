@@ -1,0 +1,591 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>003-Matrix源码分析：方法监控 - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="003-Matrix源码分析：方法监控">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-07-01 00:00" pubdate>
+        2020年7月1日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.9k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      8
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">003-Matrix源码分析：方法监控</h1>
+            
+            <div class="markdown-body">
+              <p>在上一节中，我们看到过 AppMethodBeat 这个类，但是却没有介绍它，是因为这个玩意特别的难搞，需要单独的起一篇。</p>
+<p>这个类其实是用来统计每个函数的耗时的，具体的可以看官方文档：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Tencent/matrix/wiki/Matrix-Android-TraceCanary">https://github.com/Tencent/matrix/wiki/Matrix-Android-TraceCanary</a></p>
+<p>知道了每个函数的耗时，就可以找出卡顿的原因。</p>
+<p>下面我们来分析这个类，首先来看一个字段。</p>
+<blockquote>
+<p>com.tencent.matrix.trace.core.AppMethodBeat#status</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">int</span> status = STATUS_DEFAULT;<br></code></pre></td></tr></table></figure>
+
+<p>这个字段还是挺重要的，它涉及到该类的状态的管理。</p>
+<p>一开始是 STATUS_DEFAULT 状态</p>
+<p>然后当我们调用了  i 方法之后，会变为 STATUS_READY 状态。</p>
+<p>然后当我们调用了 onStart 方法之后，会变为 STATUS_STARTED 状态。</p>
+<p>然后当我们调用了 onStop 方法之后，会变为 STATUS_STOPPED 状态。</p>
+<p>需要注意一下调用的顺序，如果顺序不对，有些逻辑是不会走的。</p>
+<p>由于，i 与 o 方法会插桩到我们的代码中，所以 i 肯定是会先于 onStart 方法执行，这个没有问题。</p>
+<p>状态搞清楚了，我们看看 i 与 o 这两个方法。</p>
+<blockquote>
+<p>com.tencent.matrix.trace.core.AppMethodBeat#i</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">i</span><span class="hljs-params">(<span class="hljs-keyword">int</span> methodId)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (status &lt;= STATUS_STOPPED) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (methodId &gt;= METHOD_ID_MAX) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (status == STATUS_DEFAULT) &#123;<br>        <span class="hljs-keyword">synchronized</span> (statusLock) &#123;<br>            <span class="hljs-keyword">if</span> (status == STATUS_DEFAULT) &#123;<br>                <span class="hljs-comment">// 逻辑只会执行一次</span><br>                realExecute();<br>                status = STATUS_READY;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">long</span> threadId = Thread.currentThread().getId();<br>    <span class="hljs-keyword">if</span> (sMethodEnterListener != <span class="hljs-keyword">null</span>) &#123;<br>        sMethodEnterListener.enter(methodId, threadId);<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (threadId == sMainThreadId) &#123;<br>        <span class="hljs-keyword">if</span> (assertIn) &#123;<br>            android.util.Log.e(TAG, <span class="hljs-string">&quot;ERROR!!! AppMethodBeat.i Recursive calls!!!&quot;</span>);<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        assertIn = <span class="hljs-keyword">true</span>;<br>        <span class="hljs-keyword">if</span> (sIndex &lt; Constants.BUFFER_SIZE) &#123;<br>            mergeData(methodId, sIndex, <span class="hljs-keyword">true</span>);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            sIndex = <span class="hljs-number">0</span>;<br>            mergeData(methodId, sIndex, <span class="hljs-keyword">true</span>);<br>        &#125;<br>        ++sIndex;<br>        assertIn = <span class="hljs-keyword">false</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>应用插件之后，在每个方法的前面都会加上这个 i 方法。该方法里面做了两件事：</p>
+<ul>
+<li>realExecute();</li>
+<li>mergeData</li>
+</ul>
+<blockquote>
+<p>com.tencent.matrix.trace.core.AppMethodBeat#realExecute</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">realExecute</span><span class="hljs-params">()</span> </span>&#123;<br>    MatrixLog.i(TAG, <span class="hljs-string">&quot;[realExecute] timestamp:%s&quot;</span>, System.currentTimeMillis());<br><br>    sCurrentDiffTime = SystemClock.uptimeMillis() - sDiffTime;<br><br>    sHandler.removeCallbacksAndMessages(<span class="hljs-keyword">null</span>);<br>    <span class="hljs-comment">// 开线程更新时间</span><br>    sHandler.postDelayed(sUpdateDiffTimeRunnable, Constants.TIME_UPDATE_CYCLE_MS);<br>    <span class="hljs-comment">// 启动过期检查，可以忽略</span><br>    sHandler.postDelayed(checkStartExpiredRunnable = <span class="hljs-keyword">new</span> Runnable() &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>            <span class="hljs-keyword">synchronized</span> (statusLock) &#123;<br>                MatrixLog.i(TAG, <span class="hljs-string">&quot;[startExpired] timestamp:%s status:%s&quot;</span>, System.currentTimeMillis(), status);<br>                <span class="hljs-keyword">if</span> (status == STATUS_DEFAULT || status == STATUS_READY) &#123;<br>                    status = STATUS_EXPIRED_START;<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;, Constants.DEFAULT_RELEASE_BUFFER_DELAY);<br><br>    <span class="hljs-comment">// hack H </span><br>    ActivityThreadHacker.hackSysHandlerCallback();<br>    <span class="hljs-comment">// 注册回调</span><br>    LooperMonitor.register(looperMonitorListener);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>realExecute 只会调用一次，里面启动了一个线程专门用来更新时间（隔5ms循环一次），原因是：</p>
+<blockquote>
+<p>考虑到每个方法执行前后都获取系统时间（System.nanoTime）会对性能影响比较大，而实际上，单个函数执行耗时小于 5ms 的情况，对卡顿来说不是主要原因，可以忽略不计，如果是多次调用的情况，则在它的父级方法中可以反映出来，所以为了减少对性能的影响，通过另一条更新时间的线程每 5ms 去更新一个时间变量，而每个方法执行前后只读取该变量来减少性能损耗。</p>
+</blockquote>
+<p>方法里面还hack了 ActivityThread 的 H 的 callback，主要是用来拦截消息的处理，是一种很常用的 hook 方式，里面做了启动的耗时监测，暂时不深入，后面再说。</p>
+<blockquote>
+<p>com.tencent.matrix.trace.core.AppMethodBeat#mergeData</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">mergeData</span><span class="hljs-params">(<span class="hljs-keyword">int</span> methodId, <span class="hljs-keyword">int</span> index, <span class="hljs-keyword">boolean</span> isIn)</span> </span>&#123;<br>    <span class="hljs-comment">// 看注释这里是修复了一个bug，anr时间计算有问题，没看懂</span><br>    <span class="hljs-keyword">if</span> (methodId == AppMethodBeat.METHOD_ID_DISPATCH) &#123;<br>        sCurrentDiffTime = SystemClock.uptimeMillis() - sDiffTime;<br>    &#125;<br>    <span class="hljs-keyword">long</span> trueId = <span class="hljs-number">0L</span>;<br>    <span class="hljs-keyword">if</span> (isIn) &#123;<br>        trueId |= <span class="hljs-number">1L</span> &lt;&lt; <span class="hljs-number">63</span>;<br>    &#125;<br>    trueId |= (<span class="hljs-keyword">long</span>) methodId &lt;&lt; <span class="hljs-number">43</span>;<br>    trueId |= sCurrentDiffTime &amp; <span class="hljs-number">0x7FFFFFFFFFFL</span>;<br>    <span class="hljs-comment">// sBuffer 是一个long数组，long的结构：</span><br>    <span class="hljs-comment">// 第1位是 1或者0，1是函数入口，0是函数出口</span><br>    <span class="hljs-comment">// 2-21位是 methodId</span><br>    <span class="hljs-comment">// 22-64位是 函数的执行前后距离 MethodBeat 模块初始化的时间，一个函数会有占两个位置，根据 methodId 就可以计算出函数耗时</span><br>    sBuffer[index] = trueId;<br>    <span class="hljs-comment">// 该方法用于处理循环问题，sBuffer满了，会重头开始覆盖旧数据，主要是更新 indexRecord 链表头位置</span><br>    checkPileup(index);<br>    sLastIndex = index;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法也不难，就是往 sBuffer 里面添加数据，数据的结构注释也解释的很清楚了。</p>
+<p>最终sBuffer大致长这样：</p>
+<p><img src="https://github.com/Tencent/matrix/wiki/images/trace/run_store.jpg" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<p>我们再看看 o 方法：</p>
+<blockquote>
+<p>com.tencent.matrix.trace.core.AppMethodBeat#o</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">o</span><span class="hljs-params">(<span class="hljs-keyword">int</span> methodId)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (status &lt;= STATUS_STOPPED) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (methodId &gt;= METHOD_ID_MAX) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (Thread.currentThread().getId() == sMainThreadId) &#123;<br>        <span class="hljs-keyword">if</span> (sIndex &lt; Constants.BUFFER_SIZE) &#123;<br>            mergeData(methodId, sIndex, <span class="hljs-keyword">false</span>);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            sIndex = <span class="hljs-number">0</span>;<br>            mergeData(methodId, sIndex, <span class="hljs-keyword">false</span>);<br>        &#125;<br>        ++sIndex;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>就做了一件事就是 mergeData，这里就没啥好说的了。再看一下 sBuffer 的结构图，<strong>只看上半部分</strong>：</p>
+<p><img src="https://github.com/Tencent/matrix/wiki/images/trace/stack.jpg" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<p>我们在 sBuffer 中找到 methodId 一致的，就可以拿到该函数的耗时。</p>
+<p>一般情况下，我们需要获取的是 sBuffer 中的一段数据，比如执行 doFrame 消息的时候，我们想知道，它里面调用到了哪些函数，这个时候就需要记录一下 doFrame 前后的 sIndex，有一个内部类是专门做这个的：</p>
+<blockquote>
+<p>com.tencent.matrix.trace.core.AppMethodBeat.IndexRecord</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">IndexRecord</span> </span>&#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> index;<br>    <span class="hljs-keyword">private</span> IndexRecord next;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> isValid = <span class="hljs-keyword">true</span>;<br>    <span class="hljs-keyword">public</span> String source;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>index 字段是用来记录 sBuffer 中的位置的。next 说明它是一个链表。</p>
+<p>用法如下：</p>
+<p>比如我们在，分发消息之前，首先调用 <code>com.tencent.matrix.trace.core.AppMethodBeat#maskIndex</code> 方法，传递一个 source 作为参数，得到一个 IndexRecord 对象，然后在分发消息结束后，再获取到 sIndex 的值，这样就有了两个 sIndex。取出这个范围里面的数据就好了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">AppMethodBeat.IndexRecord beginRecord = AppMethodBeat.getInstance().maskIndex(<span class="hljs-string">&quot;AnrTracer#dispatchBegin&quot;</span>);<br><span class="hljs-comment">// 方法的调用栈信息在 data 里面</span><br><span class="hljs-keyword">long</span>[] data = AppMethodBeat.getInstance().copyData(beginRecord);<br>beginRecord.release();<br></code></pre></td></tr></table></figure>
+
+
+
+<p>AppMethodBeat 里面重要的方法就分析完了，我们看看上面忽略的 ActivityThreadHacker 这个类。这个类也很简单，主要就是 hook  ActivityThread的内部类 H 这个类。</p>
+<p>hook Hanlder 一般使用 callback 的方式，不清楚的可以看下消息分发优先级。</p>
+<blockquote>
+<p>com.tencent.matrix.trace.hacker.ActivityThreadHacker#hackSysHandlerCallback</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">hackSysHandlerCallback</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        sApplicationCreateBeginTime = SystemClock.uptimeMillis();<br>        sApplicationCreateBeginMethodIndex = AppMethodBeat.getInstance().maskIndex(<span class="hljs-string">&quot;ApplicationCreateBeginMethodIndex&quot;</span>);<br>        Class&lt;?&gt; forName = Class.forName(<span class="hljs-string">&quot;android.app.ActivityThread&quot;</span>);<br>        Field field = forName.getDeclaredField(<span class="hljs-string">&quot;sCurrentActivityThread&quot;</span>);<br>        field.setAccessible(<span class="hljs-keyword">true</span>);<br>        Object activityThreadValue = field.get(forName);<br>        Field mH = forName.getDeclaredField(<span class="hljs-string">&quot;mH&quot;</span>);<br>        mH.setAccessible(<span class="hljs-keyword">true</span>);<br>        Object handler = mH.get(activityThreadValue);<br>        Class&lt;?&gt; handlerClass = handler.getClass().getSuperclass();<br>        Field callbackField = handlerClass.getDeclaredField(<span class="hljs-string">&quot;mCallback&quot;</span>);<br>        callbackField.setAccessible(<span class="hljs-keyword">true</span>);<br>        Handler.Callback originalCallback = (Handler.Callback) callbackField.get(handler);<br>        HackCallback callback = <span class="hljs-keyword">new</span> HackCallback(originalCallback);<br>        callbackField.set(handler, callback);<br>        MatrixLog.i(TAG, <span class="hljs-string">&quot;hook system handler completed. start:%s SDK_INT:%s&quot;</span>, sApplicationCreateBeginTime, Build.VERSION.SDK_INT);<br>    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        MatrixLog.e(TAG, <span class="hljs-string">&quot;hook system handler err! %s&quot;</span>, e.getCause().toString());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>那么，我们直接看 HackCallback 做了什么：</p>
+<blockquote>
+<p>com.tencent.matrix.trace.hacker.ActivityThreadHacker.HackCallback</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">handleMessage</span><span class="hljs-params">(Message msg)</span> </span>&#123;<br><br>    <span class="hljs-keyword">if</span> (!AppMethodBeat.isRealTrace()) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span> != mOriginalCallback &amp;&amp; mOriginalCallback.handleMessage(msg);<br>    &#125;<br><br>    <span class="hljs-keyword">boolean</span> isLaunchActivity = isLaunchActivity(msg);<br>    <span class="hljs-keyword">if</span> (hasPrint &gt; <span class="hljs-number">0</span>) &#123;<br>        MatrixLog.i(TAG, <span class="hljs-string">&quot;[handleMessage] msg.what:%s begin:%s isLaunchActivity:%s&quot;</span>, msg.what, SystemClock.uptimeMillis(), isLaunchActivity);<br>        hasPrint--;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (isLaunchActivity) &#123;<br>        ActivityThreadHacker.sLastLaunchActivityTime = SystemClock.uptimeMillis();<br>        ActivityThreadHacker.sLastLaunchActivityMethodIndex = AppMethodBeat.getInstance().maskIndex(<span class="hljs-string">&quot;LastLaunchActivityMethodIndex&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (!isCreated) &#123;<br>        <span class="hljs-keyword">if</span> (isLaunchActivity || msg.what == CREATE_SERVICE || msg.what == RECEIVER) &#123; <span class="hljs-comment">// todo for provider</span><br>            ActivityThreadHacker.sApplicationCreateEndTime = SystemClock.uptimeMillis();<br>            ActivityThreadHacker.sApplicationCreateScene = msg.what;<br>            isCreated = <span class="hljs-keyword">true</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span> != mOriginalCallback &amp;&amp; mOriginalCallback.handleMessage(msg);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>是对 activity 的启动做了监控。记录了 activity 启动的时间，记录了对应的 sIndex，以便后面进行启动分析。</p>
+<p>还记录了 application 的启动情况，原理是，如果是第一次启动一个 activity，那么记录当前时间，这个时间就当成 application 创建完成的时间，还记录了启动场景，因为启动APP的，可以有 Activity，Service，BroadcastReceiver 等。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>检测UI线程方法耗时的原理：在每个方法的前后都插入 i / o 方法。</p>
+<p>i / o 方法里面会记录当前方法的 id，当前方法执行的时间。这些信息都储存在一个 long 型变量里面，最后所有的方法形成一个 long 型数组。</p>
+<p>我们可以获取 long 型数组里面的 Message 执行的那一段数据，然后就可以获取到方法调用堆栈，以及每个方法的耗时情况。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Matrix/">Matrix</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/07/02/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/004-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AAnrTracer%20%E7%9B%91%E6%8E%A7ANR/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">004-Matrix源码分析：AnrTracer 监控ANR</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/30/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Matrix/002-Matrix%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9AUIThreadMonitor%E7%9B%91%E6%B5%8B%E4%B8%BB%E7%BA%BF%E7%A8%8B/">
+                        <span class="hidden-mobile">002-Matrix源码分析：UIThreadMonitor监测主线程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

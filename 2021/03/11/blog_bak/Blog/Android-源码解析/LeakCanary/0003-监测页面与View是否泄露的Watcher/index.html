@@ -1,0 +1,702 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.svg">
+  <link rel="icon" href="/img/logo.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aprz512">
+  <meta name="keywords" content="">
+  
+  <title>0003-监测页面与View是否泄露的Watcher - 二手程序员</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.1.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"lyldalek.top","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":200}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","app_key":"FllNdPfQPCLcrJVVXHGyakPQ","server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>二手程序员</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" 
+         style="background: url('/cover/top.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="0003-监测页面与View是否泄露的Watcher">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-03-11 00:00" pubdate>
+        2021年3月11日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.9k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      大约 
+      13
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">0003-监测页面与View是否泄露的Watcher</h1>
+            
+            <div class="markdown-body">
+              <blockquote>
+<p>想要监测一个对象是否泄露，需要知道的是这个对象什么时候应该被销毁，然后再做相应的处理，所以第一个难点是如何找准这个销毁的时机。</p>
+<p>下面我们具体分析源码，看它是如何做的。</p>
+</blockquote>
+<p>所有的 Watcher 都在这个方法里面：</p>
+<blockquote>
+<p>leakcanary.AppWatcher#appDefaultWatchers</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function">fun <span class="hljs-title">appDefaultWatchers</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">  application: Application,</span></span><br><span class="hljs-params"><span class="hljs-function">  reachabilityWatcher: ReachabilityWatcher = objectWatcher</span></span><br><span class="hljs-params"><span class="hljs-function">)</span>: List&lt;InstallableWatcher&gt; </span>&#123;<br>  <span class="hljs-keyword">return</span> listOf(<br>    ActivityWatcher(application, reachabilityWatcher),<br>    FragmentAndViewModelWatcher(application, reachabilityWatcher),<br>    RootViewWatcher(reachabilityWatcher),<br>    ServiceWatcher(reachabilityWatcher)<br>  )<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们先分析 <code>InstallableWatcher</code> 这个接口：</p>
+<blockquote>
+<p>leakcanary.InstallableWatcher</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">InstallableWatcher</span> </span>&#123;<br><br>  <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">install</span><span class="hljs-params">()</span></span><br><br>  <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">uninstall</span><span class="hljs-params">()</span></span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>前面我们说过，想要监测内存泄露，需要调用 Watcher 的 install 方法，对应的，要停止监测，就调用 uninstall 方法，我们下面看看它的子类。</p>
+<h3 id="监测-activity-的泄露"><a href="#监测-activity-的泄露" class="headerlink" title="监测 activity 的泄露"></a>监测 activity 的泄露</h3><blockquote>
+<p>leakcanary.ActivityWatcher</p>
+<p>ActivityLifecycleCallbacks 的执行链：</p>
+<ol>
+<li>application 中注册回调</li>
+<li>activity 的 onDestroy 方法执行</li>
+<li>activity 利用 getApplication 获取 application 对象，调用它的 dispatch 方法</li>
+<li>dispatch 方法调用回调的对应方法</li>
+</ol>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ActivityWatcher</span></span>(<br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> application: Application,<br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> reachabilityWatcher: ReachabilityWatcher<br>) : InstallableWatcher &#123;<br><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> lifecycleCallbacks =<br>    <span class="hljs-keyword">object</span> : Application.ActivityLifecycleCallbacks <span class="hljs-keyword">by</span> noOpDelegate() &#123;<br>      <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onActivityDestroyed</span><span class="hljs-params">(activity: <span class="hljs-type">Activity</span>)</span></span> &#123;<br>        reachabilityWatcher.expectWeaklyReachable(<br>          activity, <span class="hljs-string">&quot;<span class="hljs-subst">$&#123;activity::class.java.name&#125;</span> received Activity#onDestroy() callback&quot;</span><br>        )<br>      &#125;<br>    &#125;<br><br>  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">install</span><span class="hljs-params">()</span></span> &#123;<br>    application.registerActivityLifecycleCallbacks(lifecycleCallbacks)<br>  &#125;<br><br>  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">uninstall</span><span class="hljs-params">()</span></span> &#123;<br>    application.unregisterActivityLifecycleCallbacks(lifecycleCallbacks)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里的逻辑比较简单，就是在每个 activity 的 onDestroy 方法执行的时候去调用 <code>leakcanary.ReachabilityWatcher#expectWeaklyReachable</code> 这个方法。</p>
+<p><code>ReachabilityWatcher</code>它的实现类是 <code>leakcanary.ObjectWatcher</code>，我们<strong>后面再具体分析它是如何监测某一个对象是否泄露了的</strong>！</p>
+<h3 id="监测-fragment-的泄露"><a href="#监测-fragment-的泄露" class="headerlink" title="监测 fragment 的泄露"></a>监测 fragment 的泄露</h3><p>看 install 方法：</p>
+<blockquote>
+<p>leakcanary.FragmentAndViewModelWatcher#install</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">install</span><span class="hljs-params">()</span></span> &#123;<br>  application.registerActivityLifecycleCallbacks(lifecycleCallbacks)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>欸，这里它也注册了一个 activity 的生命周期的回调。然后在这里回调里面做了这样的事情：</p>
+<blockquote>
+<p>leakcanary.FragmentAndViewModelWatcher#lifecycleCallbacks</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> lifecycleCallbacks =<br>  <span class="hljs-keyword">object</span> : Application.ActivityLifecycleCallbacks <span class="hljs-keyword">by</span> noOpDelegate() &#123;<br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onActivityCreated</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">      activity: <span class="hljs-type">Activity</span>,</span></span><br><span class="hljs-params"><span class="hljs-function">      savedInstanceState: <span class="hljs-type">Bundle</span>?</span></span><br><span class="hljs-params"><span class="hljs-function">    )</span></span> &#123;<br>      <span class="hljs-keyword">for</span> (watcher <span class="hljs-keyword">in</span> fragmentDestroyWatchers) &#123;<br>        watcher(activity)<br>      &#125;<br>    &#125;<br>  &#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里的生命周期是 onActivityCreated</p>
+</blockquote>
+<p>嗯，这里有许多个 fragmentDestroyWatcher：</p>
+<ul>
+<li>AndroidOFragmentDestroyWatcher</li>
+<li>AndroidXFragmentDestroyWatcher</li>
+<li>AndroidSupportFragmentDestroyWatcher</li>
+</ul>
+<p>根据不同的库会有不同的实现，因为不同的库 fragment 的实现也不一样。这里我们只分析 androidx 的实现。</p>
+<p>for 循环里面调用了 watcher 的 invoke 方法，我们看对应的代码：</p>
+<blockquote>
+<p>leakcanary.internal.AndroidXFragmentDestroyWatcher#invoke</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">invoke</span><span class="hljs-params">(activity: <span class="hljs-type">Activity</span>)</span></span> &#123;<br>  <span class="hljs-keyword">if</span> (activity <span class="hljs-keyword">is</span> FragmentActivity) &#123;<br>    <span class="hljs-keyword">val</span> supportFragmentManager = activity.supportFragmentManager<br>    supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, <span class="hljs-literal">true</span>)<br>    ViewModelClearedWatcher.install(activity, reachabilityWatcher)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里是针对每一个 activity 都做了同样事情，在 activity 中注册了一个 FragmentLifecycleCallbacks，所以就能够监听到该 activity  中所有的 fragment 的生命周期。那么，如果监测 fragment 中的 fragment 的生命周期呢？看到上面的  <code>registerFragmentLifecycleCallbacks</code>这个方法中的第 2 个参数，它就是表示可以递归的注册的，所以，它可以监测 fragment 中的 fragment 的生命周期。</p>
+<p>拿到 fragment 的生命周期之后，与 activity 一样，调用 ReachabilityWatcher 的方法：</p>
+<blockquote>
+<p>androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks#onFragmentDestroyed</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onFragmentDestroyed</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    fm: <span class="hljs-type">FragmentManager</span>,</span></span><br><span class="hljs-params"><span class="hljs-function">    fragment: <span class="hljs-type">Fragment</span></span></span><br><span class="hljs-params"><span class="hljs-function">  )</span></span> &#123;<br>    reachabilityWatcher.expectWeaklyReachable(<br>      fragment, <span class="hljs-string">&quot;<span class="hljs-subst">$&#123;fragment::class.java.name&#125;</span> received Fragment#onDestroy() callback&quot;</span><br>    )<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>但是，fragment 与 activity 还不一样，它有两个 onDestroy 方法，一个是它自身的，一个是它的 view 的。当 fragment 的 onDestroyView 方法执行后，这个 View 应该被销毁，所以我们也要监测这个 view 是否泄露。因为很多情况下，fragment 的生命周期都只会走到 onDestroyView 这里，但是如果我们在内部类里面更新该 fragment 的界面的时候，就会出现内存泄露问题。</p>
+<p>这样，fragment 的处理就差不多了，但是 invoke 方法里还有一行代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">ViewModelClearedWatcher.install(activity, reachabilityWatcher)<br></code></pre></td></tr></table></figure>
+
+<p>看起来是监测 ViewModel 的。</p>
+<h3 id="监测-ViewModel-的泄露"><a href="#监测-ViewModel-的泄露" class="headerlink" title="监测 ViewModel 的泄露"></a>监测 ViewModel 的泄露</h3><p>看 install 方法：</p>
+<blockquote>
+<p>leakcanary.internal.ViewModelClearedWatcher.Companion#install</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">  <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> &#123;<br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">install</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">      storeOwner: <span class="hljs-type">ViewModelStoreOwner</span>,</span></span><br><span class="hljs-params"><span class="hljs-function">      reachabilityWatcher: <span class="hljs-type">ReachabilityWatcher</span></span></span><br><span class="hljs-params"><span class="hljs-function">    )</span></span> &#123;<br>      <span class="hljs-keyword">val</span> provider = ViewModelProvider(storeOwner, <span class="hljs-keyword">object</span> : Factory &#123;<br>        <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;UNCHECKED_CAST&quot;</span>)</span><br>        <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T : ViewModel?&gt;</span> <span class="hljs-title">create</span><span class="hljs-params">(modelClass: <span class="hljs-type">Class</span>&lt;<span class="hljs-type">T</span>&gt;)</span></span>: T =<br>          ViewModelClearedWatcher(storeOwner, reachabilityWatcher) <span class="hljs-keyword">as</span> T<br>      &#125;)<br>      provider.<span class="hljs-keyword">get</span>(ViewModelClearedWatcher::<span class="hljs-keyword">class</span>.java)<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里其实就是调用了 ViewModelClearedWatcher 的构造方法。可以理解为在 activity 的 viewModelStore 里面添加了一个 <code>ViewModelClearedWatcher</code> 对象。</p>
+<p>当 activity 执行 onDestroy 方法的时候，viewModel 的 onClear 方法会执行。所以，我们可以在 <code>ViewModelClearedWatcher</code>  这个对象的 onClear 方法里面去判断其他的 viewModel 是否内存泄露了。</p>
+<p>首先，使用反射拿到 activity 的 viewModeStore 的 <code>mMap</code>字段：</p>
+<blockquote>
+<p>leakcanary/internal/ViewModelClearedWatcher.kt:24</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">init</span> &#123;<br>  <span class="hljs-comment">// We could call ViewModelStore#keys with a package spy in androidx.lifecycle instead,</span><br>  <span class="hljs-comment">// however that was added in 2.1.0 and we support AndroidX first stable release. viewmodel-2.0.0</span><br>  <span class="hljs-comment">// does not have ViewModelStore#keys. All versions currently have the mMap field.</span><br>  viewModelMap = <span class="hljs-keyword">try</span> &#123;<br>    <span class="hljs-keyword">val</span> mMapField = ViewModelStore::<span class="hljs-keyword">class</span>.java.getDeclaredField(<span class="hljs-string">&quot;mMap&quot;</span>)<br>    mMapField.isAccessible = <span class="hljs-literal">true</span><br>    <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;UNCHECKED_CAST&quot;</span>)</span><br>    mMapField[storeOwner.viewModelStore] <span class="hljs-keyword">as</span> Map&lt;String, ViewModel&gt;<br>  &#125; <span class="hljs-keyword">catch</span> (ignored: Exception) &#123;<br>    <span class="hljs-literal">null</span><br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后，在 onClear 方法里面去遍历里面所有的对象，监测它们：</p>
+<blockquote>
+<p>leakcanary.internal.ViewModelClearedWatcher#onCleared</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCleared</span><span class="hljs-params">()</span></span> &#123;<br>  viewModelMap?.values?.forEach &#123; viewModel -&gt;<br>    reachabilityWatcher.expectWeaklyReachable(<br>      viewModel, <span class="hljs-string">&quot;<span class="hljs-subst">$&#123;viewModel::class.java.name&#125;</span> received ViewModel#onCleared() callback&quot;</span><br>    )<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>上面只是说了监测 activity 中的 viewModel 的泄露，那么 fragment 中的 viewModel 没有监测吗？？</p>
+<p>是有的，上面监测 activity 中的 viewModel 的泄露是在  onActivityCreated 的回调中处理的，而监测 fragment 中的 viewModel 的泄露是在下面的代码中做的：</p>
+<blockquote>
+<p>androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks#onFragmentCreated</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onFragmentCreated</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">  fm: <span class="hljs-type">FragmentManager</span>,</span></span><br><span class="hljs-params"><span class="hljs-function">  fragment: <span class="hljs-type">Fragment</span>,</span></span><br><span class="hljs-params"><span class="hljs-function">  savedInstanceState: <span class="hljs-type">Bundle</span>?</span></span><br><span class="hljs-params"><span class="hljs-function">)</span></span> &#123;<br>  ViewModelClearedWatcher.install(fragment, reachabilityWatcher)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="监测-rootView-的泄露"><a href="#监测-rootView-的泄露" class="headerlink" title="监测 rootView 的泄露"></a>监测 rootView 的泄露</h3><p>RootView 有多种：</p>
+<ul>
+<li><p>PHONE_WINDOW</p>
+<ul>
+<li>Activity（我们已经监测了 activity，所以这个没必要）</li>
+<li>Dialog</li>
+</ul>
+</li>
+<li><p>POPUP_WINDOW</p>
+<p>由于 popup_window 通常会被缓存，所以没必要监测，当它 dismiss 后，还可能再显示出来</p>
+</li>
+<li><p>TOOLTIP</p>
+<p>Tooltips可以实现类似pc端网页鼠标悬停时出现描述信息的功能，而到安卓中，如果给一个控件使用了Tooltips，那么当用户长按这个控件时，我们预设的描述信息就会悬浮出现在控件附件某个位置。</p>
+</li>
+<li><p>TOAST</p>
+</li>
+</ul>
+<p>所以，最后，Dialog，TOOLTIP，TOAST 是需要监测的对象。当然，leakCanary 里面还做了 <code>else</code> 逻辑处理，略。</p>
+<p>我们看它是在什么时候监测 rootView 的：</p>
+<blockquote>
+<p>curtains.internal.WindowManagerSpy#swapWindowManagerGlobalMViews</p>
+</blockquote>
+<p>在分析这个方法之前，我们看一下这个方法的名字，因为后面的许多逻辑都是这个套路，为了不重复，这里只分析一遍。</p>
+<p><code>swapWindowManagerGlobalMViews</code> </p>
+<p>swap  是交换</p>
+<p>WindowManagerGlobal 是一个类，Framework 中的</p>
+<p>mViews 是 WindowManagerGlobal 的一个字段。</p>
+<p>很明显，这个方法的作用，是使用反射来替换掉 WindowManagerGlobal  的 mViews 字段。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// You can discourage me all you want I&#x27;ll still do it.</span><br><span class="hljs-meta">@SuppressLint(<span class="hljs-meta-string">&quot;PrivateApi&quot;</span>, <span class="hljs-meta-string">&quot;ObsoleteSdkInt&quot;</span>, <span class="hljs-meta-string">&quot;DiscouragedPrivateApi&quot;</span>)</span><br><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">swapWindowManagerGlobalMViews</span><span class="hljs-params">(swap: (<span class="hljs-type">ArrayList</span>&lt;<span class="hljs-type">View</span>&gt;) -&gt; <span class="hljs-type">ArrayList</span>&lt;<span class="hljs-type">View</span>&gt;)</span></span> &#123;<br>  <span class="hljs-keyword">if</span> (SDK_INT &lt; <span class="hljs-number">19</span>) &#123;<br>    <span class="hljs-keyword">return</span><br>  &#125;<br>  <span class="hljs-keyword">try</span> &#123;<br>    windowManagerInstance?.let &#123; windowManagerInstance -&gt;<br>      mViewsField?.let &#123; mViewsField -&gt;<br>        <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;UNCHECKED_CAST&quot;</span>)</span><br>        <span class="hljs-keyword">val</span> mViews = mViewsField[windowManagerInstance] <span class="hljs-keyword">as</span> ArrayList&lt;View&gt;<br>        mViewsField[windowManagerInstance] = swap(mViews)<br>      &#125;<br>    &#125;<br>  &#125; <span class="hljs-keyword">catch</span> (ignored: Throwable) &#123;<br>    Log.w(<span class="hljs-string">&quot;WindowManagerSpy&quot;</span>, ignored)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这个方法的注释也很有意思，你不让我搞，我还是要搞，我就是要出狂战斧！！！里面的逻辑就不细说了，就是反射。说个额外话题，就是为啥要 hook 这个字段呢？</p>
+<p>因为，view想要显示出来，需要将自己添加到 window上，而 window 是由 WMS 管理的，app 与 WMS 是通过 Binder 通信，app 端的代理就是 WindowManagerGlobal 这个对象。所以，每个 activity，dialog，toast 显示的时候，都需要经过 WindowManagerGlobal 的 addView 方法，而所有的添加的 view 都存放在了 WindowManagerGlobal  的 mViews 字段里面。</p>
+<p>这个方法的作用说清楚了，再说一下这个方法的构成，从它的名字，我们可以知道这个方法的作用，但是还需要注意的时，<strong>这个方法的参数是一个 lambda 表达式。这个 lambda 表达式的参数，是该方法要替换的那个字段。</strong></p>
+<p>有点绕，但是好理解，因为有时候我们不仅仅是需要将字段替换一下，而是需要利用原来的字段值做一些处理之后再设置回去，这样，外部调用这个方法的时候，就可以直接使用 lambda 的参数即可。</p>
+<p>我们看看使用这个方法的地方：</p>
+<blockquote>
+<p>curtains.internal.RootViewsSpy.Companion#install</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">install</span><span class="hljs-params">()</span></span>: RootViewsSpy &#123;<br>  <span class="hljs-keyword">return</span> RootViewsSpy().apply &#123;<br>    WindowManagerSpy.swapWindowManagerGlobalMViews &#123; mViews -&gt;<br>      delegatingViewList.apply &#123; addAll(mViews) &#125;<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其实就是将 mViews 字段，替换为 delegatingViewList，delegatingViewList 将 mViews 里面的值 copy 过来了。这个方法里面的逻辑如此简单，相比奥妙必然在 delegatingViewList 里面。</p>
+<blockquote>
+<p>curtains/internal/RootViewsSpy.kt:23</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> val delegatingViewList = object : ArrayList&lt;View&gt;() &#123;<br>  <span class="hljs-function">override fun <span class="hljs-title">add</span><span class="hljs-params">(element: View)</span>: Boolean </span>&#123;<br>    listeners.forEach &#123; it.onRootViewsChanged(element, <span class="hljs-keyword">true</span>) &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">super</span>.add(element)<br>  &#125;<br><br>  <span class="hljs-function">override fun <span class="hljs-title">removeAt</span><span class="hljs-params">(index: Int)</span>: View </span>&#123;<br>    val removedView = <span class="hljs-keyword">super</span>.removeAt(index)<br>    listeners.forEach &#123; it.onRootViewsChanged(removedView, <span class="hljs-keyword">false</span>) &#125;<br>    <span class="hljs-keyword">return</span> removedView<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>它重写了 list 的 add 与 removeAt 方法，在这两个方法执行的时候，调用了 listener 的对应方法。这个  listener 是在下面的方法处添加的：</p>
+<blockquote>
+<p>leakcanary.RootViewWatcher#install</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">install</span><span class="hljs-params">()</span></span> &#123;<br>  Curtains.onRootViewsChangedListeners += listener<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>看这个 listener 的实现：</p>
+<blockquote>
+<p>leakcanary.RootViewWatcher#listener</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> listener = OnRootViewAddedListener &#123; rootView -&gt;<br>  <span class="hljs-keyword">val</span> trackDetached = <span class="hljs-keyword">when</span>(rootView.windowType) &#123;<br>    PHONE_WINDOW -&gt; &#123;<br>      <span class="hljs-keyword">when</span> (rootView.phoneWindow?.callback?.wrappedCallback) &#123;<br>        <span class="hljs-comment">// Activities are already tracked by ActivityWatcher</span><br>        <span class="hljs-keyword">is</span> Activity -&gt; <span class="hljs-literal">false</span><br>        <span class="hljs-keyword">is</span> Dialog -&gt; rootView.resources.getBoolean(R.bool.leak_canary_watcher_watch_dismissed_dialogs)<br>        <span class="hljs-comment">// Probably a DreamService</span><br>        <span class="hljs-keyword">else</span> -&gt; <span class="hljs-literal">true</span><br>      &#125;<br>    &#125;<br>    <span class="hljs-comment">// Android widgets keep detached popup window instances around.</span><br>    POPUP_WINDOW -&gt; <span class="hljs-literal">false</span><br>    TOOLTIP, TOAST, UNKNOWN -&gt; <span class="hljs-literal">true</span><br>  &#125;<br>  <span class="hljs-keyword">if</span> (trackDetached) &#123;<br>    rootView.addOnAttachStateChangeListener(<span class="hljs-keyword">object</span> : OnAttachStateChangeListener &#123;<br><br>      <span class="hljs-keyword">val</span> watchDetachedView = Runnable &#123;<br>        reachabilityWatcher.expectWeaklyReachable(<br>          rootView, <span class="hljs-string">&quot;<span class="hljs-subst">$&#123;rootView::class.java.name&#125;</span> received View#onDetachedFromWindow() callback&quot;</span><br>        )<br>      &#125;<br><br>      <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onViewAttachedToWindow</span><span class="hljs-params">(v: <span class="hljs-type">View</span>)</span></span> &#123;<br>        mainHandler.removeCallbacks(watchDetachedView)<br>      &#125;<br><br>      <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onViewDetachedFromWindow</span><span class="hljs-params">(v: <span class="hljs-type">View</span>)</span></span> &#123;<br>        mainHandler.post(watchDetachedView)<br>      &#125;<br>    &#125;)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其实就是，为每个 rootView 都添加了一个 addOnAttachStateChangeListener 监听。在 onViewDetachedFromWindow 的时候，去监听这个对象是否泄露。</p>
+<h3 id="监测-Service-的泄露"><a href="#监测-Service-的泄露" class="headerlink" title="监测 Service 的泄露"></a>监测 Service 的泄露</h3><p>service 的泄露监测点要稍微复杂一点，涉及到两个方面：</p>
+<ul>
+<li>mH</li>
+<li>ActivityManager</li>
+</ul>
+<blockquote>
+<p>leakcanary.ServiceWatcher#install</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">// 替换 ActivityThread 里面 mH 的 callback 字段</span><br>swapActivityThreadHandlerCallback &#123; mCallback -&gt;<br>  <span class="hljs-comment">// uninstall 的时候，需要将替换的字段替换回来</span><br>  uninstallActivityThreadHandlerCallback = &#123;<br>    swapActivityThreadHandlerCallback &#123;<br>      mCallback<br>    &#125;<br>  &#125;<br>  <span class="hljs-comment">// 创建新的 callback 对象，替换原来的</span><br>  Handler.Callback &#123; msg -&gt;<br>    <span class="hljs-comment">// 针对 STOP_SERVICE 消息进行处理</span><br>    <span class="hljs-keyword">if</span> (msg.what == STOP_SERVICE) &#123;<br>      <span class="hljs-keyword">val</span> key = msg.obj <span class="hljs-keyword">as</span> IBinder<br>      <span class="hljs-comment">// 从 activityThread 的 mServices 字段里面，拿到 Service 对象</span><br>      activityThreadServices[key]?.let &#123;<br>        <span class="hljs-comment">// 将 service 用弱引用包装后放入 map</span><br>        onServicePreDestroy(key, it)<br>      &#125;<br>    &#125;<br>    <span class="hljs-comment">// 返回 false，继续走 handler 的 handleMessage 逻辑</span><br>    mCallback?.handleMessage(msg) ?: <span class="hljs-literal">false</span><br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>以  swap 方法开头的前面已经说过这个套路了，就不重复了，上面的代码就是 替换 ActivityThread 里面 mH 的 callback 字段。</p>
+<p>由于，我们监测的是 Service，hook 它的作用就是可以拿到 service 对应的 binder 对象，通过这个 binder 对象，我们就可以获取到对应的 Service，然后在监测这个 Service。</p>
+<p>上面的代码中，有个 <code>onServicePreDestroy</code> 方法，它就是将 binder 与 service 储存起来了。</p>
+<blockquote>
+<p>leakcanary.ServiceWatcher#onServicePreDestroy</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onServicePreDestroy</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">  token: <span class="hljs-type">IBinder</span>,</span></span><br><span class="hljs-params"><span class="hljs-function">  service: <span class="hljs-type">Service</span></span></span><br><span class="hljs-params"><span class="hljs-function">)</span></span> &#123;<br>  servicesToBeDestroyed[token] = WeakReference(service)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后，找到真正 service 执行 onDestroy 的地方：</p>
+<blockquote>
+<p>leakcanary.ServiceWatcher#install</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><br>  <span class="hljs-comment">// 因为 handler 的 handleMessage 逻辑里面，会调用 ActivityManager.getService().serviceDoneExecuting() 方法</span><br>  <span class="hljs-comment">// 所以需要 hook ActivityManager，在这个方法里去监测 service 的泄露情况</span><br>  swapActivityManager &#123; activityManagerInterface, activityManagerInstance -&gt;<br>    <span class="hljs-comment">// 卸载函数，同上</span><br>    uninstallActivityManager = &#123;<br>      swapActivityManager &#123; _, _ -&gt;<br>        activityManagerInstance<br>      &#125;<br>    &#125;<br>    <span class="hljs-comment">// 动态代理，hook ActivityManager 的 serviceDoneExecuting 方法</span><br>    Proxy.newProxyInstance(<br>      activityManagerInterface.classLoader, arrayOf(activityManagerInterface)<br>    ) &#123; _, method, args -&gt;<br>      <span class="hljs-keyword">if</span> (METHOD_SERVICE_DONE_EXECUTING == method.name) &#123;<br>        <span class="hljs-keyword">val</span> token = args!![<span class="hljs-number">0</span>] <span class="hljs-keyword">as</span> IBinder<br>        <span class="hljs-keyword">if</span> (servicesToBeDestroyed.containsKey(token)) &#123;<br>          <span class="hljs-comment">// serviceDoneExecuting 方法的参数里面只有 token，所以在 onServicePreDestroy 里面保存了 token - service 的键值对（弱引用map）</span><br>          onServiceDestroyed(token)<br>        &#125;<br>      &#125;<br>      <span class="hljs-comment">// 调用原来的逻辑</span><br>      <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-keyword">if</span> (args == <span class="hljs-literal">null</span>) &#123;<br>          method.invoke(activityManagerInstance)<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>          method.invoke(activityManagerInstance, *args)<br>        &#125;<br>      &#125; <span class="hljs-keyword">catch</span> (invocationException: InvocationTargetException) &#123;<br>        <span class="hljs-keyword">throw</span> invocationException.targetException<br>      &#125;<br>    &#125;<br>  &#125;<br>&#125; <span class="hljs-keyword">catch</span> (ignored: Throwable) &#123;<br>  SharkLog.d(ignored) &#123; <span class="hljs-string">&quot;Could not watch destroyed services&quot;</span> &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>service 的 onDestroy 方法执行后，接下来就执行 ActivityManager 的 serviceDoneExecuting 方法，所以hook这个方法也没问题。</p>
+<p><code>onServiceDestroyed</code>这个方法里面，就是监测代码了：</p>
+<blockquote>
+<p>leakcanary.ServiceWatcher#onServiceDestroyed</p>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onServiceDestroyed</span><span class="hljs-params">(token: <span class="hljs-type">IBinder</span>)</span></span> &#123;<br>  <span class="hljs-comment">// 从 map 中取出弱引用来</span><br>  servicesToBeDestroyed.remove(token)?.also &#123; serviceWeakReference -&gt;<br>    <span class="hljs-comment">// 拿到 service</span><br>    serviceWeakReference.<span class="hljs-keyword">get</span>()?.let &#123; service -&gt;<br>      <span class="hljs-comment">// 监测 service</span><br>      reachabilityWatcher.expectWeaklyReachable(<br>        service, <span class="hljs-string">&quot;<span class="hljs-subst">$&#123;service::class.java.name&#125;</span> received Service#onDestroy() callback&quot;</span><br>      )<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/LeakCanary/">LeakCanary</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Android%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-LeakCanary/">Android源码解析-LeakCanary</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/03/11/blog_bak/Blog/Android-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/LeakCanary/0002-%E8%87%AA%E5%8A%A8%E5%88%9D%E5%A7%8B%E5%8C%96/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">0002-自动初始化</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/03/06/blog_bak/Blog/%E6%8A%98%E8%85%BE/%E9%95%9C%E5%83%8F%E4%B8%8E%E4%BB%A3%E7%90%86%E9%97%AE%E9%A2%98/">
+                        <span class="hidden-mobile">镜像与代理问题</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appKey":"FllNdPfQPCLcrJVVXHGyakPQ","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":null,"emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[],"appid":"oWSVw2w2LW7MdhWmyHAsgyH6-MdYXbMMI","appkey":"FllNdPfQPCLcrJVVXHGyakPQ"},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":200})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.5.3/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.12.0/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
